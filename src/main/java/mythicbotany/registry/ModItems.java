@@ -31,7 +31,7 @@ import net.minecraftforge.common.ISpecialArmor;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import vazkii.botania.client.model.armor.ModelArmorManasteel;
+import vazkii.botania.client.model.armor.ModelArmorTerrasteel;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 
 public final class ModItems {
@@ -114,7 +114,7 @@ public final class ModItems {
         public ModelBiped getArmorModel(EntityLivingBase entityLiving,
                                         net.minecraft.item.ItemStack stack,
                                         EntityEquipmentSlot armorSlot, ModelBiped original) {
-            ModelBiped model = new ModelArmorManasteel(armorSlot);
+            ModelBiped model = new ModelArmorTerrasteel(armorSlot);
             model.setModelAttributes(original);
             return model;
         }
