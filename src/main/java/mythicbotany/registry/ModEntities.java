@@ -11,7 +11,8 @@ public final class ModEntities {
     public static void register() {
         if (registered) return;
         ResourceLocation id = new ResourceLocation(MythicBotany.MODID, "alf_pixie");
-        EntityRegistry.registerModEntity(id, EntityAlfPixie.class, "alf_pixie", 100, MythicBotany.INSTANCE, 64, 3, true);
+        EntityRegistry.registerModEntity(id, EntityAlfPixie.class, "alf_pixie", 100,
+                MythicBotany.INSTANCE, 64, 3, true);
         EntityRegistry.registerEgg(id, 0x9E65D6, 0x28173D);
         registered = true;
     }
