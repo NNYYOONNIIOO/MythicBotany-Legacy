@@ -20,7 +20,7 @@ public class BlockDragonstoneOre extends Block {
 
     @Override
     public Item getItemDropped(IBlockState state, Random random, int fortune) {
-        return Item.getByNameOrId("botania:manaresource");
+        return vazkii.botania.common.item.ModItems.manaResource;
     }
 
     @Override
@@ -38,4 +38,3 @@ public class BlockDragonstoneOre extends Block {
         return 1 + (fortune > 0 ? random.nextInt(fortune + 1) : 0);
     }
 }
-

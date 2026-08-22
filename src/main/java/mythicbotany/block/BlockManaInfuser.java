@@ -72,4 +72,19 @@ public class BlockManaInfuser extends BlockContainer {
         }
         super.breakBlock(worldIn, pos, state);
     }
+    @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, net.minecraft.world.IBlockAccess source, BlockPos pos) {
+        return THREE_PIXEL_BOX;
+    }
+
+    @Override
+    public boolean isOpaqueCube(IBlockState state) {
+        return false;
+    }
+
+    @Override
+    public boolean isFullCube(IBlockState state) {
+        return false;
+    }
+
 }

@@ -1,6 +1,6 @@
 package mythicbotany.entity;
 
-import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIAttackMelee;
@@ -14,7 +14,7 @@ import net.minecraft.entity.monster.EntityEndermite;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public class EntityAlfPixie extends EntityCreature {
+public class EntityAlfPixie extends EntityMob {
     private double targetX;
     private double targetY;
     private double targetZ;
