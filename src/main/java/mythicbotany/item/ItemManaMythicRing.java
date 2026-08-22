@@ -14,7 +14,8 @@ public class ItemManaMythicRing extends ItemMythicRing implements IManaItem, IMa
     @Override public int getMana(ItemStack stack) { return ItemNBTHelper.getInt(stack, TAG_MANA, 0); }
     @Override public int getMaxMana(ItemStack stack) { return 4000000; }
     @Override public void addMana(ItemStack stack, int mana) {
-        ItemNBTHelper.setInt(stack, TAG_MANA, Math.max(0, Math.min(getMaxMana(stack), getMana(stack) + mana)));
+        long value = (long) getMana(stack) + mana;
+        ItemNBTHelper.setInt(stack, TAG_MANA, (int) Math.max(0L, Math.min(getMaxMana(stack), value)));
     }
     @Override public boolean canReceiveManaFromPool(ItemStack stack, TileEntity pool) { return true; }
     @Override public boolean canReceiveManaFromItem(ItemStack stack, ItemStack otherStack) { return true; }

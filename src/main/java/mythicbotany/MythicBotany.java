@@ -55,6 +55,7 @@ public final class MythicBotany {
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
         ModDimensions.register();
+        ModRecipes.registerSpecialFlowerSubTiles();
         GameRegistry.registerTileEntity(TileManaInfuser.class, tileId("mana_infuser"));
         GameRegistry.registerTileEntity(TileManaCollector.class, tileId("mana_collector"));
         GameRegistry.registerTileEntity(TileRuneHolder.class, tileId("rune_holder"));

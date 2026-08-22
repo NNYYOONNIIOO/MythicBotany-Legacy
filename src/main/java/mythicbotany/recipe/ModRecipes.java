@@ -11,6 +11,7 @@ import vazkii.botania.common.item.block.ItemBlockSpecialFlower;
 
 public final class ModRecipes {
     private static boolean registered;
+    private static boolean specialFlowersRegistered;
 
     private ModRecipes() {
     }
@@ -27,6 +28,21 @@ public final class ModRecipes {
         registerSpecialFlowerRecipes();
     }
 
+    /** Register Botania's shared specialflower subtiles before client models and tile data are baked. */
+    public static void registerSpecialFlowerSubTiles() {
+        if (specialFlowersRegistered) {
+            return;
+        }
+        specialFlowersRegistered = true;
+        BotaniaAPI.registerSubTile("mythicbotany_exoblaze", MythicFlowerSubTiles.Exoblaze.class);
+        BotaniaAPI.registerSubTile("mythicbotany_wither_aconite", MythicFlowerSubTiles.WitherAconite.class);
+        BotaniaAPI.registerSubTile("mythicbotany_aquapanthus", MythicFlowerSubTiles.Aquapanthus.class);
+        BotaniaAPI.registerSubTile("mythicbotany_hellebore", MythicFlowerSubTiles.Hellebore.class);
+        BotaniaAPI.registerSubTile("mythicbotany_raindeletia", MythicFlowerSubTiles.Raindeletia.class);
+        BotaniaAPI.registerSubTile("mythicbotany_feysythia", MythicFlowerSubTiles.Feysythia.class);
+        BotaniaAPI.registerSubTile("mythicbotany_petrunia", MythicFlowerSubTiles.Petrunia.class);
+    }
+
     private static void registerOreDictionary() {
         OreDictionary.registerOre("ingotAlfsteel", new ItemStack(ModItems.alfsteelIngot));
         OreDictionary.registerOre("nuggetAlfsteel", new ItemStack(ModItems.alfsteelNugget));
@@ -37,25 +53,19 @@ public final class ModRecipes {
     }
 
     private static void registerSpecialFlowerRecipes() {
-        BotaniaAPI.registerSubTile("mythicbotany_exoblaze", MythicFlowerSubTiles.Exoblaze.class);
-        BotaniaAPI.registerSubTile("mythicbotany_wither_aconite", MythicFlowerSubTiles.WitherAconite.class);
-        BotaniaAPI.registerSubTile("mythicbotany_aquapanthus", MythicFlowerSubTiles.Aquapanthus.class);
-        BotaniaAPI.registerSubTile("mythicbotany_hellebore", MythicFlowerSubTiles.Hellebore.class);
-        BotaniaAPI.registerSubTile("mythicbotany_raindeletia", MythicFlowerSubTiles.Raindeletia.class);
-        BotaniaAPI.registerSubTile("mythicbotany_feysythia", MythicFlowerSubTiles.Feysythia.class);
-        BotaniaAPI.registerSubTile("mythicbotany_petrunia", MythicFlowerSubTiles.Petrunia.class);
+        registerSpecialFlowerSubTiles();
 
         ItemStack red = petal(14);
         ItemStack orange = petal(1);
-        ItemStack yellow = petal(11);
-        ItemStack green = petal(2);
+        ItemStack yellow = petal(4);
+        ItemStack green = petal(13);
         ItemStack lime = petal(5);
-        ItemStack blue = petal(4);
-        ItemStack cyan = petal(6);
-        ItemStack lightBlue = petal(12);
-        ItemStack purple = petal(13);
-        ItemStack magenta = petal(13);
-        ItemStack black = petal(8);
+        ItemStack blue = petal(11);
+        ItemStack cyan = petal(9);
+        ItemStack lightBlue = petal(3);
+        ItemStack purple = petal(10);
+        ItemStack magenta = petal(2);
+        ItemStack black = petal(15);
         ItemStack white = petal(0);
         BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_exoblaze"), red, red, orange, orange,
                 new ItemStack(ModItems.muspelheimRune));
