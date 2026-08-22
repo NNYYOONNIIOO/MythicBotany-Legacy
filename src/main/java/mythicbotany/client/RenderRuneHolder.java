@@ -32,7 +32,12 @@ public class RenderRuneHolder extends TileEntitySpecialRenderer<TileRuneHolder> 
                                      double x, double y, double z) {
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
-        Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlockBrightness(state, 1.0F);
+        // These blocks use ENTITYBLOCK_ANIMATED so their normal dispatcher path
+        // invokes the item's TESR again. Render the baked block model directly
+        // here to avoid recursively rendering the builtin/entity item model.
+        Minecraft minecraft = Minecraft.getMinecraft();
+        minecraft.getBlockRendererDispatcher().getBlockModelRenderer().renderModelBrightness(
+                minecraft.getBlockRendererDispatcher().getModelForState(state), state, 1.0F, false);
         GlStateManager.popMatrix();
     }
 
