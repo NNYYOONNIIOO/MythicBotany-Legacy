@@ -5,6 +5,7 @@ import mythicbotany.recipe.ModRecipes;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
 import mythicbotany.tile.TileManaCollector;
+import mythicbotany.tile.TileFunctionalFlower;
 import mythicbotany.tile.TileManaInfuser;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
@@ -48,6 +49,7 @@ public final class MythicBotany {
         logger = event.getModLog();
         GameRegistry.registerTileEntity(TileManaInfuser.class, "mythicbotany_mana_infuser");
         GameRegistry.registerTileEntity(TileManaCollector.class, "mythicbotany_mana_collector");
+        GameRegistry.registerTileEntity(TileFunctionalFlower.class, "mythicbotany_functional_flower");
         proxy.preInit();
     }
 
