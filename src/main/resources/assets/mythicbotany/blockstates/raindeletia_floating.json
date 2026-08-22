@@ -1,6 +1,6 @@
 {
   "variants": {
-    "": {
+    "normal": {
       "model": "mythicbotany:block/raindeletia_floating"
     }
   }
