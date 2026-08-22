@@ -86,6 +86,8 @@ public final class ModelHandler {
                 TileCentralRuneHolder.class);
         ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.alfsteelPylon), 0,
                 TileAlfsteelPylon.class);
+        Item.getItemFromBlock(ModBlocks.alfsteelPylon).setTileEntityItemStackRenderer(
+                new RenderAlfsteelPylon.ItemRenderer());
     }
 
     /** Re-apply the item models after the generic ItemBlock registration. */

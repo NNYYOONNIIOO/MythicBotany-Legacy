@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+
 import baubles.api.BaublesApi;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLeaves;
@@ -14,8 +17,11 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemBlock;
@@ -42,6 +48,10 @@ public class ItemAlfsteelAxe extends ItemAxe implements ISequentialBreaker {
     private static final int MANA_PER_DAMAGE = AlfsteelRepairHelper.MANA_PER_DURABILITY;
     private static final int LOG_RANGE = 31;
     private static final int LEAF_RANGE = 3;
+    private static final java.util.UUID ATTACK_DAMAGE_UUID =
+            java.util.UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a201");
+    private static final java.util.UUID ATTACK_SPEED_UUID =
+            java.util.UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a202");
     private static final String LOKI_CURSOR_LIST = "cursorList";
     private static final String LOKI_CURSOR_COUNT = "cursorCount";
     private static final String LOKI_CURSOR_PREFIX = "cursor";
@@ -56,6 +66,19 @@ public class ItemAlfsteelAxe extends ItemAxe implements ISequentialBreaker {
         addPropertyOverride(new ResourceLocation(MythicBotany.MODID, "active"),
                 (stack, world, entity) -> entity == null || !(entity instanceof EntityPlayer)
                         || isActive((EntityPlayer) entity) ? 1.0F : 0.0F);
+    }
+
+    @Override
+    public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot, ItemStack stack) {
+        if (slot == EntityEquipmentSlot.MAINHAND) {
+            ImmutableMultimap.Builder<String, AttributeModifier> builder = ImmutableMultimap.builder();
+            builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
+                    new AttributeModifier(ATTACK_DAMAGE_UUID, "Weapon modifier", 5.0D, 0));
+            builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
+                    new AttributeModifier(ATTACK_SPEED_UUID, "Weapon modifier", -2.8D, 0));
+            return builder.build();
+        }
+        return super.getAttributeModifiers(slot, stack);
     }
 
     @Override
@@ -86,6 +109,12 @@ public class ItemAlfsteelAxe extends ItemAxe implements ISequentialBreaker {
                 && !state.getBlock().isAir(state, world, pos)) {
             ToolCommons.damageItem(stack, 1, entity, MANA_PER_DAMAGE);
         }
+        return true;
+    }
+
+    @Override
+    public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
+        ToolCommons.damageItem(stack, 1, attacker, MANA_PER_DAMAGE);
         return true;
     }
 
