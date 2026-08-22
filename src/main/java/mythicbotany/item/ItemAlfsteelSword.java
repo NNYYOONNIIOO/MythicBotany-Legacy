@@ -119,8 +119,10 @@ public class ItemAlfsteelSword extends ItemSword implements IManaItem, IManaTool
     @Override
     public void updateBurst(IManaBurst burst, ItemStack stack) {
         EntityThrowable entity = (EntityThrowable) burst;
-        AxisAlignedBB axis = new AxisAlignedBB(entity.posX, entity.posY, entity.posZ,
-                entity.lastTickPosX, entity.lastTickPosY, entity.lastTickPosZ).grow(1.0D);
+        AxisAlignedBB axis = entity.getEntityBoundingBox()
+                .expand(entity.posX - entity.lastTickPosX, entity.posY - entity.lastTickPosY,
+                        entity.posZ - entity.lastTickPosZ)
+                .grow(1.0D);
         List<EntityLivingBase> entities = entity.world.getEntitiesWithinAABB(EntityLivingBase.class, axis);
         String attacker = ItemNBTHelper.getString(burst.getSourceLens(), TAG_ATTACKER_USERNAME, "");
         for (EntityLivingBase living : entities) {
@@ -142,4 +144,3 @@ public class ItemAlfsteelSword extends ItemSword implements IManaItem, IManaTool
         }
     }
 }
-
