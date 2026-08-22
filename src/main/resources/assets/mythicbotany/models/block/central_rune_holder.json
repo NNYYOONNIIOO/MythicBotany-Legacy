@@ -1,7 +1,6 @@
 {
   "credit": "Made with Blockbench",
   "parent": "block/block",
-  "render_type": "minecraft:cutout",
   "textures": {
     "1": "minecraft:blocks/emerald_block",
     "particle": "minecraft:blocks/emerald_block"

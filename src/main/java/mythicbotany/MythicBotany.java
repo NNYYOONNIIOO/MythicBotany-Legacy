@@ -4,13 +4,13 @@ import mythicbotany.proxy.CommonProxy;
 import mythicbotany.recipe.ModRecipes;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
+import mythicbotany.registry.ModEntities;
 import mythicbotany.tile.TileManaCollector;
 import mythicbotany.tile.TileFunctionalFlower;
 import mythicbotany.tile.TileManaInfuser;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.world.ModWorldGenerator;
 import mythicbotany.dimension.ModDimensions;
-import mythicbotany.entity.EntityAlfPixie;
 import mythicbotany.lexicon.MythicLexicon;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
@@ -62,9 +62,7 @@ public final class MythicBotany {
         GameRegistry.registerTileEntity(TileRuneHolder.class, tileId("rune_holder"));
         GameRegistry.registerTileEntity(TileCentralRuneHolder.class, tileId("central_rune_holder"));
         GameRegistry.registerTileEntity(TileAlfsteelPylon.class, tileId("alfsteel_pylon"));
-        net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(
-                new net.minecraft.util.ResourceLocation(MODID, "alf_pixie"), EntityAlfPixie.class,
-                "alf_pixie", 1, INSTANCE, 64, 3, true);
+        ModEntities.register();
         GameRegistry.registerWorldGenerator(new ModWorldGenerator(), 0);
         proxy.preInit();
     }

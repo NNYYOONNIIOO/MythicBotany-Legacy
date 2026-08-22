@@ -50,7 +50,7 @@ public final class ModBlocks {
 
     private static <T extends Block> T named(T block, String name) {
         block.setRegistryName(new ResourceLocation(MythicBotany.MODID, name));
-        block.setTranslationKey(MythicBotany.MODID + "." + name);
+        block.setTranslationKey(MythicBotany.MODID + ":" + name);
         block.setCreativeTab(MythicBotany.TAB);
         return block;
     }

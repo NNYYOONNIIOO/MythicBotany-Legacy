@@ -7,6 +7,8 @@ import mythicbotany.item.ItemFimbultyrTablet;
 import mythicbotany.item.ItemGjallarHornFull;
 import mythicbotany.item.ItemKvasirMead;
 import mythicbotany.item.ItemMythicRing;
+import mythicbotany.item.ItemManaMythicRing;
+import mythicbotany.item.ItemAuraMythicRing;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -51,8 +53,8 @@ public final class ModItems {
     public static final Item alfsteelChestplate = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
     public static final Item alfsteelLeggings = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.LEGS), "alfsteel_leggings");
     public static final Item alfsteelBoots = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.FEET), "alfsteel_boots");
-    public static final Item manaRingGreatest = named(new ItemMythicRing(ItemMythicRing.Effect.MANA), "mana_ring_greatest");
-    public static final Item auraRingGreatest = named(new ItemMythicRing(ItemMythicRing.Effect.AURA), "aura_ring_greatest");
+    public static final Item manaRingGreatest = named(new ItemManaMythicRing(), "mana_ring_greatest");
+    public static final Item auraRingGreatest = named(new ItemAuraMythicRing(), "aura_ring_greatest");
     public static final Item fadedNetherStar = named(new Item(), "faded_nether_star");
     public static final Item fireRing = named(new ItemMythicRing(ItemMythicRing.Effect.FIRE), "fire_ring");
     public static final Item iceRing = named(new ItemMythicRing(ItemMythicRing.Effect.ICE), "ice_ring");
@@ -88,7 +90,7 @@ public final class ModItems {
 
     private static <T extends Item> T named(T item, String name) {
         item.setRegistryName(new ResourceLocation(MythicBotany.MODID, name));
-        item.setTranslationKey(MythicBotany.MODID + "." + name);
+        item.setTranslationKey(MythicBotany.MODID + ":" + name);
         item.setCreativeTab(MythicBotany.TAB);
         return item;
     }
@@ -126,7 +128,7 @@ public final class ModItems {
         public String getArmorTexture(net.minecraft.item.ItemStack stack, Entity entity,
                                       EntityEquipmentSlot slot, String type) {
             return MythicBotany.MODID + ":textures/model/alfsteel_"
-                    + (slot == EntityEquipmentSlot.LEGS ? "1" : "0") + ".png";
+                    + (slot == EntityEquipmentSlot.LEGS ? "2" : "1") + ".png";
         }
 
         @Override

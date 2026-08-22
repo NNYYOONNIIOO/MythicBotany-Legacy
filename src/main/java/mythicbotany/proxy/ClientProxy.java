@@ -2,11 +2,6 @@ package mythicbotany.proxy;
 
 import mythicbotany.client.RenderAlfPixie;
 import mythicbotany.entity.EntityAlfPixie;
-import mythicbotany.registry.ModBlocks;
-import mythicbotany.registry.ModItems;
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.item.Item;
-import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -16,18 +11,5 @@ public final class ClientProxy extends CommonProxy {
     @Override
     public void init() {
         RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);
-        for (Item item : ModItems.ALL) {
-            registerModel(item);
-        }
-        for (net.minecraft.block.Block block : ModBlocks.ALL) {
-            registerModel(Item.getItemFromBlock(block));
-        }
-    }
-
-    private void registerModel(Item item) {
-        if (item != null && item.getRegistryName() != null) {
-            ModelLoader.setCustomModelResourceLocation(item, 0,
-                    new ModelResourceLocation(item.getRegistryName(), "inventory"));
-        }
     }
 }

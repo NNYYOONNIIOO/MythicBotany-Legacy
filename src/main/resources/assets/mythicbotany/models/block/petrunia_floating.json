@@ -1,9 +1,7 @@
 {
   "parent": "block/block",
   "flower": {
-    "parent": "mythicbotany:block/petrunia",
-    "render_type": "minecraft:cutout_mipped"
+    "parent": "mythicbotany:block/petrunia"
   },
-  "loader": "botania:floating_flower",
-  "render_type": "minecraft:cutout_mipped"
+  "loader": "botania:floating_flower"
 }

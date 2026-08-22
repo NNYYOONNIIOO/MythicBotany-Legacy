@@ -12,8 +12,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
 public class EntityAlfPixie extends EntityCreature {
-    public EntityAlfPixie(World worldIn) {
-        super(worldIn);
+    public EntityAlfPixie(World world) {
+        super(world);
         setSize(0.55F, 1.15F);
         experienceValue = 8;
     }
@@ -36,10 +36,5 @@ public class EntityAlfPixie extends EntityCreature {
         getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(4.0D);
         getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(20.0D);
         getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.15D);
-    }
-
-    @Override
-    public boolean getCanSpawnHere() {
-        return world.getLight(getPosition()) < 12 && super.getCanSpawnHere();
     }
 }
