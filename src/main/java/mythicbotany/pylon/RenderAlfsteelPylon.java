@@ -10,18 +10,47 @@ import net.minecraft.util.ResourceLocation;
 public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelPylon> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(
             "mythicbotany", "textures/model/pylon_alfsteel.png");
-    private final PylonModel model = new PylonModel();
+    private final PylonModelNatura model = new PylonModelNatura();
 
     @Override
     public void render(TileAlfsteelPylon tile, double x, double y, double z, float partialTicks,
                        int destroyStage, float alpha) {
+        if (tile == null) {
+            return;
+        }
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x + 0.5D, y + 0.5D, z + 0.5D);
-        float time = tile.getWorld() == null ? partialTicks
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(770, 771);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        double time = tile.getWorld() == null ? partialTicks
                 : tile.getWorld().getTotalWorldTime() + partialTicks;
-        GlStateManager.rotate(time * 1.5F, 0.0F, 1.0F, 0.0F);
+        time += new java.util.Random(tile.getPos().hashCode()).nextInt(360);
         bindTexture(TEXTURE);
-        model.render(0.0625F);
+
+        GlStateManager.translate(x, y + 1.5D, z);
+        GlStateManager.scale(1.0F, -1.0F, -1.0F);
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.5F, 0.0F, -0.5F);
+        GlStateManager.rotate((float) time * 1.5F, 0.0F, 1.0F, 0.0F);
+        model.renderRing();
+        GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 20.0D - 0.025D, 0.0D);
+        GlStateManager.popMatrix();
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 17.5D, 0.0D);
+        GlStateManager.translate(0.5F, 0.0F, -0.5F);
+        GlStateManager.rotate((float) -time, 0.0F, 1.0F, 0.0F);
+        GlStateManager.disableCull();
+        GlStateManager.disableAlpha();
+        model.renderCrystal();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableCull();
+        GlStateManager.popMatrix();
+
+        GlStateManager.disableBlend();
+        GlStateManager.enableRescaleNormal();
         GlStateManager.popMatrix();
     }
 
@@ -46,4 +75,3 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         }
     }
 }
-
