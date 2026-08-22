@@ -9,6 +9,7 @@ import mythicbotany.tile.TileFunctionalFlower;
 import mythicbotany.tile.TileManaInfuser;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.world.ModWorldGenerator;
+import mythicbotany.dimension.ModDimensions;
 import mythicbotany.entity.EntityAlfPixie;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
@@ -52,6 +53,7 @@ public final class MythicBotany {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
+        ModDimensions.register();
         GameRegistry.registerTileEntity(TileManaInfuser.class, "mythicbotany_mana_infuser");
         GameRegistry.registerTileEntity(TileManaCollector.class, "mythicbotany_mana_collector");
         GameRegistry.registerTileEntity(TileFunctionalFlower.class, "mythicbotany_functional_flower");

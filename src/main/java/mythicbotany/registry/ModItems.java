@@ -3,6 +3,7 @@ package mythicbotany.registry;
 import mythicbotany.MythicBotany;
 import mythicbotany.item.ItemAlfPixieSpawnEgg;
 import mythicbotany.item.ItemMjoellnir;
+import mythicbotany.item.ItemFimbultyrTablet;
 import mythicbotany.item.ItemMythicRing;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -56,7 +57,7 @@ public final class ModItems {
     public static final Item gjallarHornFull = named(new Item().setMaxStackSize(1), "gjallar_horn_full");
     public static final Item cursedAndwariRing = named(new Item().setMaxStackSize(1), "cursed_andwari_ring");
     public static final Item andwariRing = named(new ItemMythicRing(ItemMythicRing.Effect.ANDWARI), "andwari_ring");
-    public static final Item fimbultyrTablet = named(new Item(), "fimbultyr_tablet");
+    public static final Item fimbultyrTablet = named(new ItemFimbultyrTablet(), "fimbultyr_tablet");
     public static final Item kvasirBlood = named(new Item().setMaxStackSize(8), "kvasir_blood");
     public static final Item kvasirMead = named(new ItemFood(8, 0.8F, false).setMaxStackSize(8), "kvasir_mead");
     public static final Item dreamCherry = named(createDreamCherry(), "dream_cherry");
