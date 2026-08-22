@@ -1,16 +1,16 @@
 [
 {
-  "modid": "examplemod",
-  "name": "Example Mod",
-  "description": "Example placeholder mod.",
+  "modid": "mythicbotany",
+  "name": "MythicBotany",
+  "description": "Botania's mythic Nordic expansion, backported to Minecraft 1.12.2.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
-  "authorList": ["ExampleDude"],
-  "credits": "The Forge and FML guys, for making this example",
+  "authorList": ["MythicBotany contributors"],
+  "credits": "Botania, Baubles, and the original MythicBotany project",
   "logoFile": "",
   "screenshots": [],
-  "dependencies": []
+  "dependencies": ["required-after:botania", "required-after:baubles"]
 }
 ]
