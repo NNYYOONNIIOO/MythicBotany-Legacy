@@ -51,6 +51,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     @Override
     public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state,
                                     BlockPos pos, EntityLivingBase entityLiving) {
+        ToolCommons.damageItem(stack, 1, entityLiving, 100);
         return true;
     }
 
@@ -79,14 +80,17 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         if (!player.world.isRemote && ray != null && ray.sideHit != null) {
             breakOtherBlock(player, stack, pos, pos, ray.sideHit);
         }
-        return true;
+        return false;
     }
 
     @Override
     public void breakOtherBlock(EntityPlayer player, ItemStack stack, BlockPos pos,
                                 BlockPos originPos, EnumFacing side) {
+        IBlockState originState = player.world.getBlockState(pos);
         if (!isEnabled(stack) || player.world.isAirBlock(pos)
-                || !MATERIALS.contains(player.world.getBlockState(pos).getMaterial())) return;
+                || !MATERIALS.contains(originState.getMaterial())
+                || originState.getPlayerRelativeBlockHardness(player, player.world, pos) <= 0.0F
+                || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
         int level = getLevel(stack);
         int range = level - 1;
         if (range < 0) return;
@@ -97,7 +101,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         Vec3i begin = new Vec3i(doX ? -range : 0, doY ? -1 : 0, doZ ? -range : 0);
         Vec3i end = new Vec3i(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
         ToolCommons.removeBlocksInIteration(player, stack, player.world, pos, begin, end,
-                state -> MATERIALS.contains(state.getMaterial()), isTipped(stack));
+                candidateState -> MATERIALS.contains(candidateState.getMaterial()), isTipped(stack));
     }
 
     public static int getMana_(ItemStack stack) {

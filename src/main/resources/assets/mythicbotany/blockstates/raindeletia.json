@@ -2,6 +2,9 @@
   "variants": {
     "normal": {
       "model": "mythicbotany:raindeletia"
+    },
+    "inventory": {
+      "model": "mythicbotany:item/raindeletia"
     }
   }
 }

@@ -2,6 +2,9 @@
   "variants": {
     "normal": {
       "model": "mythicbotany:petrunia"
+    },
+    "inventory": {
+      "model": "mythicbotany:item/petrunia"
     }
   }
 }

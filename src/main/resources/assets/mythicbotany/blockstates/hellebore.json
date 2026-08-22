@@ -2,6 +2,9 @@
   "variants": {
     "normal": {
       "model": "mythicbotany:hellebore"
+    },
+    "inventory": {
+      "model": "mythicbotany:item/hellebore"
     }
   }
 }

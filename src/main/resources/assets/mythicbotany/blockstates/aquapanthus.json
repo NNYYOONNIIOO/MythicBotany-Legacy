@@ -2,6 +2,9 @@
   "variants": {
     "normal": {
       "model": "mythicbotany:aquapanthus"
+    },
+    "inventory": {
+      "model": "mythicbotany:item/aquapanthus"
     }
   }
 }

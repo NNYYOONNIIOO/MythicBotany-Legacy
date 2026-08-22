@@ -2,6 +2,9 @@
   "variants": {
     "normal": {
       "model": "mythicbotany:exoblaze"
+    },
+    "inventory": {
+      "model": "mythicbotany:item/exoblaze"
     }
   }
 }

@@ -2,6 +2,9 @@
   "variants": {
     "normal": {
       "model": "mythicbotany:wither_aconite"
+    },
+    "inventory": {
+      "model": "mythicbotany:item/wither_aconite"
     }
   }
 }
