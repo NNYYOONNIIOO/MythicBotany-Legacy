@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraft.util.ResourceLocation;
+import vazkii.botania.api.BotaniaAPIClient;
 
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class ModelHandler {
@@ -21,13 +22,13 @@ public final class ModelHandler {
     public static void registerModels(ModelRegistryEvent event) {
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
-        Item specialFlowerItem = Item.getItemFromBlock(vazkii.botania.common.block.ModBlocks.specialFlower);
-        if (specialFlowerItem != null) {
-            for (int meta = 0; meta < 16; meta++) {
-                ModelLoader.setCustomModelResourceLocation(specialFlowerItem, meta,
-                        new ModelResourceLocation(new ResourceLocation("botania_special", "specialflower"), "inventory"));
-            }
-        }
+        registerSpecialFlowerModel("mythicbotany_exoblaze", "exoblaze");
+        registerSpecialFlowerModel("mythicbotany_wither_aconite", "wither_aconite");
+        registerSpecialFlowerModel("mythicbotany_aquapanthus", "aquapanthus");
+        registerSpecialFlowerModel("mythicbotany_hellebore", "hellebore");
+        registerSpecialFlowerModel("mythicbotany_raindeletia", "raindeletia");
+        registerSpecialFlowerModel("mythicbotany_feysythia", "feysythia");
+        registerSpecialFlowerModel("mythicbotany_petrunia", "petrunia");
         Minecraft.getMinecraft().getItemColors().registerItemColorHandler((stack, tintIndex) ->
                 tintIndex == 0 ? 0x9E65D6 : 0x28173D, ModItems.alfPixieSpawnEgg);
     }
@@ -35,6 +36,12 @@ public final class ModelHandler {
         if (item != null && item.getRegistryName() != null)
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }
-}
 
+    private static void registerSpecialFlowerModel(String subTileName, String modelName) {
+        ResourceLocation location = new ResourceLocation(MythicBotany.MODID, modelName);
+        BotaniaAPIClient.registerSubtileModel(subTileName,
+                new ModelResourceLocation(location, "normal"),
+                new ModelResourceLocation(location, "inventory"));
+    }
+}
 
