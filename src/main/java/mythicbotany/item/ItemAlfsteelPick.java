@@ -139,13 +139,15 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     public void breakOtherBlock(EntityPlayer player, ItemStack stack, BlockPos pos,
                                  BlockPos originPos, EnumFacing side) {
         IBlockState originState = player.world.getBlockState(pos);
+        int level = getLevel(stack);
+        if (level <= 0) return;
         if (!isEnabled(stack) || player.world.isAirBlock(pos)
                 || !MATERIALS.contains(originState.getMaterial())
                 || originState.getPlayerRelativeBlockHardness(player, player.world, pos) <= 0.0F
                 || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
 
         boolean thor = !ItemThorRing.getThorRing(player).isEmpty();
-        int miningLevel = getLevel(stack) + (thor ? 1 : 0);
+        int miningLevel = level + (thor ? 1 : 0);
         int rangeDepth = miningLevel / 2;
         if (ItemTemperanceStone.hasTemperanceActive(player) && miningLevel > 2) {
             miningLevel = 2;
