@@ -197,3 +197,11 @@ tooltip.mythicbotany.rune_offset=对应坐标: %s, %s
 tooltip.mythicbotany.rune_ritual=符文仪式
 tooltip.mythicbotany.sacrifice_entity1=实体必须靠近仪式。
 tooltip.mythicbotany.sacrifice_entity2=在这个过程中将被牺牲。
+tile.botania:flower.mythicbotany_exoblaze.name=烈焰花
+tile.botania:flower.mythicbotany_wither_aconite.name=凋灵菟葵
+tile.botania:flower.mythicbotany_aquapanthus.name=百水莲
+tile.botania:flower.mythicbotany_hellebore.name=藜芦花
+tile.botania:flower.mythicbotany_raindeletia.name=雨德花
+tile.botania:flower.mythicbotany_feysythia.name=菲斯花
+tile.botania:flower.mythicbotany_petrunia.name=符文矮牵牛花
+

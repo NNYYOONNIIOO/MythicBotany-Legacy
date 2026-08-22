@@ -213,3 +213,14 @@ tooltip.mythicbotany.rune_offset=Relative position: %s, %s
 tooltip.mythicbotany.rune_ritual=Rune Ritual
 tooltip.mythicbotany.sacrifice_entity1=Entity must be near the ritual.
 tooltip.mythicbotany.sacrifice_entity2=It will be sacrificed in the process.
+
+HAS_BRANCH_BLOCK_TEX=False
+HAS_PYLON_TEX=True
+tile.botania:flower.mythicbotany_exoblaze.name=Exoblaze
+tile.botania:flower.mythicbotany_wither_aconite.name=Wither Aconite
+tile.botania:flower.mythicbotany_aquapanthus.name=Aquapanthus
+tile.botania:flower.mythicbotany_hellebore.name=Hellebore
+tile.botania:flower.mythicbotany_raindeletia.name=Raindeletia
+tile.botania:flower.mythicbotany_feysythia.name=Feysythia
+tile.botania:flower.mythicbotany_petrunia.name=Petrunia
+

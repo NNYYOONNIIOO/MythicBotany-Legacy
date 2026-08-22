@@ -1,6 +1,7 @@
 package mythicbotany.flower;
 
 import mythicbotany.registry.ModItems;
+import mythicbotany.rune.TileCentralRuneHolder;
 import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
@@ -297,7 +298,35 @@ public final class MythicFlowerSubTiles {
 
     /** The 1.12 central holder performs the actual ritual; this subtile supplies its mana. */
     public static class Petrunia extends SubTileFunctional {
+        @Override
+        public void onUpdate() {
+            super.onUpdate();
+            if (getWorld().isRemote || mana <= 0) {
+                return;
+            }
+            for (int x = -3; x <= 3; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    for (int z = -3; z <= 3; z++) {
+                        TileEntity tile = getWorld().getTileEntity(getPos().add(x, y, z));
+                        if (tile instanceof TileCentralRuneHolder) {
+                            TileCentralRuneHolder holder = (TileCentralRuneHolder) tile;
+                            int space = Math.max(0, holder.getMaxMana() - holder.getCurrentMana());
+                            int transfer = Math.min(mana, Math.min(space, 1000));
+                            if (transfer > 0) {
+                                holder.recieveMana(transfer);
+                                holder.markDirty();
+                                mana -= transfer;
+                                sync();
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
         @Override public int getMaxMana() { return 300; }
         @Override public int getColor() { return 0xB71A1A; }
     }
 }
+
