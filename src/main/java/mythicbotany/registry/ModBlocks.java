@@ -21,11 +21,11 @@ public final class ModBlocks {
     public static final Block raindeletia = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.RAINDELETIA), "raindeletia");
     public static final Block feysythia = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.FEYSYTHIA), "feysythia");
     public static final Block petrunia = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.PETRUNIA), "petrunia");
-    public static final Block yggdrasilBranch = named(new Block(Material.WOOD).setHardness(4.0F).setResistance(4.0F).setSoundType(SoundType.WOOD), "yggdrasil_branch");
+    public static final Block yggdrasilBranch = named(new SoundBlock(Material.WOOD, SoundType.WOOD).setHardness(4.0F).setResistance(4.0F), "yggdrasil_branch");
     public static final Block runeHolder = named(rockBlock(3.0F, 6.0F, SoundType.METAL), "rune_holder");
     public static final Block centralRuneHolder = named(rockBlock(3.0F, 6.0F, SoundType.METAL), "central_rune_holder");
     public static final Block mjoellnir = named(rockBlock(50.0F, 1200.0F, SoundType.METAL), "mjoellnir");
-    public static final Block dreamwoodLeaves = named(new Block(Material.LEAVES).setHardness(0.2F).setLightOpacity(1).setSoundType(SoundType.PLANT), "dreamwood_leaves");
+    public static final Block dreamwoodLeaves = named(new SoundBlock(Material.LEAVES, SoundType.PLANT).setHardness(0.2F).setLightOpacity(1), "dreamwood_leaves");
     public static final Block elementiumOre = named(rockBlock(4.0F, 5.0F, SoundType.STONE), "elementium_ore");
     public static final Block dragonstoneOre = named(rockBlock(5.0F, 8.0F, SoundType.STONE), "dragonstone_ore");
     public static final Block goldOre = named(rockBlock(3.0F, 5.0F, SoundType.STONE), "gold_ore");
@@ -42,13 +42,20 @@ public final class ModBlocks {
     }
 
     private static Block rockBlock(float hardness, float resistance, SoundType sound) {
-        return new Block(Material.ROCK).setHardness(hardness).setResistance(resistance).setSoundType(sound);
+        return new SoundBlock(Material.ROCK, sound).setHardness(hardness).setResistance(resistance);
     }
 
     private static <T extends Block> T named(T block, String name) {
         block.setRegistryName(new ResourceLocation(MythicBotany.MODID, name));
-        block.setUnlocalizedName(MythicBotany.MODID + "." + name);
+        block.setTranslationKey(MythicBotany.MODID + "." + name);
         block.setCreativeTab(MythicBotany.TAB);
         return block;
+    }
+
+    private static class SoundBlock extends Block {
+        private SoundBlock(Material material, SoundType sound) {
+            super(material);
+            setSoundType(sound);
+        }
     }
 }

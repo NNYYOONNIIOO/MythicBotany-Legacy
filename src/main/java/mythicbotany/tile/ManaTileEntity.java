@@ -19,12 +19,10 @@ public abstract class ManaTileEntity extends TileEntity implements ITickable, IM
         return world;
     }
 
-    @Override
     public int getCurrentMana() {
         return mana;
     }
 
-    @Override
     public int getMaxMana() {
         return MAX_MANA;
     }

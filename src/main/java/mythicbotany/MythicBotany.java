@@ -24,7 +24,7 @@ public final class MythicBotany {
 
     public static final CreativeTabs TAB = new CreativeTabs(MODID) {
         @Override
-        public ItemStack getTabIconItem() {
+        public ItemStack createIcon() {
             return new ItemStack(ModItems.alfsteelIngot);
         }
     };

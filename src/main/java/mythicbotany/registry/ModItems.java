@@ -34,8 +34,8 @@ public final class ModItems {
     public static final Item alfsteelNugget = named(new Item(), "alfsteel_nugget");
     public static final Item alfsteelTemplate = named(new Item(), "alfsteel_template");
     public static final Item alfsteelSword = named(new ItemSword(ALFSTEEL_TOOLS), "alfsteel_sword");
-    public static final Item alfsteelPick = named(new ItemPickaxe(ALFSTEEL_TOOLS), "alfsteel_pick");
-    public static final Item alfsteelAxe = named(new ItemAxe(ALFSTEEL_TOOLS, 6.0F, -3.1F), "alfsteel_axe");
+    public static final Item alfsteelPick = named(new AlfsteelPickaxe(ALFSTEEL_TOOLS), "alfsteel_pick");
+    public static final Item alfsteelAxe = named(new AlfsteelAxe(ALFSTEEL_TOOLS, 6.0F, -3.1F), "alfsteel_axe");
     public static final Item alfsteelHelmet = named(new ItemArmor(ALFSTEEL_ARMOR, 0, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
     public static final Item alfsteelChestplate = named(new ItemArmor(ALFSTEEL_ARMOR, 0, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
     public static final Item alfsteelLeggings = named(new ItemArmor(ALFSTEEL_ARMOR, 0, EntityEquipmentSlot.LEGS), "alfsteel_leggings");
@@ -77,8 +77,20 @@ public final class ModItems {
 
     private static <T extends Item> T named(T item, String name) {
         item.setRegistryName(new ResourceLocation(MythicBotany.MODID, name));
-        item.setUnlocalizedName(MythicBotany.MODID + "." + name);
+        item.setTranslationKey(MythicBotany.MODID + "." + name);
         item.setCreativeTab(MythicBotany.TAB);
         return item;
+    }
+
+    private static class AlfsteelPickaxe extends ItemPickaxe {
+        private AlfsteelPickaxe(Item.ToolMaterial material) {
+            super(material);
+        }
+    }
+
+    private static class AlfsteelAxe extends ItemAxe {
+        private AlfsteelAxe(Item.ToolMaterial material, float attackDamage, float attackSpeed) {
+            super(material, attackDamage, attackSpeed);
+        }
     }
 }
