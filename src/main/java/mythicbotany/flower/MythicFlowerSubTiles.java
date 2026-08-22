@@ -17,6 +17,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import vazkii.botania.api.subtile.SubTileFunctional;
 import vazkii.botania.api.subtile.SubTileGenerating;
+import vazkii.botania.api.item.IPetalApothecary;
 
 import java.util.List;
 
@@ -161,7 +162,7 @@ public final class MythicFlowerSubTiles {
             if (state.getBlock() == Blocks.CAULDRON) {
                 return true;
             }
-            return tile != null && isEmptyApothecary(tile);
+            return tile instanceof IPetalApothecary && ((IPetalApothecary) tile).hasWater() == false;
         }
 
         private void fill(BlockPos pos, TileEntity tile) {
@@ -171,25 +172,9 @@ public final class MythicFlowerSubTiles {
                 if (level < 3) {
                     getWorld().setBlockState(pos, state.withProperty(BlockCauldron.LEVEL, level + 1), 3);
                 }
-            } else if (tile != null) {
-                fillApothecary(tile);
-            }
-        }
-
-        private static boolean isEmptyApothecary(TileEntity tile) {
-            try {
-                return !(Boolean) tile.getClass().getMethod("hasWater").invoke(tile);
-            } catch (ReflectiveOperationException ignored) {
-                return false;
-            }
-        }
-
-        private static void fillApothecary(TileEntity tile) {
-            try {
-                tile.getClass().getMethod("setWater", boolean.class).invoke(tile, true);
+            } else if (tile instanceof IPetalApothecary) {
+                ((IPetalApothecary) tile).setWater(true);
                 tile.markDirty();
-            } catch (ReflectiveOperationException ignored) {
-                // Optional Botania tile implementation.
             }
         }
 
@@ -316,4 +301,3 @@ public final class MythicFlowerSubTiles {
         @Override public int getColor() { return 0xB71A1A; }
     }
 }
-
