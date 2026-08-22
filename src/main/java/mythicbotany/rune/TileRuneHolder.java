@@ -5,6 +5,8 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 
 public class TileRuneHolder extends TileEntity {
@@ -20,14 +22,14 @@ public class TileRuneHolder extends TileEntity {
         }
         rune = stack.copy();
         rune.setCount(1);
-        markDirty();
+        sync();
         return true;
     }
 
     public ItemStack takeRune() {
         ItemStack result = rune;
         rune = ItemStack.EMPTY;
-        markDirty();
+        sync();
         return result;
     }
 
@@ -37,6 +39,7 @@ public class TileRuneHolder extends TileEntity {
         }
         world.spawnEntity(new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, rune.copy()));
         rune = ItemStack.EMPTY;
+        sync();
     }
 
     public static boolean isRitualRune(ItemStack stack) {
@@ -50,6 +53,29 @@ public class TileRuneHolder extends TileEntity {
                 || item == ModItems.niflheimRune || item == ModItems.nidavellirRune
                 || item == ModItems.helheimRune
                 || item == vazkii.botania.common.item.ModItems.rune;
+    }
+
+    private void sync() {
+        markDirty();
+        if (world != null && !world.isRemote) {
+            net.minecraft.block.state.IBlockState state = world.getBlockState(pos);
+            world.notifyBlockUpdate(pos, state, state, 3);
+        }
+    }
+
+    @Override
+    public NBTTagCompound getUpdateTag() {
+        return writeToNBT(new NBTTagCompound());
+    }
+
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(pos, 1, getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+        readFromNBT(packet.getNbtCompound());
     }
 
     @Override

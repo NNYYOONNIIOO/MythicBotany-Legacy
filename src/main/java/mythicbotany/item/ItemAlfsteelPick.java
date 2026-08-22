@@ -4,10 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import baubles.api.BaublesApi;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
@@ -23,22 +23,19 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import vazkii.botania.api.item.ISequentialBreaker;
 import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.api.mana.IManaTooltipDisplay;
-import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.common.core.helper.ItemNBTHelper;
 import vazkii.botania.common.item.ItemTemperanceStone;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
-import vazkii.botania.common.item.relic.ItemLokiRing;
-import vazkii.botania.common.item.relic.ItemThorRing;
 import vazkii.botania.common.item.equipment.tool.elementium.ItemElementiumPick;
+import vazkii.botania.common.item.relic.ItemThorRing;
 
-/** Alfsteel's TerraPick-like shatterer with a mana bar and a toggleable 3x3 mode. */
+/** Alfsteel's TerraPick-like shatterer with stored mana and a Loki-compatible mode. */
 public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaTooltipDisplay, ISequentialBreaker {
     private static final String TAG_MANA = "mana";
     private static final String TAG_ENABLED = "enabled";
@@ -49,8 +46,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String LOKI_X_OFFSET = "xOffset";
     private static final String LOKI_Y_OFFSET = "yOffset";
     private static final String LOKI_Z_OFFSET = "zOffset";
-    private static final int MAX_MANA = Integer.MAX_VALUE;
-    /** Active-area mining and Loki cursor mining each cost 200 mana per block. */
+    private static final int MAX_MANA = 1000000000;
     private static final int MANA_PER_BLOCK = 200;
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
@@ -62,14 +58,15 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         super(material);
         setMaxDamage(4600);
         setMaxStackSize(1);
-        addPropertyOverride(new ResourceLocation("mythicbotany", "enabled"), (stack, world, entity) -> isEnabled(stack) ? 1.0F : 0.0F);
-        addPropertyOverride(new ResourceLocation("mythicbotany", "tipped"), (stack, world, entity) -> isTipped(stack) ? 1.0F : 0.0F);
+        addPropertyOverride(new ResourceLocation("mythicbotany", "enabled"),
+                (stack, world, entity) -> isEnabled(stack) ? 1.0F : 0.0F);
+        addPropertyOverride(new ResourceLocation("mythicbotany", "tipped"),
+                (stack, world, entity) -> isTipped(stack) ? 1.0F : 0.0F);
     }
 
     @Override
     public float getDestroySpeed(ItemStack stack, IBlockState state) {
-        return !isEnabled(stack) || getMana_(stack) >= MANA_PER_BLOCK
-                ? super.getDestroySpeed(stack, state) : 0.0F;
+        return super.getDestroySpeed(stack, state);
     }
 
     @Override
@@ -79,18 +76,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 && ((EntityPlayer) entityLiving).capabilities.isCreativeMode) {
             return true;
         }
-        if (isEnabled(stack)) {
-            addMana(stack, -MANA_PER_BLOCK);
-            stack.damageItem(1, entityLiving);
-        } else if (entityLiving instanceof EntityPlayer
-                && stack.getItemDamage() > 0
-                && !hasLokiRing((EntityPlayer) entityLiving)
-                && ManaItemHandler.requestManaExactForTool(stack, (EntityPlayer) entityLiving,
-                MANA_PER_BLOCK, true)) {
-            stack.setItemDamage(stack.getItemDamage() - 1);
-        } else {
-            stack.damageItem(1, entityLiving);
-        }
+        consumeMiningCost(stack, entityLiving);
         return true;
     }
 
@@ -119,7 +105,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
             if (isEnabled(stack)) {
                 breakOtherBlock(player, stack, pos, pos, ray.sideHit);
             } else {
-                breakLokiCursors(player, stack, pos, ray.sideHit);
+                breakLokiCursors(player, stack, pos);
             }
         }
         return false;
@@ -129,76 +115,61 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     public void breakOtherBlock(EntityPlayer player, ItemStack stack, BlockPos pos,
                                  BlockPos originPos, EnumFacing side) {
         IBlockState originState = player.world.getBlockState(pos);
-        if (player.world.isAirBlock(pos)
+        if (!isEnabled(stack) || player.world.isAirBlock(pos)
                 || !MATERIALS.contains(originState.getMaterial())
                 || originState.getPlayerRelativeBlockHardness(player, player.world, pos) <= 0.0F
                 || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
-        // Loki's own cursor loop removes exactly this block after this callback.
-        // Do not expand the configured Loki shape using the pick's mana level.
-        if (!isEnabled(stack)) return;
-        int originalLevel = getLevel(stack);
-        boolean thor = !ItemThorRing.getThorRing(player).isEmpty();
-        int level = originalLevel + (thor ? 1 : 0);
-        if (ItemTemperanceStone.hasTemperanceActive(player) && level > 2) {
-            level = 2;
-        }
-        int range = Math.max(0, level - 1);
-        if (isEnabled(stack) && getMana_(stack) < MANA_PER_BLOCK) return;
+
+        int level = getLevel(stack);
+        if (ItemThorRing.getThorRing(player).isEmpty() == false) level++;
+        if (ItemTemperanceStone.hasTemperanceActive(player) && level > 2) level = 2;
+        if (level <= 0) return;
+
+        int range = level - 1;
         int rangeY = Math.max(1, range);
-        boolean doX = thor || side.getXOffset() == 0;
-        boolean doY = thor || side.getYOffset() == 0;
-        boolean doZ = thor || side.getZOffset() == 0;
-        int beginY = level == 0 ? 0 : (doY ? -1 : 0);
-        int endY = level == 0 ? 0 : (doY ? rangeY * 2 - 1 : 0);
-        Vec3i begin = new Vec3i(doX ? -range : 0, beginY, doZ ? -range : 0);
-        Vec3i end = new Vec3i(doX ? range : 0, endY, doZ ? range : 0);
-        ToolCommons.removeBlocksInIteration(player, stack, player.world, pos, begin, end,
-                candidateState -> (!isEnabled(stack) || getMana_(stack) >= MANA_PER_BLOCK)
-                        && MATERIALS.contains(candidateState.getMaterial()), !isTipped(stack));
+        boolean doX = !ItemThorRing.getThorRing(player).isEmpty() || side.getXOffset() == 0;
+        boolean doY = !ItemThorRing.getThorRing(player).isEmpty() || side.getYOffset() == 0;
+        boolean doZ = !ItemThorRing.getThorRing(player).isEmpty() || side.getZOffset() == 0;
+        BlockPos begin = pos.add(doX ? -range : 0, doY ? -1 : 0, doZ ? -range : 0);
+        BlockPos end = pos.add(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
+        for (BlockPos target : BlockPos.getAllInBox(begin, end)) {
+            if (target.equals(pos) || getMana_(stack) < MANA_PER_BLOCK) continue;
+            removeExtraBlock(player, stack, target);
+        }
     }
 
-    private void breakLokiCursors(EntityPlayer player, ItemStack stack, BlockPos origin, EnumFacing side) {
-        ItemStack loki = getLokiRingStack(player);
-        if (loki.isEmpty() || player.world.isRemote) {
-            return;
-        }
-        net.minecraft.nbt.NBTTagCompound list = ItemNBTHelper.getCompound(loki, LOKI_CURSOR_LIST, false);
+    private void breakLokiCursors(EntityPlayer player, ItemStack stack, BlockPos origin) {
+        if (player.world.isRemote) return;
+        int slot = BaublesApi.isBaubleEquipped(player, vazkii.botania.common.item.ModItems.lokiRing);
+        if (slot < 0) return;
+        ItemStack loki = BaublesApi.getBaublesHandler(player).getStackInSlot(slot);
+        NBTTagCompound list = ItemNBTHelper.getCompound(loki, LOKI_CURSOR_LIST, false);
         int count = list.getInteger(LOKI_CURSOR_COUNT);
         for (int i = 0; i < count; i++) {
-            net.minecraft.nbt.NBTTagCompound cursor = list.getCompoundTag(LOKI_CURSOR_PREFIX + i);
+            NBTTagCompound cursor = list.getCompoundTag(LOKI_CURSOR_PREFIX + i);
             BlockPos target = origin.add(cursor.getInteger(LOKI_X_OFFSET),
                     cursor.getInteger(LOKI_Y_OFFSET), cursor.getInteger(LOKI_Z_OFFSET));
-            removeLokiBlock(player, stack, target, side);
+            if (!target.equals(origin)) removeExtraBlock(player, stack, target);
         }
     }
 
-    private static ItemStack getLokiRingStack(EntityPlayer player) {
-        int slot = BaublesApi.isBaubleEquipped(player, vazkii.botania.common.item.ModItems.lokiRing);
-        return slot < 0 ? ItemStack.EMPTY : BaublesApi.getBaublesHandler(player).getStackInSlot(slot);
-    }
-
-    private void removeLokiBlock(EntityPlayer player, ItemStack stack, BlockPos pos, EnumFacing side) {
+    private void removeExtraBlock(EntityPlayer player, ItemStack stack, BlockPos pos) {
         World world = player.world;
-        if (!(player instanceof EntityPlayerMP) || !world.isBlockLoaded(pos)) {
-            return;
-        }
+        if (!(player instanceof EntityPlayerMP) || !world.isBlockLoaded(pos)) return;
         IBlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
-        if (!MATERIALS.contains(state.getMaterial())
-                || block.isAir(state, world, pos)
+        if (!MATERIALS.contains(state.getMaterial()) || block.isAir(state, world, pos)
                 || state.getPlayerRelativeBlockHardness(player, world, pos) <= 0.0F
-                || !block.canHarvestBlock(world, pos, player)) {
-            return;
-        }
+                || !block.canHarvestBlock(world, pos, player)) return;
+
         EntityPlayerMP serverPlayer = (EntityPlayerMP) player;
         int exp = ForgeHooks.onBlockBreakEvent(world, serverPlayer.interactionManager.getGameType(), serverPlayer, pos);
-        if (exp == -1) {
-            return;
-        }
+        if (exp == -1) return;
         if (player.capabilities.isCreativeMode) {
             world.setBlockToAir(pos);
             return;
         }
+
         TileEntity tile = world.getTileEntity(pos);
         if (block.removedByPlayer(state, world, pos, player, true)) {
             block.onPlayerDestroy(world, pos, state);
@@ -206,8 +177,17 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 block.harvestBlock(world, player, pos, state, tile, stack);
                 block.dropXpOnBlockBreak(world, pos, exp);
             }
+            consumeMiningCost(stack, player);
+            world.playEvent(2001, pos, Block.getStateId(state));
         }
-        ToolCommons.damageItem(stack, 1, player, MANA_PER_BLOCK);
+    }
+
+    private void consumeMiningCost(ItemStack stack, EntityLivingBase entity) {
+        if (isEnabled(stack) && getMana_(stack) >= MANA_PER_BLOCK) {
+            addMana(stack, -MANA_PER_BLOCK);
+        } else {
+            ToolCommons.damageItem(stack, 1, entity, MANA_PER_BLOCK);
+        }
     }
 
     public static int getMana_(ItemStack stack) {
@@ -231,11 +211,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     public static boolean isTipped(ItemStack stack) { return ItemNBTHelper.getBoolean(stack, TAG_TIPPED, false); }
     public static void setTipped(ItemStack stack, boolean tipped) { ItemNBTHelper.setBoolean(stack, TAG_TIPPED, tipped); }
 
-    private static boolean hasLokiRing(EntityPlayer player) {
-        return BaublesApi.isBaubleEquipped(player, vazkii.botania.common.item.ModItems.lokiRing) >= 0;
-    }
-
-    @Override public int getMana(ItemStack stack) { return ItemNBTHelper.getInt(stack, TAG_MANA, 0); }
+    @Override public int getMana(ItemStack stack) { return getMana_(stack); }
     @Override public int getMaxMana(ItemStack stack) { return MAX_MANA; }
     @Override public void addMana(ItemStack stack, int mana) {
         long value = (long) getMana_(stack) + mana;
@@ -251,23 +227,25 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     @Override public boolean disposeOfTrashBlocks(ItemStack stack) { return isTipped(stack); }
     @Override public int getEntityLifespan(ItemStack stack, World world) { return Integer.MAX_VALUE; }
 
-    /** 1.12.2 has no Item.fireResistant flag; extinguish dropped copies each tick. */
     @Override
     public boolean onEntityItemUpdate(EntityItem entityItem) {
-        if (entityItem.isBurning()) {
-            entityItem.extinguish();
-        }
+        if (entityItem.isBurning()) entityItem.extinguish();
         return false;
     }
 
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack before, ItemStack after, boolean slotChanged) {
-        return after.getItem() != this || isEnabled(before) != isEnabled(after);
+        return after.getItem() != this || isEnabled(before) != isEnabled(after) || isTipped(before) != isTipped(after);
     }
-    @Override public float getManaFractionForDisplay(ItemStack stack) { return (float) getMana(stack) / (float) MAX_MANA; }
-    @Override public boolean showDurabilityBar(ItemStack stack) { return true; }
-    @Override public double getDurabilityForDisplay(ItemStack stack) { return 1.0D - getManaFractionForDisplay(stack); }
-    @Override public int getRGBDurabilityForDisplay(ItemStack stack) {
-        return net.minecraft.util.math.MathHelper.hsvToRGB(getManaFractionForDisplay(stack) / 3.0F, 1.0F, 1.0F);
+
+    /** Botania's tooltip handler uses this for the separate, colored mana bar. */
+    @Override
+    public float getManaFractionForDisplay(ItemStack stack) {
+        return (float) getMana(stack) / (float) getMaxMana(stack);
     }
+
+    /** The vanilla inventory bar is durability, not stored mana. */
+    @Override public boolean showDurabilityBar(ItemStack stack) { return stack.isItemDamaged(); }
+    @Override public double getDurabilityForDisplay(ItemStack stack) { return super.getDurabilityForDisplay(stack); }
+    @Override public int getRGBDurabilityForDisplay(ItemStack stack) { return super.getRGBDurabilityForDisplay(stack); }
 }

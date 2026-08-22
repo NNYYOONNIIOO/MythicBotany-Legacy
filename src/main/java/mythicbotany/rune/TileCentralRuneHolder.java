@@ -5,6 +5,8 @@ import mythicbotany.tile.ManaTileEntity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 
@@ -21,15 +23,19 @@ public class TileCentralRuneHolder extends ManaTileEntity {
         }
         center = stack.copy();
         center.setCount(1);
-        markDirty();
+        sync();
         return true;
     }
 
     public ItemStack takeOutput() {
         ItemStack result = output;
         output = ItemStack.EMPTY;
-        markDirty();
+        sync();
         return result;
+    }
+
+    public ItemStack getDisplayStack() {
+        return !center.isEmpty() ? center.copy() : output.copy();
     }
 
     public String getStatus() {
@@ -115,6 +121,7 @@ public class TileCentralRuneHolder extends ManaTileEntity {
         drop(output);
         center = ItemStack.EMPTY;
         output = ItemStack.EMPTY;
+        sync();
     }
 
     private void drop(ItemStack stack) {
@@ -122,6 +129,29 @@ public class TileCentralRuneHolder extends ManaTileEntity {
             world.spawnEntity(new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D,
                     pos.getZ() + 0.5D, stack.copy()));
         }
+    }
+
+    private void sync() {
+        markDirty();
+        if (world != null && !world.isRemote) {
+            net.minecraft.block.state.IBlockState state = world.getBlockState(pos);
+            world.notifyBlockUpdate(pos, state, state, 3);
+        }
+    }
+
+    @Override
+    public NBTTagCompound getUpdateTag() {
+        return writeToNBT(new NBTTagCompound());
+    }
+
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(pos, 1, getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+        readFromNBT(packet.getNbtCompound());
     }
 
     @Override

@@ -38,7 +38,7 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         double time = tile.getWorld() == null ? partialTicks
                 : tile.getWorld().getTotalWorldTime() + partialTicks;
-        time += new java.util.Random(tile.getPos().hashCode()).nextInt(360);
+        time += new java.util.Random(tile.getPos() == null ? 0 : tile.getPos().hashCode()).nextInt(360);
         bindTexture(TEXTURE);
 
         GlStateManager.translate(x, y + 1.5D, z);
