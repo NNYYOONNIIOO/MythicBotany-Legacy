@@ -240,11 +240,11 @@ public final class MythicFlowerSubTiles {
 
     public static class Feysythia extends SubTileGenerating {
         private static final String[][] LEVEL_ITEMS = new String[][] {
-            { "fey_dust" },
-            { "lesser_fey_gem" },
-            { "greater_fey_gem" },
-            { "shiny_fey_gem" },
-            { "brilliant_fey_gem" }
+            { "feywild:fey_dust" },
+            { "feywild:lesser_fey_gem" },
+            { "feywild:greater_fey_gem" },
+            { "feywild:shiny_fey_gem" },
+            { "feywild:brilliant_fey_gem" }
         };
 
         @Override
