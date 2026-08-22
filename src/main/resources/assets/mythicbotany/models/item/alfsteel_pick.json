@@ -6,15 +6,15 @@
   "overrides": [
     {
       "predicate": {"mythicbotany:tipped": 1},
-      "model": "mythicbotany:alfsteel_pick_tipped"
+      "model": "mythicbotany:item/alfsteel_pick_tipped"
     },
     {
       "predicate": {"mythicbotany:enabled": 1},
-      "model": "mythicbotany:alfsteel_pick_active"
+      "model": "mythicbotany:item/alfsteel_pick_active"
     },
     {
       "predicate": {"mythicbotany:enabled": 1, "mythicbotany:tipped": 1},
-      "model": "mythicbotany:alfsteel_pick_tipped_active"
+      "model": "mythicbotany:item/alfsteel_pick_tipped_active"
     }
   ]
 }
