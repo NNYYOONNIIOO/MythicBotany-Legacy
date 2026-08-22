@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
@@ -40,9 +42,16 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
 
     public ItemAlfsteelPick(Item.ToolMaterial material) {
         super(material);
+        setMaxDamage(0);
         setMaxStackSize(1);
         addPropertyOverride(new ResourceLocation("mythicbotany", "enabled"), (stack, world, entity) -> isEnabled(stack) ? 1.0F : 0.0F);
         addPropertyOverride(new ResourceLocation("mythicbotany", "tipped"), (stack, world, entity) -> isTipped(stack) ? 1.0F : 0.0F);
+    }
+
+    @Override
+    public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state,
+                                    BlockPos pos, EntityLivingBase entityLiving) {
+        return true;
     }
 
     @Override
