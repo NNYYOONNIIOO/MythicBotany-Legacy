@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/mana_collector"
+      "model": "mythicbotany:mana_collector"
     }
   }
 }

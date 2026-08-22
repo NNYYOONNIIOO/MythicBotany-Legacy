@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/dragonstone_ore"
+      "model": "mythicbotany:dragonstone_ore"
     }
   }
 }

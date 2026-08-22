@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/exoblaze_floating"
+      "model": "mythicbotany:exoblaze_floating"
     }
   }
 }

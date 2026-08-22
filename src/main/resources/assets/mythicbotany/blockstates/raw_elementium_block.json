@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/raw_elementium_block"
+      "model": "mythicbotany:raw_elementium_block"
     }
   }
 }

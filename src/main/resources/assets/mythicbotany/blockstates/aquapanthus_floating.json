@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/aquapanthus_floating"
+      "model": "mythicbotany:aquapanthus_floating"
     }
   }
 }

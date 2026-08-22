@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/wither_aconite_floating"
+      "model": "mythicbotany:wither_aconite_floating"
     }
   }
 }

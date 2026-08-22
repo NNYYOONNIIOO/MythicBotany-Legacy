@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/elementium_ore"
+      "model": "mythicbotany:elementium_ore"
     }
   }
 }

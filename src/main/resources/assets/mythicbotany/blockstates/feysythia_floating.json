@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/feysythia_floating"
+      "model": "mythicbotany:feysythia_floating"
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/return_portal"
+      "model": "mythicbotany:return_portal"
     }
   }
 }

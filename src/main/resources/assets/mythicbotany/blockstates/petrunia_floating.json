@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/petrunia_floating"
+      "model": "mythicbotany:petrunia_floating"
     }
   }
 }

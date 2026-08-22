@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/gold_ore"
+      "model": "mythicbotany:gold_ore"
     }
   }
 }

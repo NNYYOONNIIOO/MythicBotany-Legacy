@@ -1,7 +1,7 @@
 {
   "variants": {
     "normal": {
-      "model": "mythicbotany:block/rune_holder"
+      "model": "mythicbotany:rune_holder"
     }
   }
 }
