@@ -1,6 +1,9 @@
 package mythicbotany.registry;
 
 import mythicbotany.MythicBotany;
+import mythicbotany.item.ItemMythicRing;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
@@ -12,6 +15,7 @@ import net.minecraft.item.ItemSword;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.EnumHelper;
 
 public final class ModItems {
@@ -33,22 +37,22 @@ public final class ModItems {
     public static final Item alfsteelIngot = named(new Item(), "alfsteel_ingot");
     public static final Item alfsteelNugget = named(new Item(), "alfsteel_nugget");
     public static final Item alfsteelTemplate = named(new Item(), "alfsteel_template");
-    public static final Item alfsteelSword = named(new ItemSword(ALFSTEEL_TOOLS), "alfsteel_sword");
+    public static final Item alfsteelSword = named(new AlfsteelSword(ALFSTEEL_TOOLS), "alfsteel_sword");
     public static final Item alfsteelPick = named(new AlfsteelPickaxe(ALFSTEEL_TOOLS), "alfsteel_pick");
     public static final Item alfsteelAxe = named(new AlfsteelAxe(ALFSTEEL_TOOLS, 6.0F, -3.1F), "alfsteel_axe");
-    public static final Item alfsteelHelmet = named(new ItemArmor(ALFSTEEL_ARMOR, 0, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
-    public static final Item alfsteelChestplate = named(new ItemArmor(ALFSTEEL_ARMOR, 0, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
-    public static final Item alfsteelLeggings = named(new ItemArmor(ALFSTEEL_ARMOR, 0, EntityEquipmentSlot.LEGS), "alfsteel_leggings");
-    public static final Item alfsteelBoots = named(new ItemArmor(ALFSTEEL_ARMOR, 0, EntityEquipmentSlot.FEET), "alfsteel_boots");
-    public static final Item manaRingGreatest = named(new Item().setMaxStackSize(1), "mana_ring_greatest");
-    public static final Item auraRingGreatest = named(new Item().setMaxStackSize(1), "aura_ring_greatest");
+    public static final Item alfsteelHelmet = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
+    public static final Item alfsteelChestplate = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
+    public static final Item alfsteelLeggings = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.LEGS), "alfsteel_leggings");
+    public static final Item alfsteelBoots = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.FEET), "alfsteel_boots");
+    public static final Item manaRingGreatest = named(new ItemMythicRing(ItemMythicRing.Effect.MANA), "mana_ring_greatest");
+    public static final Item auraRingGreatest = named(new ItemMythicRing(ItemMythicRing.Effect.AURA), "aura_ring_greatest");
     public static final Item fadedNetherStar = named(new Item(), "faded_nether_star");
-    public static final Item fireRing = named(new Item().setMaxStackSize(1), "fire_ring");
-    public static final Item iceRing = named(new Item().setMaxStackSize(1), "ice_ring");
+    public static final Item fireRing = named(new ItemMythicRing(ItemMythicRing.Effect.FIRE), "fire_ring");
+    public static final Item iceRing = named(new ItemMythicRing(ItemMythicRing.Effect.ICE), "ice_ring");
     public static final Item gjallarHornEmpty = named(new Item().setMaxStackSize(1), "gjallar_horn_empty");
     public static final Item gjallarHornFull = named(new Item().setMaxStackSize(1), "gjallar_horn_full");
     public static final Item cursedAndwariRing = named(new Item().setMaxStackSize(1), "cursed_andwari_ring");
-    public static final Item andwariRing = named(new Item().setMaxStackSize(1).setMaxDamage(32), "andwari_ring");
+    public static final Item andwariRing = named(new ItemMythicRing(ItemMythicRing.Effect.ANDWARI), "andwari_ring");
     public static final Item fimbultyrTablet = named(new Item(), "fimbultyr_tablet");
     public static final Item kvasirBlood = named(new Item().setMaxStackSize(8), "kvasir_blood");
     public static final Item kvasirMead = named(new ItemFood(8, 0.8F, false).setMaxStackSize(8), "kvasir_mead");
@@ -91,6 +95,42 @@ public final class ModItems {
     private static class AlfsteelAxe extends ItemAxe {
         private AlfsteelAxe(Item.ToolMaterial material, float attackDamage, float attackSpeed) {
             super(material, attackDamage, attackSpeed);
+        }
+    }
+
+    private static class AlfsteelSword extends ItemSword {
+        private AlfsteelSword(Item.ToolMaterial material) {
+            super(material);
+        }
+
+        @Override
+        public boolean hitEntity(net.minecraft.item.ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
+            target.addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 60, 0));
+            return super.hitEntity(stack, target, attacker);
+        }
+    }
+
+    private static class AlfsteelArmor extends ItemArmor {
+        private AlfsteelArmor(ItemArmor.ArmorMaterial material, EntityEquipmentSlot slot) {
+            super(material, 0, slot);
+        }
+
+        @Override
+        public void onArmorTick(World world, EntityPlayer player, net.minecraft.item.ItemStack stack) {
+            if (!world.isRemote && world.getTotalWorldTime() % 40L == 0L) {
+                player.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 80, 0));
+                if (hasFullSet(player)) {
+                    player.addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 80, 0));
+                    player.addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 80, 0));
+                }
+            }
+        }
+
+        private boolean hasFullSet(EntityPlayer player) {
+            return player.getItemStackFromSlot(EntityEquipmentSlot.HEAD).getItem() instanceof AlfsteelArmor
+                    && player.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem() instanceof AlfsteelArmor
+                    && player.getItemStackFromSlot(EntityEquipmentSlot.LEGS).getItem() instanceof AlfsteelArmor
+                    && player.getItemStackFromSlot(EntityEquipmentSlot.FEET).getItem() instanceof AlfsteelArmor;
         }
     }
 }
