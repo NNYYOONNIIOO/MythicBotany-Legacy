@@ -3,7 +3,7 @@
   "textures": {
     "0": "minecraft:blocks/stone_andesite_smooth",
     "1": "minecraft:blocks/gold_block",
-    "2": "minecraft:blocks/dark_oak_log",
+    "2": "minecraft:blocks/log_big_oak",
     "particle": "minecraft:blocks/stone_andesite_smooth"
   },
   "elements": [

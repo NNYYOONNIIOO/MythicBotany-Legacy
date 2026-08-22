@@ -2,8 +2,8 @@
   "credit": "Made with Blockbench",
   "parent": "block/block",
   "textures": {
-    "0": "minecraft:blocks/anvil",
-    "particle": "minecraft:blocks/anvil"
+    "0": "minecraft:blocks/iron_block",
+    "particle": "minecraft:blocks/iron_block"
   },
   "elements": [
     {

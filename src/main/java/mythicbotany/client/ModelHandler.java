@@ -10,6 +10,7 @@ import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraft.util.ResourceLocation;
@@ -20,11 +21,11 @@ public final class ModelHandler {
     private static boolean specialFlowerModelsRegistered;
 
     private ModelHandler() { }
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void registerModels(ModelRegistryEvent event) {
+        registerSpecialFlowerModels();
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
-        registerSpecialFlowerModels();
     }
 
     @SubscribeEvent
