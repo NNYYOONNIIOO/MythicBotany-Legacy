@@ -135,7 +135,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         BlockPos end = pos.add(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
         for (BlockPos target : BlockPos.getAllInBox(begin, end)) {
             if (target.equals(pos) || getMana_(stack) < MANA_PER_BLOCK) continue;
-            removeExtraBlock(player, stack, target);
+            removeExtraBlock(player, stack, target, null);
         }
     }
 
@@ -144,22 +144,26 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         int slot = BaublesApi.isBaubleEquipped(player, vazkii.botania.common.item.ModItems.lokiRing);
         if (slot < 0) return;
         ItemStack loki = BaublesApi.getBaublesHandler(player).getStackInSlot(slot);
+        IBlockState originState = player.world.getBlockState(origin);
         NBTTagCompound list = ItemNBTHelper.getCompound(loki, LOKI_CURSOR_LIST, false);
         int count = list.getInteger(LOKI_CURSOR_COUNT);
         for (int i = 0; i < count; i++) {
             NBTTagCompound cursor = list.getCompoundTag(LOKI_CURSOR_PREFIX + i);
             BlockPos target = origin.add(cursor.getInteger(LOKI_X_OFFSET),
                     cursor.getInteger(LOKI_Y_OFFSET), cursor.getInteger(LOKI_Z_OFFSET));
-            if (!target.equals(origin)) removeExtraBlock(player, stack, target);
+            if (!target.equals(origin)) removeExtraBlock(player, stack, target, originState);
         }
     }
 
-    private void removeExtraBlock(EntityPlayer player, ItemStack stack, BlockPos pos) {
+    private void removeExtraBlock(EntityPlayer player, ItemStack stack, BlockPos pos,
+                                  IBlockState requiredState) {
         World world = player.world;
         if (!(player instanceof EntityPlayerMP) || !world.isBlockLoaded(pos)) return;
         IBlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
         if (!MATERIALS.contains(state.getMaterial()) || block.isAir(state, world, pos)
+                || requiredState != null && (state.getBlock() != requiredState.getBlock()
+                || state.getMaterial() != requiredState.getMaterial())
                 || state.getPlayerRelativeBlockHardness(player, world, pos) <= 0.0F
                 || !block.canHarvestBlock(world, pos, player)) return;
 

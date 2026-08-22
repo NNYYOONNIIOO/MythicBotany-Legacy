@@ -8,7 +8,6 @@ import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.ColorHandlerEvent;
@@ -20,7 +19,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraft.util.ResourceLocation;
 import vazkii.botania.api.BotaniaAPIClient;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class ModelHandler {
@@ -63,43 +61,6 @@ public final class ModelHandler {
         BotaniaAPIClient.registerSubtileModel(subTileName,
                 new ModelResourceLocation(location, "normal"),
                 new ModelResourceLocation(location, "inventory"));
-    }
-
-    /**
-     * ItemBlockSpecialFlower stores the subtile name in NBT.  Registering the
-     * seven concrete item models explicitly keeps the item renderer from
-     * falling back to Botania's missing specialflower model.
-     */
-    private static void registerSpecialFlowerItemModels() {
-        Item specialFlower = ForgeRegistries.ITEMS.getValue(new ResourceLocation("botania", "specialflower"));
-        if (specialFlower == null) return;
-
-        final String[][] mappings = {
-                {"mythicbotany_exoblaze", "exoblaze"},
-                {"mythicbotany_wither_aconite", "wither_aconite"},
-                {"mythicbotany_aquapanthus", "aquapanthus"},
-                {"mythicbotany_hellebore", "hellebore"},
-                {"mythicbotany_raindeletia", "raindeletia"},
-                {"mythicbotany_feysythia", "feysythia"},
-                {"mythicbotany_petrunia", "petrunia"}
-        };
-        ModelResourceLocation[] variants = new ModelResourceLocation[mappings.length + 1];
-        variants[0] = new ModelResourceLocation("botania:specialflower", "inventory");
-        for (int i = 0; i < mappings.length; i++) {
-            variants[i + 1] = new ModelResourceLocation(
-                    new ResourceLocation(MythicBotany.MODID, mappings[i][1]), "inventory");
-        }
-        ModelBakery.registerItemVariants(specialFlower, variants);
-        ModelLoader.setCustomMeshDefinition(specialFlower, stack -> {
-            String type = stack.hasTagCompound() ? stack.getTagCompound().getString("type") : "";
-            for (String[] mapping : mappings) {
-                if (mapping[0].equals(type)) {
-                    return new ModelResourceLocation(
-                            new ResourceLocation(MythicBotany.MODID, mapping[1]), "inventory");
-                }
-            }
-            return variants[0];
-        });
     }
 
     /** Item models using a tile-entity renderer must be registered before model baking. */
