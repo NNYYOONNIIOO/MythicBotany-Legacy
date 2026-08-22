@@ -1,11 +1,10 @@
 {
-  "credit": "Made with Blockbench",
   "parent": "block/block",
   "textures": {
-    "0": "minecraft:blocks/polished_andesite",
+    "0": "minecraft:blocks/stone_andesite_smooth",
     "1": "minecraft:blocks/gold_block",
     "2": "minecraft:blocks/dark_oak_log",
-    "particle": "minecraft:blocks/polished_andesite"
+    "particle": "minecraft:blocks/stone_andesite_smooth"
   },
   "elements": [
     {
