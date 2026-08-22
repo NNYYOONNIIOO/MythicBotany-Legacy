@@ -121,18 +121,22 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 || originState.getPlayerRelativeBlockHardness(player, player.world, pos) <= 0.0F
                 || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
 
-        int level = getLevel(stack);
-        if (ItemThorRing.getThorRing(player).isEmpty() == false) level++;
-        if (ItemTemperanceStone.hasTemperanceActive(player) && level > 2) level = 2;
-        if (level <= 0) return;
-
-        int range = level - 1;
+        boolean thor = !ItemThorRing.getThorRing(player).isEmpty();
+        int miningLevel = getLevel(stack) + (thor ? 1 : 0);
+        int rangeDepth = miningLevel / 2;
+        if (ItemTemperanceStone.hasTemperanceActive(player) && miningLevel > 2) {
+            miningLevel = 2;
+            rangeDepth = 0;
+        }
+        int range = miningLevel - 1;
         int rangeY = Math.max(1, range);
-        boolean doX = !ItemThorRing.getThorRing(player).isEmpty() || side.getXOffset() == 0;
-        boolean doY = !ItemThorRing.getThorRing(player).isEmpty() || side.getYOffset() == 0;
-        boolean doZ = !ItemThorRing.getThorRing(player).isEmpty() || side.getZOffset() == 0;
+        boolean doX = thor || side.getXOffset() == 0;
+        boolean doY = thor || side.getYOffset() == 0;
+        boolean doZ = thor || side.getZOffset() == 0;
         BlockPos begin = pos.add(doX ? -range : 0, doY ? -1 : 0, doZ ? -range : 0);
-        BlockPos end = pos.add(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
+        BlockPos end = pos.add(doX ? range : rangeDepth * -side.getXOffset(),
+                doY ? rangeY * 2 - 1 : rangeDepth * -side.getYOffset(),
+                doZ ? range : rangeDepth * -side.getZOffset());
         for (BlockPos target : BlockPos.getAllInBox(begin, end)) {
             if (target.equals(pos) || getMana_(stack) < MANA_PER_BLOCK) continue;
             removeExtraBlock(player, stack, target, null);
