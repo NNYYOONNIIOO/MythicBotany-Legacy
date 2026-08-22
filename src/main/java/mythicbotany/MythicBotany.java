@@ -8,6 +8,7 @@ import mythicbotany.tile.TileManaCollector;
 import mythicbotany.tile.TileFunctionalFlower;
 import mythicbotany.tile.TileManaInfuser;
 import mythicbotany.pylon.TileAlfsteelPylon;
+import mythicbotany.world.ModWorldGenerator;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import net.minecraft.creativetab.CreativeTabs;
@@ -56,6 +57,7 @@ public final class MythicBotany {
         GameRegistry.registerTileEntity(TileRuneHolder.class, "mythicbotany_rune_holder");
         GameRegistry.registerTileEntity(TileCentralRuneHolder.class, "mythicbotany_central_rune_holder");
         GameRegistry.registerTileEntity(TileAlfsteelPylon.class, "mythicbotany_alfsteel_pylon");
+        GameRegistry.registerWorldGenerator(new ModWorldGenerator(), 0);
         proxy.preInit();
     }
 
