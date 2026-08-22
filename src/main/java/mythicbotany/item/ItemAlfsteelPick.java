@@ -5,11 +5,13 @@ import java.util.List;
 
 import baubles.api.BaublesApi;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
@@ -23,6 +25,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeHooks;
 import vazkii.botania.api.item.ISequentialBreaker;
 import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.IManaItem;
@@ -33,12 +36,19 @@ import vazkii.botania.common.item.ItemTemperanceStone;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 import vazkii.botania.common.item.relic.ItemLokiRing;
 import vazkii.botania.common.item.relic.ItemThorRing;
+import vazkii.botania.common.item.equipment.tool.elementium.ItemElementiumPick;
 
 /** Alfsteel's TerraPick-like shatterer with a mana bar and a toggleable 3x3 mode. */
 public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaTooltipDisplay, ISequentialBreaker {
     private static final String TAG_MANA = "mana";
     private static final String TAG_ENABLED = "enabled";
     private static final String TAG_TIPPED = "tipped";
+    private static final String LOKI_CURSOR_LIST = "cursorList";
+    private static final String LOKI_CURSOR_COUNT = "cursorCount";
+    private static final String LOKI_CURSOR_PREFIX = "cursor";
+    private static final String LOKI_X_OFFSET = "xOffset";
+    private static final String LOKI_Y_OFFSET = "yOffset";
+    private static final String LOKI_Z_OFFSET = "zOffset";
     private static final int MAX_MANA = Integer.MAX_VALUE;
     /** Active-area mining and Loki cursor mining each cost 200 mana per block. */
     private static final int MANA_PER_BLOCK = 200;
@@ -108,8 +118,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         if (!player.world.isRemote && ray != null && ray.sideHit != null) {
             if (isEnabled(stack)) {
                 breakOtherBlock(player, stack, pos, pos, ray.sideHit);
+            } else {
+                breakLokiCursors(player, stack, pos, ray.sideHit);
             }
-            ItemLokiRing.breakOnAllCursors(player, this, stack, pos, ray.sideHit);
         }
         return false;
     }
@@ -144,6 +155,59 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         ToolCommons.removeBlocksInIteration(player, stack, player.world, pos, begin, end,
                 candidateState -> (!isEnabled(stack) || getMana_(stack) >= MANA_PER_BLOCK)
                         && MATERIALS.contains(candidateState.getMaterial()), !isTipped(stack));
+    }
+
+    private void breakLokiCursors(EntityPlayer player, ItemStack stack, BlockPos origin, EnumFacing side) {
+        ItemStack loki = getLokiRingStack(player);
+        if (loki.isEmpty() || player.world.isRemote) {
+            return;
+        }
+        net.minecraft.nbt.NBTTagCompound list = ItemNBTHelper.getCompound(loki, LOKI_CURSOR_LIST, false);
+        int count = list.getInteger(LOKI_CURSOR_COUNT);
+        for (int i = 0; i < count; i++) {
+            net.minecraft.nbt.NBTTagCompound cursor = list.getCompoundTag(LOKI_CURSOR_PREFIX + i);
+            BlockPos target = origin.add(cursor.getInteger(LOKI_X_OFFSET),
+                    cursor.getInteger(LOKI_Y_OFFSET), cursor.getInteger(LOKI_Z_OFFSET));
+            removeLokiBlock(player, stack, target, side);
+        }
+    }
+
+    private static ItemStack getLokiRingStack(EntityPlayer player) {
+        int slot = BaublesApi.isBaubleEquipped(player, vazkii.botania.common.item.ModItems.lokiRing);
+        return slot < 0 ? ItemStack.EMPTY : BaublesApi.getBaublesHandler(player).getStackInSlot(slot);
+    }
+
+    private void removeLokiBlock(EntityPlayer player, ItemStack stack, BlockPos pos, EnumFacing side) {
+        World world = player.world;
+        if (!(player instanceof EntityPlayerMP) || !world.isBlockLoaded(pos)) {
+            return;
+        }
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
+        if (!MATERIALS.contains(state.getMaterial())
+                || block.isAir(state, world, pos)
+                || state.getPlayerRelativeBlockHardness(player, world, pos) <= 0.0F
+                || !block.canHarvestBlock(world, pos, player)) {
+            return;
+        }
+        EntityPlayerMP serverPlayer = (EntityPlayerMP) player;
+        int exp = ForgeHooks.onBlockBreakEvent(world, serverPlayer.interactionManager.getGameType(), serverPlayer, pos);
+        if (exp == -1) {
+            return;
+        }
+        if (player.capabilities.isCreativeMode) {
+            world.setBlockToAir(pos);
+            return;
+        }
+        TileEntity tile = world.getTileEntity(pos);
+        if (block.removedByPlayer(state, world, pos, player, true)) {
+            block.onPlayerDestroy(world, pos, state);
+            if (!isTipped(stack) || !ItemElementiumPick.isDisposable(block)) {
+                block.harvestBlock(world, player, pos, state, tile, stack);
+                block.dropXpOnBlockBreak(world, pos, exp);
+            }
+        }
+        ToolCommons.damageItem(stack, 1, player, MANA_PER_BLOCK);
     }
 
     public static int getMana_(ItemStack stack) {
