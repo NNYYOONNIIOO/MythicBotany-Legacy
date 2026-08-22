@@ -21,8 +21,13 @@ public final class ModelHandler {
     public static void registerModels(ModelRegistryEvent event) {
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
-        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(vazkii.botania.common.block.ModBlocks.specialFlower), 0,
-                new ModelResourceLocation(new ResourceLocation("botania_special", "specialflower"), "inventory"));
+        Item specialFlowerItem = Item.getItemFromBlock(vazkii.botania.common.block.ModBlocks.specialFlower);
+        if (specialFlowerItem != null) {
+            for (int meta = 0; meta < 16; meta++) {
+                ModelLoader.setCustomModelResourceLocation(specialFlowerItem, meta,
+                        new ModelResourceLocation(new ResourceLocation("botania_special", "specialflower"), "inventory"));
+            }
+        }
         Minecraft.getMinecraft().getItemColors().registerItemColorHandler((stack, tintIndex) ->
                 tintIndex == 0 ? 0x9E65D6 : 0x28173D, ModItems.alfPixieSpawnEgg);
     }
@@ -31,6 +36,5 @@ public final class ModelHandler {
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }
 }
-
 
 

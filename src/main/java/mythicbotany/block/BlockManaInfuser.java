@@ -27,10 +27,11 @@ public class BlockManaInfuser extends BlockContainer {
         return new TileManaInfuser();
     }
 
+    private static final AxisAlignedBB THREE_PIXEL_BOX = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.1875D, 1.0D);
+
     @Override
-    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, net.minecraft.world.IBlockAccess source,
-                                                   BlockPos pos) {
-        return new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.1875D, 1.0D);
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, net.minecraft.world.IBlockAccess source, BlockPos pos) {
+        return THREE_PIXEL_BOX;
     }
 
     @Override

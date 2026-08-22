@@ -214,28 +214,31 @@ public final class MythicFlowerSubTiles {
     public static class Raindeletia extends SubTileGenerating {
         @Override
         public boolean canGeneratePassively() {
-            return getWorld().isRainingAt(getPos().up()) && getWorld().canSeeSky(getPos().up())
-                    && getValueForPassiveGeneration() > 0;
+            return getWorld().isRainingAt(getPos()) && getValueForPassiveGeneration() > 0;
         }
 
         @Override
-        public int getDelayBetweenPassiveGeneration() { return 20; }
+        public int getDelayBetweenPassiveGeneration() {
+            return 1;
+        }
 
         @Override
         public int getValueForPassiveGeneration() {
+            float multiplier = 0.0F;
+            if (getWorld().isRainingAt(getPos())) {
+                multiplier = getWorld().isThundering() ? 3.0F : 0.09F;
+            }
             net.minecraft.block.Block soil = getWorld().getBlockState(getPos().down()).getBlock();
-            boolean thundering = getWorld().isThundering();
             if (soil == vazkii.botania.common.block.ModBlocks.enchantedSoil) {
-                return thundering ? 12 : 8;
+                multiplier *= 5.0F;
+            } else if (soil == vazkii.botania.common.block.ModBlocks.altGrass) {
+                multiplier *= 2.0F;
             }
-            if (soil == Blocks.GRASS || soil == Blocks.DIRT || soil == Blocks.GRASS_PATH) {
-                return thundering ? 4 : 1;
-            }
-            return 0;
+            return Math.round(multiplier * 5.0F);
         }
 
         @Override public int getMaxMana() { return 300; }
-        @Override public int getColor() { return 0x6EB8FF; }
+        @Override public int getColor() { return 0x1E1CD8; }
     }
 
     public static class Feysythia extends SubTileGenerating {
