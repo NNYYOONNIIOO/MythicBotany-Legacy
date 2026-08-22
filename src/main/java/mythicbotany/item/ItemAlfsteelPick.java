@@ -26,7 +26,10 @@ import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.api.mana.IManaTooltipDisplay;
 import vazkii.botania.common.core.helper.ItemNBTHelper;
+import vazkii.botania.common.item.ItemTemperanceStone;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
+import vazkii.botania.common.item.relic.ItemLokiRing;
+import vazkii.botania.common.item.relic.ItemThorRing;
 
 /** Alfsteel's TerraPick-like shatterer with a mana bar and a toggleable 3x3 mode. */
 public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaTooltipDisplay, ISequentialBreaker {
@@ -89,6 +92,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         RayTraceResult ray = ToolCommons.raytraceFromEntity(player.world, player, true, 10.0D);
         if (!player.world.isRemote && ray != null && ray.sideHit != null) {
             breakOtherBlock(player, stack, pos, pos, ray.sideHit);
+            ItemLokiRing.breakOnAllCursors(player, this, stack, pos, ray.sideHit);
         }
         return false;
     }
@@ -101,13 +105,18 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 || !MATERIALS.contains(originState.getMaterial())
                 || originState.getPlayerRelativeBlockHardness(player, player.world, pos) <= 0.0F
                 || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
-        int level = getLevel(stack);
+        int originalLevel = getLevel(stack);
+        boolean thor = !ItemThorRing.getThorRing(player).isEmpty();
+        int level = originalLevel + (thor ? 1 : 0);
+        if (ItemTemperanceStone.hasTemperanceActive(player) && level > 2) {
+            level = 2;
+        }
         int range = level - 1;
         if (range < 0 || getMana_(stack) < MANA_PER_BLOCK) return;
         int rangeY = Math.max(1, range);
-        boolean doX = side.getXOffset() == 0;
-        boolean doY = side.getYOffset() == 0;
-        boolean doZ = side.getZOffset() == 0;
+        boolean doX = thor || side.getXOffset() == 0;
+        boolean doY = thor || side.getYOffset() == 0;
+        boolean doZ = thor || side.getZOffset() == 0;
         Vec3i begin = new Vec3i(doX ? -range : 0, doY ? -1 : 0, doZ ? -range : 0);
         Vec3i end = new Vec3i(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
         ToolCommons.removeBlocksInIteration(player, stack, player.world, pos, begin, end,
