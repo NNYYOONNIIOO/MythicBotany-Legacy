@@ -3,10 +3,14 @@ package mythicbotany.client;
 import mythicbotany.MythicBotany;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
+import mythicbotany.pylon.TileAlfsteelPylon;
+import mythicbotany.rune.TileCentralRuneHolder;
+import mythicbotany.rune.TileRuneHolder;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.item.Item;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
@@ -23,10 +27,11 @@ public final class ModelHandler {
     private static boolean specialFlowerModelsRegistered;
 
     private ModelHandler() { }
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerModels(ModelRegistryEvent event) {
         registerSpecialFlowerModels();
         registerSpecialFlowerItemModels();
+        registerTesrItems();
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
     }
@@ -96,5 +101,15 @@ public final class ModelHandler {
             }
             return variants[0];
         });
+    }
+
+    /** Item models using a tile-entity renderer must be registered before model baking. */
+    private static void registerTesrItems() {
+        ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.runeHolder), 0,
+                TileRuneHolder.class);
+        ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.centralRuneHolder), 0,
+                TileCentralRuneHolder.class);
+        ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.alfsteelPylon), 0,
+                TileAlfsteelPylon.class);
     }
 }

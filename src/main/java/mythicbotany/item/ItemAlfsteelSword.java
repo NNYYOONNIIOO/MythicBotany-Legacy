@@ -15,14 +15,18 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import mythicbotany.network.NetworkHandler;
+import mythicbotany.network.PacketLeftClick;
 import vazkii.botania.api.internal.IManaBurst;
 import vazkii.botania.api.mana.BurstProperties;
 import vazkii.botania.api.mana.ILensEffect;
@@ -33,6 +37,9 @@ import vazkii.botania.common.item.equipment.tool.ToolCommons;
 /** Alfsteel blade: normal melee combat plus a durability-costing mana pulse on an air swing. */
 public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
     private static final String TAG_ATTACKER_USERNAME = "attackerUsername";
+    private static final String TAG_ORIGIN_X = "mythicbotanyPulseOriginX";
+    private static final String TAG_ORIGIN_Y = "mythicbotanyPulseOriginY";
+    private static final String TAG_ORIGIN_Z = "mythicbotanyPulseOriginZ";
     private static final int MAX_DAMAGE = 4600;
     private static final int BURST_MANA = 1000;
     private static final int MANA_PER_DAMAGE = 200;
@@ -44,37 +51,28 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
         super(material);
         setMaxStackSize(1);
         setMaxDamage(MAX_DAMAGE);
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
-    @Override
-    public boolean onEntitySwing(EntityLivingBase entity, ItemStack stack) {
-        if (!entity.world.isRemote && entity instanceof EntityPlayer) {
-            EntityPlayer player = (EntityPlayer) entity;
-            if (player.getHeldItemMainhand().getItem() == this
-                    && player.getCooledAttackStrength(0.0F) >= 1.0F
-                    && isAirSwing(player)) {
-                player.world.spawnEntity(createBurst(player, EnumHand.MAIN_HAND, stack));
-                ToolCommons.damageItem(stack, 1, player, MANA_PER_DAMAGE);
-            }
+    /** Forge 1.12.2 does not send an empty left click to the server by itself. */
+    @SubscribeEvent
+    public void leftClick(PlayerInteractEvent.LeftClickEmpty event) {
+        if (event.getEntityPlayer().world.isRemote
+                && !event.getItemStack().isEmpty()
+                && event.getItemStack().getItem() == this) {
+            NetworkHandler.sendToServer(new PacketLeftClick());
         }
-        return false;
     }
 
-    private static boolean isAirSwing(EntityPlayer player) {
-        Vec3d start = player.getPositionEyes(1.0F);
-        Vec3d look = player.getLook(1.0F);
-        Vec3d end = start.add(look.x * 5.0D, look.y * 5.0D, look.z * 5.0D);
-        if (player.world.rayTraceBlocks(start, end, false, true, false) != null) return false;
-
-        AxisAlignedBB search = player.getEntityBoundingBox()
-                .expand(look.x * 5.0D, look.y * 5.0D, look.z * 5.0D).grow(1.0D);
-        List<EntityLivingBase> entities = player.world.getEntitiesWithinAABB(EntityLivingBase.class, search);
-        for (EntityLivingBase living : entities) {
-            if (living == player || !living.canBeCollidedWith()) continue;
-            AxisAlignedBB box = living.getEntityBoundingBox().grow(living.getCollisionBorderSize());
-            if (box.calculateIntercept(start, end) != null) return false;
+    /** Called by the server packet after the client left-clicks empty space. */
+    public void trySpawnBurst(EntityPlayer player, ItemStack stack) {
+        if (player.world.isRemote || stack.isEmpty()
+                || player.getHeldItemMainhand().getItem() != this
+                || player.getCooledAttackStrength(0.0F) < 1.0F) {
+            return;
         }
-        return true;
+        player.world.spawnEntity(createBurst(player, EnumHand.MAIN_HAND, stack));
+        ToolCommons.damageItem(stack, 1, player, MANA_PER_DAMAGE);
     }
 
     @Override
@@ -107,6 +105,11 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
         burst.setMotion(burst.motionX * 7.0D, burst.motionY * 7.0D, burst.motionZ * 7.0D);
         ItemStack lens = source.copy();
         ItemNBTHelper.setString(lens, TAG_ATTACKER_USERNAME, player.getName());
+        NBTTagCompound tag = lens.hasTagCompound() ? lens.getTagCompound() : new NBTTagCompound();
+        tag.setDouble(TAG_ORIGIN_X, player.posX);
+        tag.setDouble(TAG_ORIGIN_Y, player.posY);
+        tag.setDouble(TAG_ORIGIN_Z, player.posZ);
+        lens.setTagCompound(tag);
         burst.setSourceLens(lens);
         return burst;
     }
@@ -122,13 +125,21 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
                 .expand(entity.posX - entity.lastTickPosX, entity.posY - entity.lastTickPosY,
                         entity.posZ - entity.lastTickPosZ).grow(1.0D);
         List<EntityLivingBase> entities = entity.world.getEntitiesWithinAABB(EntityLivingBase.class, axis);
-        String attackerName = ItemNBTHelper.getString(burst.getSourceLens(), TAG_ATTACKER_USERNAME, "");
-        EntityPlayer attacker = entity.world.getPlayerEntityByName(attackerName);
-        if (attacker != null && entity.getDistanceSq(attacker) > MAX_BURST_DISTANCE * MAX_BURST_DISTANCE) {
+        ItemStack lens = burst.getSourceLens();
+        NBTTagCompound tag = lens.hasTagCompound() ? lens.getTagCompound() : null;
+        double originX = tag != null && tag.hasKey(TAG_ORIGIN_X) ? tag.getDouble(TAG_ORIGIN_X) : entity.posX;
+        double originY = tag != null && tag.hasKey(TAG_ORIGIN_Y) ? tag.getDouble(TAG_ORIGIN_Y) : entity.posY;
+        double originZ = tag != null && tag.hasKey(TAG_ORIGIN_Z) ? tag.getDouble(TAG_ORIGIN_Z) : entity.posZ;
+        double dx = entity.posX - originX;
+        double dy = entity.posY - originY;
+        double dz = entity.posZ - originZ;
+        if (dx * dx + dy * dy + dz * dz > MAX_BURST_DISTANCE * MAX_BURST_DISTANCE) {
             entity.setDead();
             return;
         }
 
+        String attackerName = ItemNBTHelper.getString(lens, TAG_ATTACKER_USERNAME, "");
+        EntityPlayer attacker = entity.world.getPlayerEntityByName(attackerName);
         for (EntityLivingBase living : entities) {
             if (living instanceof EntityPlayer
                     && (living.getName().equals(attackerName)

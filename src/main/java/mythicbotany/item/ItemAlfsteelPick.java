@@ -66,7 +66,8 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
 
     @Override
     public float getDestroySpeed(ItemStack stack, IBlockState state) {
-        return super.getDestroySpeed(stack, state);
+        return !isEnabled(stack) || getMana_(stack) >= MANA_PER_BLOCK
+                ? super.getDestroySpeed(stack, state) : 0.0F;
     }
 
     @Override

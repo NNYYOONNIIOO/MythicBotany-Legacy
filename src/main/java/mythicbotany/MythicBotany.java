@@ -11,6 +11,7 @@ import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.world.ModWorldGenerator;
 import mythicbotany.dimension.ModDimensions;
 import mythicbotany.lexicon.MythicLexicon;
+import mythicbotany.network.NetworkHandler;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import net.minecraft.creativetab.CreativeTabs;
@@ -69,6 +70,7 @@ public final class MythicBotany {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
+        NetworkHandler.init();
         ModDimensions.register();
         ModRecipes.registerSpecialFlowerSubTiles();
         GameRegistry.registerTileEntity(TileManaInfuser.class, tileId("mana_infuser"));
