@@ -24,6 +24,10 @@ public final class ClientProxy extends CommonProxy {
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
+        ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.runeHolder), 0,
+                TileRuneHolder.class);
+        ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.centralRuneHolder), 0,
+                TileCentralRuneHolder.class);
         ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.alfsteelPylon), 0,
                 TileAlfsteelPylon.class);
     }
