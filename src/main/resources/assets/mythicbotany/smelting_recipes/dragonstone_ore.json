@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {"item": "mythicbotany:dragonstone_ore"},
+  "result": {"item": "botania:manaresource", "data": 7},
+  "experience": 1.0
+}

@@ -1,0 +1,5 @@
+{
+  "input": {"item": "minecraft:gold_ingot"},
+  "output": {"item": "mythicbotany:alfsteel_ingot"},
+  "mana": 20000
+}

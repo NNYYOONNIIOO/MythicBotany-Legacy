@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {"item": "mythicbotany:raw_elementium"},
+  "result": {"item": "mythicbotany:alfsteel_nugget", "count": 2},
+  "experience": 0.5
+}

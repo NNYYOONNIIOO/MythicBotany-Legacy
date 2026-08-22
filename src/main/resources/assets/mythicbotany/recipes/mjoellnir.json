@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "mythicbotany.recipes",
+  "pattern": [" A ", "AEA", " S "],
+  "key": {
+    "A": {"item": "mythicbotany:alfsteel_ingot"},
+    "E": {"item": "minecraft:nether_star"},
+    "S": {"item": "minecraft:stick"}
+  },
+  "result": {"item": "mythicbotany:mjoellnir"}
+}

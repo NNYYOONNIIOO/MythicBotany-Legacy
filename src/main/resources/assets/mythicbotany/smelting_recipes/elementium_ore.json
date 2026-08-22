@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {"item": "mythicbotany:elementium_ore"},
+  "result": {"item": "mythicbotany:raw_elementium"},
+  "experience": 1.0
+}

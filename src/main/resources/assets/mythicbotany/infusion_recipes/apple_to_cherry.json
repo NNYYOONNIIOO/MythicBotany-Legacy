@@ -1,0 +1,5 @@
+{
+  "input": {"item": "minecraft:apple"},
+  "output": {"item": "mythicbotany:dream_cherry"},
+  "mana": 10000
+}

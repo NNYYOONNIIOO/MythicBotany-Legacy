@@ -8,6 +8,7 @@ import mythicbotany.item.ItemGjallarHornFull;
 import mythicbotany.item.ItemKvasirMead;
 import mythicbotany.item.ItemMythicRing;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -119,6 +120,13 @@ public final class ModItems {
     private static class AlfsteelArmor extends ItemArmor {
         private AlfsteelArmor(ItemArmor.ArmorMaterial material, EntityEquipmentSlot slot) {
             super(material, 0, slot);
+        }
+
+        @Override
+        public String getArmorTexture(net.minecraft.item.ItemStack stack, Entity entity,
+                                      EntityEquipmentSlot slot, String type) {
+            return MythicBotany.MODID + ":textures/model/alfsteel_"
+                    + (slot == EntityEquipmentSlot.LEGS ? "1" : "0") + ".png";
         }
 
         @Override

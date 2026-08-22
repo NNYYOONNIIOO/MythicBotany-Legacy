@@ -108,6 +108,7 @@ repositories {
     maven { url = file(System.getProperty('user.home') + '/.gradle/caches/forge_gradle/minecraft_repo') }
     maven { url = file(System.getProperty('user.home') + '/.gradle/caches/forge_gradle/minecraft_user_repo') }
     maven { url = 'https://www.cursemaven.com' }
+    maven { url = 'https://maven.cleanroommc.com' }
     mavenCentral()
 }
 
@@ -118,6 +119,12 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2859'
     implementation fg.deobf("curse.maven:botania-225643:3330934")
     implementation files('libs/Baubles-1.12-1.5.2.jar')
+
+    def mixinBooter = 'zone.rong:mixinbooter:11.13'
+    implementation(mixinBooter) {
+        transitive = false
+    }
+    annotationProcessor mixinBooter
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"

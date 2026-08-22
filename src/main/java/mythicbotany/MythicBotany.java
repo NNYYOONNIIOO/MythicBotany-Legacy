@@ -11,10 +11,12 @@ import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.world.ModWorldGenerator;
 import mythicbotany.dimension.ModDimensions;
 import mythicbotany.entity.EntityAlfPixie;
+import mythicbotany.lexicon.MythicLexicon;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -54,12 +56,12 @@ public final class MythicBotany {
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
         ModDimensions.register();
-        GameRegistry.registerTileEntity(TileManaInfuser.class, "mythicbotany_mana_infuser");
-        GameRegistry.registerTileEntity(TileManaCollector.class, "mythicbotany_mana_collector");
-        GameRegistry.registerTileEntity(TileFunctionalFlower.class, "mythicbotany_functional_flower");
-        GameRegistry.registerTileEntity(TileRuneHolder.class, "mythicbotany_rune_holder");
-        GameRegistry.registerTileEntity(TileCentralRuneHolder.class, "mythicbotany_central_rune_holder");
-        GameRegistry.registerTileEntity(TileAlfsteelPylon.class, "mythicbotany_alfsteel_pylon");
+        GameRegistry.registerTileEntity(TileManaInfuser.class, tileId("mana_infuser"));
+        GameRegistry.registerTileEntity(TileManaCollector.class, tileId("mana_collector"));
+        GameRegistry.registerTileEntity(TileFunctionalFlower.class, tileId("functional_flower"));
+        GameRegistry.registerTileEntity(TileRuneHolder.class, tileId("rune_holder"));
+        GameRegistry.registerTileEntity(TileCentralRuneHolder.class, tileId("central_rune_holder"));
+        GameRegistry.registerTileEntity(TileAlfsteelPylon.class, tileId("alfsteel_pylon"));
         net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(
                 new net.minecraft.util.ResourceLocation(MODID, "alf_pixie"), EntityAlfPixie.class,
                 "alf_pixie", 1, INSTANCE, 64, 3, true);
@@ -70,8 +72,13 @@ public final class MythicBotany {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         ModRecipes.register();
+        MythicLexicon.register();
         proxy.init();
         logger.info("MythicBotany 1.12.2 core initialized with {} blocks and {} items",
                 ModBlocks.ALL.length, ModItems.ALL.length);
+    }
+
+    private static ResourceLocation tileId(String name) {
+        return new ResourceLocation(MODID, name);
     }
 }
