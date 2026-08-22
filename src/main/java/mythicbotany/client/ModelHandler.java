@@ -4,6 +4,7 @@ import mythicbotany.MythicBotany;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -19,6 +20,8 @@ public final class ModelHandler {
     public static void registerModels(ModelRegistryEvent event) {
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
+        Minecraft.getMinecraft().getItemColors().registerItemColorHandler((stack, tintIndex) ->
+                tintIndex == 0 ? 0x9E65D6 : 0x28173D, ModItems.alfPixieSpawnEgg);
     }
     private static void register(Item item) {
         if (item != null && item.getRegistryName() != null)

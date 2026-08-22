@@ -19,7 +19,7 @@ public final class MythicLexicon {
         registered = true;
         LexiconCategory category0 = new LexiconCategory("lexicon.category.mythicbotany.botania.alfheim")
                 .setPriority(6)
-                .setIcon(new ResourceLocation("mythicbotany:dream_cherry"));
+                .setIcon(new ResourceLocation(MythicBotany.MODID, "textures/items/dream_cherry.png"));
         BotaniaAPI.addCategory(category0);
         add(category0, "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape", "mythicbotany:alf_pixie_spawn_egg", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page1.text1", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page2.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page2.text1", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page3.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page3.text1");
         add(category0, "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources", "mythicbotany:elementium_ore", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page2.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page3.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page4.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page5.text0");
@@ -27,10 +27,10 @@ public final class MythicLexicon {
         add(category0, "lexicon.entry.mythicbotany.botania.alfheim.kvasir", "mythicbotany:kvasir_mead", "lexicon.entry.mythicbotany.botania.alfheim.kvasir.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.kvasir.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.kvasir.page3.text0");
         LexiconCategory category1 = new LexiconCategory("lexicon.category.mythicbotany.botania.mythic_botany")
                 .setPriority(6)
-                .setIcon(new ResourceLocation("mythicbotany:alfsteel_sword{Damage:0}"));
+                .setIcon(new ResourceLocation(MythicBotany.MODID, "textures/items/alfsteel_sword.png"));
         BotaniaAPI.addCategory(category1);
-        add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.functional", "mythicbotany:hellebore", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page5.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page7.text0");
-        add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.generating", "mythicbotany:wither_aconite", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page5.text0");
+        add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.functional", "botania:specialflower{type:mythicbotany_hellebore}", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page5.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.functional.page7.text0");
+        add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.generating", "botania:specialflower{type:mythicbotany_wither_aconite}", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page5.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.infuser", "mythicbotany:alfsteel_ingot", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page2.text1", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page3.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.manaband", "mythicbotany:mana_ring_greatest", "lexicon.entry.mythicbotany.botania.mythic_botany.manaband.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.manaband.page1.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.mimir", "mythicbotany:gjallar_horn_full", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page4.text0");
@@ -55,6 +55,24 @@ public final class MythicLexicon {
         int brace = raw.indexOf("{");
         String id = brace < 0 ? raw : raw.substring(0, brace);
         Item item = Item.REGISTRY.getObject(new ResourceLocation(id));
-        return item == null ? new ItemStack(ModItems.alfsteelIngot) : new ItemStack(item);
+        if (item == null) return new ItemStack(ModItems.alfsteelIngot);
+        ItemStack stack = new ItemStack(item);
+        int end = raw.lastIndexOf('}');
+        if (brace >= 0 && end > brace) {
+            String data = raw.substring(brace + 1, end);
+            int typeIndex = data.indexOf("type:");
+            if (typeIndex >= 0) {
+                String type = data.substring(typeIndex + 5).replace("\"", "").trim();
+                net.minecraft.nbt.NBTTagCompound tag = new net.minecraft.nbt.NBTTagCompound();
+                tag.setString("type", type);
+                stack.setTagCompound(tag);
+            }
+            int damageIndex = data.indexOf("Damage:");
+            if (damageIndex >= 0) {
+                String damage = data.substring(damageIndex + 7).replaceAll("[^0-9].*", "");
+                if (!damage.isEmpty()) stack.setItemDamage(Integer.parseInt(damage));
+            }
+        }
+        return stack;
     }
 }

@@ -2,6 +2,8 @@ package mythicbotany.registry;
 
 import mythicbotany.MythicBotany;
 import mythicbotany.item.ItemAlfPixieSpawnEgg;
+import mythicbotany.item.ItemAlfsteelPick;
+import mythicbotany.item.ItemAlfsteelSword;
 import mythicbotany.item.ItemMjoellnir;
 import mythicbotany.item.ItemFimbultyrTablet;
 import mythicbotany.item.ItemGjallarHornFull;
@@ -9,7 +11,6 @@ import mythicbotany.item.ItemKvasirMead;
 import mythicbotany.item.ItemMythicRing;
 import mythicbotany.item.ItemManaMythicRing;
 import mythicbotany.item.ItemAuraMythicRing;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
@@ -18,8 +19,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemFood;
-import net.minecraft.item.ItemPickaxe;
-import net.minecraft.item.ItemSword;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ResourceLocation;
@@ -45,9 +44,9 @@ public final class ModItems {
     public static final Item alfsteelIngot = named(new Item(), "alfsteel_ingot");
     public static final Item alfsteelNugget = named(new Item(), "alfsteel_nugget");
     public static final Item alfsteelTemplate = named(new Item(), "alfsteel_template");
-    public static final Item alfsteelSword = named(new AlfsteelSword(ALFSTEEL_TOOLS), "alfsteel_sword");
+    public static final Item alfsteelSword = named(new ItemAlfsteelSword(ALFSTEEL_TOOLS), "alfsteel_sword");
     public static final Item mjoellnir = named(new ItemMjoellnir(ALFSTEEL_TOOLS), "mjoellnir");
-    public static final Item alfsteelPick = named(new AlfsteelPickaxe(ALFSTEEL_TOOLS), "alfsteel_pick");
+    public static final Item alfsteelPick = named(new ItemAlfsteelPick(ALFSTEEL_TOOLS), "alfsteel_pick");
     public static final Item alfsteelAxe = named(new AlfsteelAxe(ALFSTEEL_TOOLS, 6.0F, -3.1F), "alfsteel_axe");
     public static final Item alfsteelHelmet = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
     public static final Item alfsteelChestplate = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
@@ -66,7 +65,6 @@ public final class ModItems {
     public static final Item kvasirBlood = named(new Item().setMaxStackSize(8), "kvasir_blood");
     public static final Item kvasirMead = named(new ItemKvasirMead(), "kvasir_mead");
     public static final Item dreamCherry = named(createDreamCherry(), "dream_cherry");
-    public static final Item rawElementium = named(new Item(), "raw_elementium");
     public static final Item alfPixieSpawnEgg = named(new ItemAlfPixieSpawnEgg(), "alf_pixie_spawn_egg");
 
     public static final Item[] ALL = {
@@ -76,7 +74,7 @@ public final class ModItems {
             alfsteelHelmet, alfsteelChestplate, alfsteelLeggings, alfsteelBoots,
             manaRingGreatest, auraRingGreatest, fadedNetherStar, fireRing, iceRing,
             gjallarHornEmpty, gjallarHornFull, cursedAndwariRing, andwariRing,
-            fimbultyrTablet, kvasirBlood, kvasirMead, dreamCherry, rawElementium, alfPixieSpawnEgg
+            fimbultyrTablet, kvasirBlood, kvasirMead, dreamCherry, alfPixieSpawnEgg
     };
 
     private ModItems() {
@@ -95,27 +93,9 @@ public final class ModItems {
         return item;
     }
 
-    private static class AlfsteelPickaxe extends ItemPickaxe {
-        private AlfsteelPickaxe(Item.ToolMaterial material) {
-            super(material);
-        }
-    }
-
     private static class AlfsteelAxe extends ItemAxe {
         private AlfsteelAxe(Item.ToolMaterial material, float attackDamage, float attackSpeed) {
             super(material, attackDamage, attackSpeed);
-        }
-    }
-
-    private static class AlfsteelSword extends ItemSword {
-        private AlfsteelSword(Item.ToolMaterial material) {
-            super(material);
-        }
-
-        @Override
-        public boolean hitEntity(net.minecraft.item.ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
-            target.addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 60, 0));
-            return super.hitEntity(stack, target, attacker);
         }
     }
 
@@ -128,7 +108,7 @@ public final class ModItems {
         public String getArmorTexture(net.minecraft.item.ItemStack stack, Entity entity,
                                       EntityEquipmentSlot slot, String type) {
             return MythicBotany.MODID + ":textures/model/alfsteel_"
-                    + (slot == EntityEquipmentSlot.LEGS ? "2" : "1") + ".png";
+                    + (slot == EntityEquipmentSlot.LEGS ? "1" : "0") + ".png";
         }
 
         @Override

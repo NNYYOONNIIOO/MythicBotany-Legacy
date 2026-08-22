@@ -2,10 +2,12 @@ package mythicbotany.recipe;
 
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
+import mythicbotany.flower.MythicFlowerSubTiles;
 import mythicbotany.rune.RuneRitualRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 import vazkii.botania.api.BotaniaAPI;
+import vazkii.botania.common.item.block.ItemBlockSpecialFlower;
 
 public final class ModRecipes {
     private static boolean registered;
@@ -22,7 +24,7 @@ public final class ModRecipes {
         InfuserRecipe.loadResources();
         RuneRitualRegistry.loadResources();
         SmeltingRecipeLoader.loadResources();
-        registerFunctionalFlowerRecipes();
+        registerSpecialFlowerRecipes();
     }
 
     private static void registerOreDictionary() {
@@ -34,7 +36,15 @@ public final class ModRecipes {
         OreDictionary.registerOre("oreGold", new ItemStack(ModBlocks.goldOre));
     }
 
-    private static void registerFunctionalFlowerRecipes() {
+    private static void registerSpecialFlowerRecipes() {
+        BotaniaAPI.registerSubTile("mythicbotany_exoblaze", MythicFlowerSubTiles.Exoblaze.class);
+        BotaniaAPI.registerSubTile("mythicbotany_wither_aconite", MythicFlowerSubTiles.WitherAconite.class);
+        BotaniaAPI.registerSubTile("mythicbotany_aquapanthus", MythicFlowerSubTiles.Aquapanthus.class);
+        BotaniaAPI.registerSubTile("mythicbotany_hellebore", MythicFlowerSubTiles.Hellebore.class);
+        BotaniaAPI.registerSubTile("mythicbotany_raindeletia", MythicFlowerSubTiles.Raindeletia.class);
+        BotaniaAPI.registerSubTile("mythicbotany_feysythia", MythicFlowerSubTiles.Feysythia.class);
+        BotaniaAPI.registerSubTile("mythicbotany_petrunia", MythicFlowerSubTiles.Petrunia.class);
+
         ItemStack red = petal(14);
         ItemStack orange = petal(1);
         ItemStack yellow = petal(11);
@@ -47,19 +57,19 @@ public final class ModRecipes {
         ItemStack magenta = petal(13);
         ItemStack black = petal(8);
         ItemStack white = petal(0);
-        BotaniaAPI.registerPetalRecipe(new ItemStack(ModBlocks.exoblaze), red, red, orange, orange,
+        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_exoblaze"), red, red, orange, orange,
                 new ItemStack(ModItems.muspelheimRune));
-        BotaniaAPI.registerPetalRecipe(new ItemStack(ModBlocks.witherAconite), purple, purple, black, black,
+        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_wither_aconite"), purple, purple, black, black,
                 new ItemStack(ModItems.helheimRune));
-        BotaniaAPI.registerPetalRecipe(new ItemStack(ModBlocks.aquapanthus), blue, blue, cyan, cyan,
+        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_aquapanthus"), blue, blue, cyan, cyan,
                 new ItemStack(ModItems.vanaheimRune));
-        BotaniaAPI.registerPetalRecipe(new ItemStack(ModBlocks.hellebore), white, white, lime, lime,
+        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_hellebore"), white, white, lime, lime,
                 new ItemStack(ModItems.alfheimRune));
-        BotaniaAPI.registerPetalRecipe(new ItemStack(ModBlocks.raindeletia), lightBlue, lightBlue, blue, blue,
+        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_raindeletia"), lightBlue, lightBlue, blue, blue,
                 new ItemStack(ModItems.niflheimRune));
-        BotaniaAPI.registerPetalRecipe(new ItemStack(ModBlocks.feysythia), yellow, yellow, orange, lime,
+        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_feysythia"), yellow, yellow, orange, lime,
                 new ItemStack(ModItems.asgardRune));
-        BotaniaAPI.registerPetalRecipe(new ItemStack(ModBlocks.petrunia), magenta, magenta, purple, black,
+        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_petrunia"), magenta, magenta, purple, black,
                 new ItemStack(ModItems.joetunheimRune));
     }
 

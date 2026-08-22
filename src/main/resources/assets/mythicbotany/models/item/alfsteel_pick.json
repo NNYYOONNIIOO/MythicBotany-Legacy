@@ -6,7 +6,7 @@
   "overrides": [
     {
       "predicate": {
-        "mythicbotany:active": 1
+        "mythicbotany:enabled": 1
       },
       "model": "mythicbotany:item/alfsteel_pick_active"
     },
