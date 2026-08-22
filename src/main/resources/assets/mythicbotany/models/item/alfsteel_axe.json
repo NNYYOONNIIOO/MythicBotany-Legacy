@@ -9,6 +9,12 @@
         "mythicbotany:active": 1
       },
       "model": "mythicbotany:item/alfsteel_axe_active"
+    },
+    {
+      "predicate": {
+        "mythicbotany:enabled": 1
+      },
+      "model": "mythicbotany:item/alfsteel_axe_active"
     }
   ]
 }
