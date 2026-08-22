@@ -49,6 +49,9 @@ public final class ModRecipes {
         OreDictionary.registerOre("blockAlfsteel", new ItemStack(ModBlocks.alfsteelBlock));
         OreDictionary.registerOre("oreElementium", new ItemStack(ModBlocks.elementiumOre));
         OreDictionary.registerOre("oreGold", new ItemStack(ModBlocks.goldOre));
+        // Dragonstone must never be selected by Orechid/Orechid Ignem.
+        BotaniaAPI.oreWeights.remove("oreDragonstone");
+        BotaniaAPI.oreWeightsNether.remove("oreDragonstone");
     }
 
     private static void registerSpecialFlowerRecipes() {
