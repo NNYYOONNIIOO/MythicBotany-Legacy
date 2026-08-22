@@ -1,27 +1,7 @@
 {
-  "parent": "item/handheld",
+  "parent": "item/generated",
   "textures": {
     "layer0": "mythicbotany:items/alfsteel_pick"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "mythicbotany:enabled": 1
-      },
-      "model": "mythicbotany:item/alfsteel_pick_active"
-    },
-    {
-      "predicate": {
-        "mythicbotany:tipped": 1
-      },
-      "model": "mythicbotany:item/alfsteel_pick_tipped"
-    },
-    {
-      "predicate": {
-        "mythicbotany:tipped": 1,
-        "mythicbotany:enabled": 1
-      },
-      "model": "mythicbotany:item/alfsteel_pick_tipped_active"
-    }
-  ]
+  }
 }
+

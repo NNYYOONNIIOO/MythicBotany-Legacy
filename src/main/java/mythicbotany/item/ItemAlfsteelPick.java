@@ -121,7 +121,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         Vec3i end = new Vec3i(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
         ToolCommons.removeBlocksInIteration(player, stack, player.world, pos, begin, end,
                 candidateState -> getMana_(stack) >= MANA_PER_BLOCK
-                        && MATERIALS.contains(candidateState.getMaterial()), isTipped(stack));
+                        && MATERIALS.contains(candidateState.getMaterial()), !isTipped(stack));
     }
 
     public static int getMana_(ItemStack stack) {

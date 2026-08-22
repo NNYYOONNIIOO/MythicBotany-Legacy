@@ -1,20 +1,7 @@
 {
-  "parent": "item/handheld",
+  "parent": "item/generated",
   "textures": {
     "layer0": "mythicbotany:items/alfsteel_axe"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "mythicbotany:active": 1
-      },
-      "model": "mythicbotany:item/alfsteel_axe_active"
-    },
-    {
-      "predicate": {
-        "mythicbotany:enabled": 1
-      },
-      "model": "mythicbotany:item/alfsteel_axe_active"
-    }
-  ]
+  }
 }
+
