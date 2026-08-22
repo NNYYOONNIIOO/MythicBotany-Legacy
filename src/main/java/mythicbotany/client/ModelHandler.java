@@ -30,8 +30,6 @@ public final class ModelHandler {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerModels(ModelRegistryEvent event) {
         registerSpecialFlowerModels();
-        registerSpecialFlowerItemModels();
-        registerTesrItems();
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
     }
