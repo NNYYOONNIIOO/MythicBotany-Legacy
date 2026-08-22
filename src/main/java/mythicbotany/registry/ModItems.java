@@ -2,6 +2,7 @@ package mythicbotany.registry;
 
 import mythicbotany.MythicBotany;
 import mythicbotany.item.ItemAlfPixieSpawnEgg;
+import mythicbotany.item.ItemMjoellnir;
 import mythicbotany.item.ItemMythicRing;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -39,6 +40,7 @@ public final class ModItems {
     public static final Item alfsteelNugget = named(new Item(), "alfsteel_nugget");
     public static final Item alfsteelTemplate = named(new Item(), "alfsteel_template");
     public static final Item alfsteelSword = named(new AlfsteelSword(ALFSTEEL_TOOLS), "alfsteel_sword");
+    public static final Item mjoellnir = named(new ItemMjoellnir(ALFSTEEL_TOOLS), "mjoellnir");
     public static final Item alfsteelPick = named(new AlfsteelPickaxe(ALFSTEEL_TOOLS), "alfsteel_pick");
     public static final Item alfsteelAxe = named(new AlfsteelAxe(ALFSTEEL_TOOLS, 6.0F, -3.1F), "alfsteel_axe");
     public static final Item alfsteelHelmet = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
@@ -64,7 +66,7 @@ public final class ModItems {
     public static final Item[] ALL = {
             asgardRune, vanaheimRune, alfheimRune, midgardRune, joetunheimRune,
             muspelheimRune, niflheimRune, nidavellirRune, helheimRune,
-            alfsteelIngot, alfsteelNugget, alfsteelTemplate, alfsteelSword, alfsteelPick, alfsteelAxe,
+            alfsteelIngot, alfsteelNugget, alfsteelTemplate, mjoellnir, alfsteelSword, alfsteelPick, alfsteelAxe,
             alfsteelHelmet, alfsteelChestplate, alfsteelLeggings, alfsteelBoots,
             manaRingGreatest, auraRingGreatest, fadedNetherStar, fireRing, iceRing,
             gjallarHornEmpty, gjallarHornFull, cursedAndwariRing, andwariRing,

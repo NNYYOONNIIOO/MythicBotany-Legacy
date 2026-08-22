@@ -87,6 +87,8 @@ public final class ModRecipes {
         GameRegistry.addShapedRecipe(id("aura_ring_greatest"), group(), new ItemStack(ModItems.auraRingGreatest),
                 " M ", "MIM", " M ", 'M', vazkii.botania.common.item.ModItems.manaResource,
                 'I', ModItems.alfsteelNugget);
+        GameRegistry.addShapedRecipe(id("mjoellnir"), group(), new ItemStack(ModItems.mjoellnir),
+                " A ", "AEA", " S ", 'A', ModItems.alfsteelIngot, 'E', Items.NETHER_STAR, 'S', Items.STICK);
         GameRegistry.addShapedRecipe(id("andwari_ring"), group(), new ItemStack(ModItems.andwariRing),
                 " G ", "GFG", " G ", 'G', Items.GOLD_INGOT, 'F', ModItems.fadedNetherStar);
     }
