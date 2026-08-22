@@ -3,7 +3,9 @@ package mythicbotany.pylon;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
 /** Client renderer for the Alfsteel pylon's ring and crystal. */
@@ -11,6 +13,17 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
     private static final ResourceLocation TEXTURE = new ResourceLocation(
             "mythicbotany", "textures/model/pylon_alfsteel.png");
     private final PylonModelNatura model = new PylonModelNatura();
+
+    /** Uses the same TESR for the held, inventory and dropped block item. */
+    public static final class ItemRenderer extends TileEntityItemStackRenderer {
+        private final RenderAlfsteelPylon renderer = new RenderAlfsteelPylon();
+        private final TileAlfsteelPylon dummy = new TileAlfsteelPylon();
+
+        @Override
+        public void renderByItem(ItemStack stack, float partialTicks) {
+            renderer.render(dummy, 0.0D, 0.0D, 0.0D, partialTicks, 0, 1.0F);
+        }
+    }
 
     @Override
     public void render(TileAlfsteelPylon tile, double x, double y, double z, float partialTicks,

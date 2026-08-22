@@ -34,7 +34,8 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String TAG_ENABLED = "enabled";
     private static final String TAG_TIPPED = "tipped";
     private static final int MAX_MANA = Integer.MAX_VALUE;
-    private static final int MANA_PER_BLOCK = 1000;
+    /** Botania's TerraPick uses 80 mana per extra block in 1.12.2. */
+    private static final int MANA_PER_BLOCK = 80;
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
             Material.PISTON, Material.ANVIL, Material.GRASS, Material.GROUND,
@@ -110,7 +111,8 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         Vec3i begin = new Vec3i(doX ? -range : 0, doY ? -1 : 0, doZ ? -range : 0);
         Vec3i end = new Vec3i(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
         ToolCommons.removeBlocksInIteration(player, stack, player.world, pos, begin, end,
-                candidateState -> MATERIALS.contains(candidateState.getMaterial()), isTipped(stack));
+                candidateState -> getMana_(stack) >= MANA_PER_BLOCK
+                        && MATERIALS.contains(candidateState.getMaterial()), isTipped(stack));
     }
 
     public static int getMana_(ItemStack stack) {
