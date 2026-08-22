@@ -1,6 +1,6 @@
 {
-  "parent": "mythicbotany:block/feysythia",
+  "parent": "block/cross",
   "textures": {
-    "layer0": "mythicbotany:blocks/feysythia"
+    "cross": "mythicbotany:blocks/feysythia"
   }
 }

@@ -1,6 +1,6 @@
 {
-  "parent": "mythicbotany:block/exoblaze",
+  "parent": "block/cross",
   "textures": {
-    "layer0": "mythicbotany:blocks/exoblaze"
+    "cross": "mythicbotany:blocks/exoblaze"
   }
 }

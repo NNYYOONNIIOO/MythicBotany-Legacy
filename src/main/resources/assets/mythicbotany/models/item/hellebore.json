@@ -1,6 +1,6 @@
 {
-  "parent": "mythicbotany:block/hellebore",
+  "parent": "block/cross",
   "textures": {
-    "layer0": "mythicbotany:blocks/hellebore"
+    "cross": "mythicbotany:blocks/hellebore"
   }
 }

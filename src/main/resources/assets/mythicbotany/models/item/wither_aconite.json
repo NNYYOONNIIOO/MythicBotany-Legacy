@@ -1,6 +1,6 @@
 {
-  "parent": "mythicbotany:block/wither_aconite",
+  "parent": "block/cross",
   "textures": {
-    "layer0": "mythicbotany:blocks/wither_aconite"
+    "cross": "mythicbotany:blocks/wither_aconite"
   }
 }

@@ -1,6 +1,6 @@
 {
-  "parent": "mythicbotany:block/aquapanthus",
+  "parent": "block/cross",
   "textures": {
-    "layer0": "mythicbotany:blocks/aquapanthus"
+    "cross": "mythicbotany:blocks/aquapanthus"
   }
 }
