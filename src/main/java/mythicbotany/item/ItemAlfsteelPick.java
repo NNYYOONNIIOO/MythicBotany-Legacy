@@ -184,11 +184,21 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     }
 
     private void consumeMiningCost(ItemStack stack, EntityLivingBase entity) {
-        if (isEnabled(stack) && getMana_(stack) >= MANA_PER_BLOCK) {
-            addMana(stack, -MANA_PER_BLOCK);
-        } else {
+        if (isEnabled(stack)) {
+            if (getMana_(stack) >= MANA_PER_BLOCK) {
+                addMana(stack, -MANA_PER_BLOCK);
+            } else {
+                stack.damageItem(1, entity);
+            }
+        } else if (entity instanceof EntityPlayer && !hasLokiRing((EntityPlayer) entity)) {
             ToolCommons.damageItem(stack, 1, entity, MANA_PER_BLOCK);
+        } else {
+            stack.damageItem(1, entity);
         }
+    }
+
+    private static boolean hasLokiRing(EntityPlayer player) {
+        return BaublesApi.isBaubleEquipped(player, vazkii.botania.common.item.ModItems.lokiRing) >= 0;
     }
 
     public static int getMana_(ItemStack stack) {
