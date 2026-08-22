@@ -3,9 +3,11 @@ package mythicbotany.item;
 import java.util.Arrays;
 import java.util.List;
 
+import baubles.api.BaublesApi;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -72,6 +74,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
             stack.damageItem(1, entityLiving);
         } else if (entityLiving instanceof EntityPlayer
                 && stack.getItemDamage() > 0
+                && !hasLokiRing((EntityPlayer) entityLiving)
                 && ManaItemHandler.requestManaExactForTool(stack, (EntityPlayer) entityLiving,
                 MANA_PER_BLOCK, true)) {
             stack.setItemDamage(stack.getItemDamage() - 1);
@@ -164,6 +167,10 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     public static boolean isTipped(ItemStack stack) { return ItemNBTHelper.getBoolean(stack, TAG_TIPPED, false); }
     public static void setTipped(ItemStack stack, boolean tipped) { ItemNBTHelper.setBoolean(stack, TAG_TIPPED, tipped); }
 
+    private static boolean hasLokiRing(EntityPlayer player) {
+        return BaublesApi.isBaubleEquipped(player, vazkii.botania.common.item.ModItems.lokiRing) >= 0;
+    }
+
     @Override public int getMana(ItemStack stack) { return ItemNBTHelper.getInt(stack, TAG_MANA, 0); }
     @Override public int getMaxMana(ItemStack stack) { return MAX_MANA; }
     @Override public void addMana(ItemStack stack, int mana) {
@@ -179,6 +186,15 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     @Override public boolean isNoExport(ItemStack stack) { return true; }
     @Override public boolean disposeOfTrashBlocks(ItemStack stack) { return isTipped(stack); }
     @Override public int getEntityLifespan(ItemStack stack, World world) { return Integer.MAX_VALUE; }
+
+    /** 1.12.2 has no Item.fireResistant flag; extinguish dropped copies each tick. */
+    @Override
+    public boolean onEntityItemUpdate(EntityItem entityItem) {
+        if (entityItem.isBurning()) {
+            entityItem.extinguish();
+        }
+        return false;
+    }
 
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack before, ItemStack after, boolean slotChanged) {
