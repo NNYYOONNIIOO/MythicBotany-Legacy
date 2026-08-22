@@ -6,6 +6,7 @@ import mythicbotany.block.BlockManaCollector;
 import mythicbotany.block.BlockManaInfuser;
 import mythicbotany.block.BlockCentralRuneHolder;
 import mythicbotany.block.BlockRuneHolder;
+import mythicbotany.block.BlockYggdrasilBranch;
 import mythicbotany.block.BlockAlfsteelPylon;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
@@ -24,7 +25,7 @@ public final class ModBlocks {
     public static final Block raindeletia = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.RAINDELETIA), "raindeletia");
     public static final Block feysythia = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.FEYSYTHIA), "feysythia");
     public static final Block petrunia = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.PETRUNIA), "petrunia");
-    public static final Block yggdrasilBranch = named(new SoundBlock(Material.WOOD, SoundType.WOOD).setHardness(4.0F).setResistance(4.0F), "yggdrasil_branch");
+    public static final Block yggdrasilBranch = named(new BlockYggdrasilBranch(), "yggdrasil_branch");
     public static final Block runeHolder = named(new BlockRuneHolder(), "rune_holder");
     public static final Block centralRuneHolder = named(new BlockCentralRuneHolder(), "central_rune_holder");
     public static final Block mjoellnir = named(rockBlock(50.0F, 1200.0F, SoundType.METAL), "mjoellnir");

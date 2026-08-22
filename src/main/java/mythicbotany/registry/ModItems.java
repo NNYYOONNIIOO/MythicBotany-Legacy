@@ -4,6 +4,7 @@ import mythicbotany.MythicBotany;
 import mythicbotany.item.ItemAlfPixieSpawnEgg;
 import mythicbotany.item.ItemMjoellnir;
 import mythicbotany.item.ItemFimbultyrTablet;
+import mythicbotany.item.ItemGjallarHornFull;
 import mythicbotany.item.ItemKvasirMead;
 import mythicbotany.item.ItemMythicRing;
 import net.minecraft.entity.EntityLivingBase;
@@ -55,7 +56,7 @@ public final class ModItems {
     public static final Item fireRing = named(new ItemMythicRing(ItemMythicRing.Effect.FIRE), "fire_ring");
     public static final Item iceRing = named(new ItemMythicRing(ItemMythicRing.Effect.ICE), "ice_ring");
     public static final Item gjallarHornEmpty = named(new Item().setMaxStackSize(1), "gjallar_horn_empty");
-    public static final Item gjallarHornFull = named(new Item().setMaxStackSize(1), "gjallar_horn_full");
+    public static final Item gjallarHornFull = named(new ItemGjallarHornFull(), "gjallar_horn_full");
     public static final Item cursedAndwariRing = named(new ItemMythicRing(ItemMythicRing.Effect.CURSED_ANDWARI), "cursed_andwari_ring");
     public static final Item andwariRing = named(new ItemMythicRing(ItemMythicRing.Effect.ANDWARI), "andwari_ring");
     public static final Item fimbultyrTablet = named(new ItemFimbultyrTablet(), "fimbultyr_tablet");

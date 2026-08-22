@@ -89,6 +89,8 @@ public final class ModRecipes {
                 'I', ModItems.alfsteelNugget);
         GameRegistry.addShapedRecipe(id("fimbultyr_tablet"), group(), new ItemStack(ModItems.fimbultyrTablet),
                 "GEG", "EDE", "GEG", 'G', Items.GOLD_INGOT, 'E', ModItems.alfsteelIngot, 'D', Items.DIAMOND);
+        GameRegistry.addShapedRecipe(id("gjallar_horn_empty"), group(), new ItemStack(ModItems.gjallarHornEmpty),
+                "GGG", "GSG", " G ", 'G', Items.GOLD_INGOT, 'S', Items.STICK);
         GameRegistry.addShapedRecipe(id("mjoellnir"), group(), new ItemStack(ModItems.mjoellnir),
                 " A ", "AEA", " S ", 'A', ModItems.alfsteelIngot, 'E', Items.NETHER_STAR, 'S', Items.STICK);
         GameRegistry.addShapedRecipe(id("andwari_ring"), group(), new ItemStack(ModItems.andwariRing),
