@@ -19,7 +19,7 @@
     {
       "predicate": {
         "mythicbotany:tipped": 1,
-        "mythicbotany:active": 1
+        "mythicbotany:enabled": 1
       },
       "model": "mythicbotany:item/alfsteel_pick_tipped_active"
     }
