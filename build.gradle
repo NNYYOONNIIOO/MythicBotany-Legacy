@@ -128,3 +128,15 @@ publishing {
         }
     }
 }
+
+
+// Map the source assets' high-version texture folders to the 1.12.2 names.
+processResources {
+    eachFile { details ->
+        if (details.path.startsWith('assets/mythicbotany/textures/block/')) {
+            details.path = details.path.replace('assets/mythicbotany/textures/block/', 'assets/mythicbotany/textures/blocks/')
+        } else if (details.path.startsWith('assets/mythicbotany/textures/item/')) {
+            details.path = details.path.replace('assets/mythicbotany/textures/item/', 'assets/mythicbotany/textures/items/')
+        }
+    }
+}
