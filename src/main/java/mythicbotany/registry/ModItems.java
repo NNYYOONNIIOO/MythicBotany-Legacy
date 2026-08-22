@@ -29,7 +29,7 @@ public final class ModItems {
     private static final Item.ToolMaterial ALFSTEEL_TOOLS = EnumHelper.addToolMaterial(
             "MYTHICBOTANY_ALFSTEEL", 4, 2500, 12.0F, 4.0F, 30);
     private static final Item.ToolMaterial ALFSTEEL_PICK_TOOLS = EnumHelper.addToolMaterial(
-            "MYTHICBOTANY_ALFSTEEL_PICK", 3, 4600, 9.0F, 4.0F, 30);
+            "MYTHICBOTANY_ALFSTEEL_PICK", 3, 4600, 9.0F, 3.0F, 30);
     private static final ItemArmor.ArmorMaterial ALFSTEEL_ARMOR = EnumHelper.addArmorMaterial(
             "MYTHICBOTANY_ALFSTEEL", MythicBotany.MODID + ":alfsteel", 45,
             new int[]{4, 9, 7, 4}, 30, SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, 3.0F);
