@@ -223,19 +223,15 @@ public final class MythicFlowerSubTiles {
 
         @Override
         public int getValueForPassiveGeneration() {
-            String soil = blockPath(getWorld().getBlockState(getPos().down()).getBlock());
-            if ("enchanted_soil".equals(soil)) {
-                return getWorld().isThundering() ? 12 : 8;
+            net.minecraft.block.Block soil = getWorld().getBlockState(getPos().down()).getBlock();
+            boolean thundering = getWorld().isThundering();
+            if (soil == vazkii.botania.common.block.ModBlocks.enchantedSoil) {
+                return thundering ? 12 : 8;
             }
-            if ("grass".equals(soil) || "dirt".equals(soil) || "grass_path".equals(soil)) {
-                return getWorld().isThundering() ? 4 : 1;
+            if (soil == Blocks.GRASS || soil == Blocks.DIRT || soil == Blocks.GRASS_PATH) {
+                return thundering ? 4 : 1;
             }
             return 0;
-        }
-
-        private static String blockPath(net.minecraft.block.Block block) {
-            ResourceLocation id = block.getRegistryName();
-            return id == null ? "" : id.getPath();
         }
 
         @Override public int getMaxMana() { return 300; }
@@ -244,7 +240,11 @@ public final class MythicFlowerSubTiles {
 
     public static class Feysythia extends SubTileGenerating {
         private static final String[][] LEVEL_ITEMS = new String[][] {
-            
+            { "fey_dust" },
+            { "lesser_fey_gem" },
+            { "greater_fey_gem" },
+            { "shiny_fey_gem" },
+            { "brilliant_fey_gem" }
         };
 
         @Override
@@ -293,8 +293,15 @@ public final class MythicFlowerSubTiles {
             if (item == null || stack.getItem() != item) {
                 return false;
             }
-            return parts.length < 2 || Integer.parseInt(parts[1]) < 0
-                    || stack.getMetadata() == Integer.parseInt(parts[1]);
+            if (parts.length < 2) {
+                return true;
+            }
+            try {
+                int metadata = Integer.parseInt(parts[1]);
+                return metadata < 0 || stack.getMetadata() == metadata;
+            } catch (NumberFormatException ignored) {
+                return false;
+            }
         }
 
         @Override public int getMaxMana() { return 300; }
