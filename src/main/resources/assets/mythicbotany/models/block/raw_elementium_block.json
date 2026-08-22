@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "block/cube_all",
   "textures": {
-    "all": "mythicbotany:block/raw_elementium_block"
+    "all": "mythicbotany:blocks/raw_elementium_block"
   }
 }

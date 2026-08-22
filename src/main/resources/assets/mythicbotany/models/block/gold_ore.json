@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "block/cube_all",
   "textures": {
-    "all": "mythicbotany:block/gold_ore"
+    "all": "mythicbotany:blocks/gold_ore"
   }
 }

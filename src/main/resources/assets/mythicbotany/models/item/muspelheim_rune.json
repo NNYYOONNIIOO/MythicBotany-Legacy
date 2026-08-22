@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "item/generated",
   "textures": {
-    "layer0": "mythicbotany:item/muspelheim_rune"
+    "layer0": "mythicbotany:items/muspelheim_rune"
   }
 }

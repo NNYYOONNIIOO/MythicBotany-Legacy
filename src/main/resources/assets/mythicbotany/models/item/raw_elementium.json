@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "item/generated",
   "textures": {
-    "layer0": "mythicbotany:item/raw_elementium"
+    "layer0": "mythicbotany:items/raw_elementium"
   }
 }

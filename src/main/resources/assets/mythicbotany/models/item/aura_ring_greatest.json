@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "item/generated",
   "textures": {
-    "layer0": "mythicbotany:item/aura_ring_greatest"
+    "layer0": "mythicbotany:items/aura_ring_greatest"
   }
 }

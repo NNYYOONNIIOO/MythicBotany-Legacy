@@ -1,7 +1,7 @@
 {
-  "parent": "botania:block/shapes/cross",
+  "parent": "block/cross",
   "render_type": "minecraft:cutout_mipped",
   "textures": {
-    "cross": "mythicbotany:block/aquapanthus"
+    "cross": "mythicbotany:blocks/aquapanthus"
   }
 }

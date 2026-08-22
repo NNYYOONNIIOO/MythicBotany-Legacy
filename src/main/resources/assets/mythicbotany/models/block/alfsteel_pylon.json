@@ -1,5 +1,6 @@
 {
+  "parent": "block/cube_all",
   "textures": {
-    "particle": "mythicbotany:block/alfsteel_block"
+    "all": "mythicbotany:blocks/alfsteel_block"
   }
 }

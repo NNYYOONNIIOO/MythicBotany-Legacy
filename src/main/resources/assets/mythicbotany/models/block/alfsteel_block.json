@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "block/cube_all",
   "textures": {
-    "all": "mythicbotany:block/alfsteel_block"
+    "all": "mythicbotany:blocks/alfsteel_block"
   }
 }

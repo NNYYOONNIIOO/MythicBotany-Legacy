@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "item/generated",
   "textures": {
-    "layer0": "mythicbotany:item/dream_cherry"
+    "layer0": "mythicbotany:items/dream_cherry"
   }
 }
