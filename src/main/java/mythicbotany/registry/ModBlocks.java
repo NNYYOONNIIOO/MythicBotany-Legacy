@@ -28,7 +28,6 @@ public final class ModBlocks {
     public static final Block yggdrasilBranch = named(new BlockYggdrasilBranch(), "yggdrasil_branch");
     public static final Block runeHolder = named(new BlockRuneHolder(), "rune_holder");
     public static final Block centralRuneHolder = named(new BlockCentralRuneHolder(), "central_rune_holder");
-    public static final Block mjoellnir = named(rockBlock(50.0F, 1200.0F, SoundType.METAL), "mjoellnir");
     public static final Block dreamwoodLeaves = named(new SoundBlock(Material.LEAVES, SoundType.PLANT).setHardness(0.2F).setLightOpacity(1), "dreamwood_leaves");
     public static final Block elementiumOre = named(rockBlock(4.0F, 5.0F, SoundType.STONE), "elementium_ore");
     public static final Block dragonstoneOre = named(rockBlock(5.0F, 8.0F, SoundType.STONE), "dragonstone_ore");
@@ -38,7 +37,7 @@ public final class ModBlocks {
     public static final Block[] ALL = {
             manaInfuser, manaCollector, alfsteelBlock, alfsteelPylon,
             exoblaze, witherAconite, aquapanthus, hellebore, raindeletia, feysythia, petrunia,
-            yggdrasilBranch, runeHolder, centralRuneHolder, mjoellnir, dreamwoodLeaves,
+            yggdrasilBranch, runeHolder, centralRuneHolder, dreamwoodLeaves,
             elementiumOre, dragonstoneOre, goldOre, rawElementiumBlock
     };
 

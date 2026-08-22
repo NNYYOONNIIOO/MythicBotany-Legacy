@@ -18,6 +18,11 @@ group = 'com.wubid.mythicbotany'
 archivesBaseName = 'mythicbotany'
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
+// ForgeGradle's development classpath places the main output before the
+// mapped Forge jar. This source-set entry provides the local runtime shim
+// there; the jar task excludes it from the distributable mod.
+sourceSets.main.java.srcDir file('src/compat/java')
+
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
     // snapshot_YYYYMMDD   Snapshot are built nightly.
@@ -66,6 +71,33 @@ minecraft {
     }
 }
 
+
+
+// mythicbotany asset copy task
+task copyMythicBotanyAssets(type: Copy) {
+    from "src/main/resources/assets/mythicbotany"
+    into "${buildDir}/resources/main/assets/mythicbotany"
+}
+processResources.finalizedBy copyMythicBotanyAssets
+jar.dependsOn copyMythicBotanyAssets
+
+// ForgeGradle 3 loads the development mod resource pack from the classes
+// output. Mirror the source resources there so runClient sees the same assets
+// that are present in the distributable JAR.
+task copyDevRuntimeResources(type: Copy) {
+    from "src/main/resources"
+    into "${buildDir}/classes/java/main"
+}
+classes.dependsOn copyDevRuntimeResources
+
+// Keep all 1.12.2 MythicBotany assets in the ForgeGradle resource output.
+// mythicbotany resource copy
+processResources {
+    from(file("src/main/resources")) {
+        include "assets/mythicbotany/**"
+    }
+}
+
 repositories {
     // ForgeGradle 3 resolves the stable MCP archive through the mapped Forge POM.
     // Keep a project-local mirror so builds do not depend on a missing generated
@@ -109,6 +141,7 @@ dependencies {
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
+    exclude 'net/minecraftforge/fml/relauncher/Side.class'
     manifest {
         attributes([
             "Specification-Title": "examplemod",
