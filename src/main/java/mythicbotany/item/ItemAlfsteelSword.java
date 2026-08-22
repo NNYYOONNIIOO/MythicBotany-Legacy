@@ -50,9 +50,7 @@ public class ItemAlfsteelSword extends ItemSword implements IManaItem, IManaTool
                     && player.getCooledAttackStrength(0) >= 1.0F
                     && (player.capabilities.isCreativeMode
                     || ManaItemHandler.requestManaExactForTool(stack, player, BURST_MANA, true))) {
-                if (player.world.spawnEntity(createBurst(player, EnumHand.MAIN_HAND, stack))) {
-                    stack.damageItem(1, player);
-                }
+                player.world.spawnEntity(createBurst(player, EnumHand.MAIN_HAND, stack));
             }
         }
         return false;
@@ -98,7 +96,8 @@ public class ItemAlfsteelSword extends ItemSword implements IManaItem, IManaTool
     @Override public int getMana(ItemStack stack) { return ItemNBTHelper.getInt(stack, TAG_MANA, 0); }
     @Override public int getMaxMana(ItemStack stack) { return MAX_MANA; }
     @Override public void addMana(ItemStack stack, int mana) {
-        ItemNBTHelper.setInt(stack, TAG_MANA, Math.max(0, Math.min(MAX_MANA, getMana(stack) + mana)));
+        long value = (long) getMana(stack) + mana;
+        ItemNBTHelper.setInt(stack, TAG_MANA, (int) Math.max(0L, Math.min((long) MAX_MANA, value)));
     }
     @Override public boolean canReceiveManaFromPool(ItemStack stack, TileEntity pool) { return true; }
     @Override public boolean canReceiveManaFromItem(ItemStack stack, ItemStack otherStack) { return true; }
