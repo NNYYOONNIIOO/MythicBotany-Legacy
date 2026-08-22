@@ -25,6 +25,7 @@ import vazkii.botania.api.item.ISequentialBreaker;
 import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.api.mana.IManaTooltipDisplay;
+import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.common.core.helper.ItemNBTHelper;
 import vazkii.botania.common.item.ItemTemperanceStone;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
@@ -38,7 +39,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String TAG_TIPPED = "tipped";
     private static final int MAX_MANA = Integer.MAX_VALUE;
     /** Botania's TerraPick uses 80 mana per extra block in 1.12.2. */
-    private static final int MANA_PER_BLOCK = 80;
+    private static final int MANA_PER_BLOCK = 200;
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
             Material.PISTON, Material.ANVIL, Material.GRASS, Material.GROUND,
@@ -47,7 +48,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
 
     public ItemAlfsteelPick(Item.ToolMaterial material) {
         super(material);
-        setMaxDamage(0);
+        setMaxDamage(4600);
         setMaxStackSize(1);
         addPropertyOverride(new ResourceLocation("mythicbotany", "enabled"), (stack, world, entity) -> isEnabled(stack) ? 1.0F : 0.0F);
         addPropertyOverride(new ResourceLocation("mythicbotany", "tipped"), (stack, world, entity) -> isTipped(stack) ? 1.0F : 0.0F);
@@ -55,15 +56,27 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
 
     @Override
     public float getDestroySpeed(ItemStack stack, IBlockState state) {
-        return getMana_(stack) >= MANA_PER_BLOCK ? super.getDestroySpeed(stack, state) : 0.0F;
+        return !isEnabled(stack) || getMana_(stack) >= MANA_PER_BLOCK
+                ? super.getDestroySpeed(stack, state) : 0.0F;
     }
 
     @Override
     public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state,
                                     BlockPos pos, EntityLivingBase entityLiving) {
-        if (!worldIn.isRemote && !(entityLiving instanceof EntityPlayer
-                && ((EntityPlayer) entityLiving).capabilities.isCreativeMode)) {
+        if (worldIn.isRemote || entityLiving instanceof EntityPlayer
+                && ((EntityPlayer) entityLiving).capabilities.isCreativeMode) {
+            return true;
+        }
+        if (isEnabled(stack)) {
             addMana(stack, -MANA_PER_BLOCK);
+            stack.damageItem(1, entityLiving);
+        } else if (entityLiving instanceof EntityPlayer
+                && stack.getItemDamage() > 0
+                && ManaItemHandler.requestManaExactForTool(stack, (EntityPlayer) entityLiving,
+                MANA_PER_BLOCK, true)) {
+            stack.setItemDamage(stack.getItemDamage() - 1);
+        } else {
+            stack.damageItem(1, entityLiving);
         }
         return true;
     }
@@ -71,7 +84,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     @Override
     public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
         ItemStack stack = player.getHeldItem(hand);
-        if (player.isSneaking() && getLevel(stack) > 0) {
+        if (getLevel(stack) > 0) {
             setEnabled(stack, !isEnabled(stack));
             return new ActionResult<>(EnumActionResult.SUCCESS, stack);
         }
@@ -88,10 +101,11 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
 
     @Override
     public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, EntityPlayer player) {
-        if (!isEnabled(stack)) return false;
         RayTraceResult ray = ToolCommons.raytraceFromEntity(player.world, player, true, 10.0D);
         if (!player.world.isRemote && ray != null && ray.sideHit != null) {
-            breakOtherBlock(player, stack, pos, pos, ray.sideHit);
+            if (isEnabled(stack)) {
+                breakOtherBlock(player, stack, pos, pos, ray.sideHit);
+            }
             ItemLokiRing.breakOnAllCursors(player, this, stack, pos, ray.sideHit);
         }
         return false;
@@ -99,9 +113,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
 
     @Override
     public void breakOtherBlock(EntityPlayer player, ItemStack stack, BlockPos pos,
-                                BlockPos originPos, EnumFacing side) {
+                                 BlockPos originPos, EnumFacing side) {
         IBlockState originState = player.world.getBlockState(pos);
-        if (!isEnabled(stack) || player.world.isAirBlock(pos)
+        if (player.world.isAirBlock(pos)
                 || !MATERIALS.contains(originState.getMaterial())
                 || originState.getPlayerRelativeBlockHardness(player, player.world, pos) <= 0.0F
                 || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
@@ -111,16 +125,19 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         if (ItemTemperanceStone.hasTemperanceActive(player) && level > 2) {
             level = 2;
         }
-        int range = level - 1;
-        if (range < 0 || getMana_(stack) < MANA_PER_BLOCK) return;
+        int range = Math.max(0, level - 1);
+        if (isEnabled(stack) && getMana_(stack) < MANA_PER_BLOCK) return;
         int rangeY = Math.max(1, range);
-        boolean doX = thor || side.getXOffset() == 0;
-        boolean doY = thor || side.getYOffset() == 0;
-        boolean doZ = thor || side.getZOffset() == 0;
-        Vec3i begin = new Vec3i(doX ? -range : 0, doY ? -1 : 0, doZ ? -range : 0);
-        Vec3i end = new Vec3i(doX ? range : 0, doY ? rangeY * 2 - 1 : 0, doZ ? range : 0);
+        boolean fixedLokiShape = !isEnabled(stack) && !thor;
+        boolean doX = fixedLokiShape || thor || side.getXOffset() == 0;
+        boolean doY = fixedLokiShape ? level == 1 : thor || side.getYOffset() == 0;
+        boolean doZ = fixedLokiShape || thor || side.getZOffset() == 0;
+        int beginY = level == 0 ? 0 : (doY ? -1 : 0);
+        int endY = level == 0 ? 0 : (doY ? rangeY * 2 - 1 : 0);
+        Vec3i begin = new Vec3i(doX ? -range : 0, beginY, doZ ? -range : 0);
+        Vec3i end = new Vec3i(doX ? range : 0, endY, doZ ? range : 0);
         ToolCommons.removeBlocksInIteration(player, stack, player.world, pos, begin, end,
-                candidateState -> getMana_(stack) >= MANA_PER_BLOCK
+                candidateState -> (!isEnabled(stack) || getMana_(stack) >= MANA_PER_BLOCK)
                         && MATERIALS.contains(candidateState.getMaterial()), !isTipped(stack));
     }
 
