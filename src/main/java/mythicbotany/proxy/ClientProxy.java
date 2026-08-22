@@ -6,7 +6,6 @@ import mythicbotany.entity.EntityAlfPixie;
 import mythicbotany.pylon.RenderAlfsteelPylon;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.registry.ModBlocks;
-import net.minecraft.item.Item;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -23,7 +22,5 @@ public final class ClientProxy extends CommonProxy {
     public void init() {
         RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
-        Item.getItemFromBlock(ModBlocks.alfsteelPylon).setTileEntityItemStackRenderer(
-                new RenderAlfsteelPylon.ItemRenderer());
     }
 }
