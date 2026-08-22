@@ -56,6 +56,10 @@ minecraft {
 }
 
 repositories {
+    // ForgeGradle 3 resolves the stable MCP archive through the mapped Forge POM.
+    // Keep a project-local mirror so builds do not depend on a missing generated
+    // net.minecraft:mappings_stable module in the user's Gradle cache.
+    maven { url = file("$projectDir/gradle-local-repo") }
     maven { url = file(System.getProperty('user.home') + '/.gradle/caches/forge_gradle/bundeled_repo') }
     maven { url = file(System.getProperty('user.home') + '/.gradle/caches/forge_gradle/mcp_repo') }
     maven { url = file(System.getProperty('user.home') + '/.gradle/caches/forge_gradle/minecraft_repo') }
