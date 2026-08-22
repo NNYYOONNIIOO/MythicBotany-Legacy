@@ -32,7 +32,6 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String TAG_ENABLED = "enabled";
     private static final String TAG_TIPPED = "tipped";
     private static final int MAX_MANA = Integer.MAX_VALUE;
-    private static final int MANA_PER_DAMAGE = 100;
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
             Material.PISTON, Material.ANVIL, Material.GRASS, Material.GROUND,
@@ -59,27 +58,19 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     @Override
     public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand,
                                       EnumFacing side, float hitX, float hitY, float hitZ) {
-        return player.isSneaking()
-                ? super.onItemUse(player, world, pos, hand, side, hitX, hitY, hitZ)
-                : EnumActionResult.PASS;
-    }
-
-    @Override
-    public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean held) {
-        super.onUpdate(stack, world, entity, slot, held);
-        if (!isEnabled(stack)) return;
-        int level = getLevel(stack);
-        if (level == 0) setEnabled(stack, false);
-        else if (entity instanceof EntityPlayer && !((EntityPlayer) entity).isSwingInProgress) addMana(stack, -level);
+        if (!player.isSneaking()) return EnumActionResult.PASS;
+        if (!world.isRemote) setEnabled(player.getHeldItem(hand), !isEnabled(player.getHeldItem(hand)));
+        return EnumActionResult.SUCCESS;
     }
 
     @Override
     public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, EntityPlayer player) {
+        if (!isEnabled(stack)) return false;
         RayTraceResult ray = ToolCommons.raytraceFromEntity(player.world, player, true, 10.0D);
         if (!player.world.isRemote && ray != null && ray.sideHit != null) {
             breakOtherBlock(player, stack, pos, pos, ray.sideHit);
         }
-        return false;
+        return true;
     }
 
     @Override
