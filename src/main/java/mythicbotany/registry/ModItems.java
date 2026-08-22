@@ -28,6 +28,8 @@ import net.minecraftforge.common.util.EnumHelper;
 public final class ModItems {
     private static final Item.ToolMaterial ALFSTEEL_TOOLS = EnumHelper.addToolMaterial(
             "MYTHICBOTANY_ALFSTEEL", 4, 2500, 12.0F, 4.0F, 30);
+    private static final Item.ToolMaterial ALFSTEEL_PICK_TOOLS = EnumHelper.addToolMaterial(
+            "MYTHICBOTANY_ALFSTEEL_PICK", 3, 4600, 9.0F, 3.0F, 30);
     private static final ItemArmor.ArmorMaterial ALFSTEEL_ARMOR = EnumHelper.addArmorMaterial(
             "MYTHICBOTANY_ALFSTEEL", MythicBotany.MODID + ":alfsteel", 45,
             new int[]{4, 9, 7, 4}, 30, SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, 3.0F);
@@ -46,7 +48,7 @@ public final class ModItems {
     public static final Item alfsteelTemplate = named(new Item(), "alfsteel_template");
     public static final Item alfsteelSword = named(new ItemAlfsteelSword(ALFSTEEL_TOOLS), "alfsteel_sword");
     public static final Item mjoellnir = named(new ItemMjoellnir(ALFSTEEL_TOOLS), "mjoellnir");
-    public static final Item alfsteelPick = named(new ItemAlfsteelPick(ALFSTEEL_TOOLS), "alfsteel_pick");
+    public static final Item alfsteelPick = named(new ItemAlfsteelPick(ALFSTEEL_PICK_TOOLS), "alfsteel_pick");
     public static final Item alfsteelAxe = named(new AlfsteelAxe(ALFSTEEL_TOOLS, 6.0F, -3.1F), "alfsteel_axe");
     public static final Item alfsteelHelmet = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
     public static final Item alfsteelChestplate = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
@@ -130,4 +132,3 @@ public final class ModItems {
         }
     }
 }
-

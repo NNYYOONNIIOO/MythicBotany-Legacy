@@ -48,7 +48,6 @@ public final class ModRecipes {
         OreDictionary.registerOre("nuggetAlfsteel", new ItemStack(ModItems.alfsteelNugget));
         OreDictionary.registerOre("blockAlfsteel", new ItemStack(ModBlocks.alfsteelBlock));
         OreDictionary.registerOre("oreElementium", new ItemStack(ModBlocks.elementiumOre));
-        OreDictionary.registerOre("oreDragonstone", new ItemStack(ModBlocks.dragonstoneOre));
         OreDictionary.registerOre("oreGold", new ItemStack(ModBlocks.goldOre));
     }
 

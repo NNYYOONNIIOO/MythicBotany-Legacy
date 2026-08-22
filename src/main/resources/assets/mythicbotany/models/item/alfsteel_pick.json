@@ -2,6 +2,19 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "mythicbotany:items/alfsteel_pick"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {"mythicbotany:tipped": 1},
+      "model": "mythicbotany:alfsteel_pick_tipped"
+    },
+    {
+      "predicate": {"mythicbotany:enabled": 1},
+      "model": "mythicbotany:alfsteel_pick_active"
+    },
+    {
+      "predicate": {"mythicbotany:enabled": 1, "mythicbotany:tipped": 1},
+      "model": "mythicbotany:alfsteel_pick_tipped_active"
+    }
+  ]
 }
-

@@ -23,6 +23,7 @@ public class BlockRuneHolder extends BlockContainer {
         setHardness(3.0F);
         setResistance(6.0F);
         setSoundType(SoundType.METAL);
+        setLightOpacity(0);
     }
 
     @Override

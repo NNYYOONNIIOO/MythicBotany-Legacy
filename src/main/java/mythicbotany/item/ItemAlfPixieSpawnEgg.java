@@ -28,6 +28,12 @@ public class ItemAlfPixieSpawnEgg extends ItemMonsterPlacer {
     }
 
     @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        return net.minecraft.util.text.translation.I18n.translateToLocal(
+                "item.mythicbotany:alf_pixie_spawn_egg.name");
+    }
+
+    @Override
     public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
         if (isInCreativeTab(tab)) {
             ItemStack stack = new ItemStack(this);
