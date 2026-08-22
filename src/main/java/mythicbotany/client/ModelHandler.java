@@ -4,9 +4,9 @@ import mythicbotany.MythicBotany;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
+import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.Mod;
@@ -25,7 +25,11 @@ public final class ModelHandler {
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
         registerSpecialFlowerModels();
-        Minecraft.getMinecraft().getItemColors().registerItemColorHandler((stack, tintIndex) ->
+    }
+
+    @SubscribeEvent
+    public static void registerItemColors(ColorHandlerEvent.Item event) {
+        event.getItemColors().registerItemColorHandler((stack, tintIndex) ->
                 tintIndex == 0 ? 0x9E65D6 : 0x28173D, ModItems.alfPixieSpawnEgg);
     }
 
