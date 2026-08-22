@@ -1,5 +1,6 @@
 package mythicbotany.proxy;
 
+import mythicbotany.client.ModelHandler;
 import mythicbotany.client.RenderAlfPixie;
 import mythicbotany.entity.EntityAlfPixie;
 import mythicbotany.pylon.RenderAlfsteelPylon;
@@ -11,6 +12,11 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public final class ClientProxy extends CommonProxy {
+    @Override
+    public void preInit() {
+        ModelHandler.registerSpecialFlowerModels();
+    }
+
     @Override
     public void init() {
         RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);

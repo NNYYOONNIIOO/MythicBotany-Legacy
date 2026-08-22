@@ -15,6 +15,7 @@ public class EntityAlfPixie extends EntityCreature {
     public EntityAlfPixie(World world) {
         super(world);
         setSize(0.55F, 1.15F);
+        enablePersistence();
         experienceValue = 8;
     }
 

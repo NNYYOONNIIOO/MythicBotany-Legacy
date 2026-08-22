@@ -17,11 +17,22 @@ import vazkii.botania.api.BotaniaAPIClient;
 
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class ModelHandler {
+    private static boolean specialFlowerModelsRegistered;
+
     private ModelHandler() { }
     @SubscribeEvent
     public static void registerModels(ModelRegistryEvent event) {
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
+        registerSpecialFlowerModels();
+        Minecraft.getMinecraft().getItemColors().registerItemColorHandler((stack, tintIndex) ->
+                tintIndex == 0 ? 0x9E65D6 : 0x28173D, ModItems.alfPixieSpawnEgg);
+    }
+
+    /** Register addon special-flower models before Botania bakes its model map. */
+    public static void registerSpecialFlowerModels() {
+        if (specialFlowerModelsRegistered) return;
+        specialFlowerModelsRegistered = true;
         registerSpecialFlowerModel("mythicbotany_exoblaze", "exoblaze");
         registerSpecialFlowerModel("mythicbotany_wither_aconite", "wither_aconite");
         registerSpecialFlowerModel("mythicbotany_aquapanthus", "aquapanthus");
@@ -29,8 +40,6 @@ public final class ModelHandler {
         registerSpecialFlowerModel("mythicbotany_raindeletia", "raindeletia");
         registerSpecialFlowerModel("mythicbotany_feysythia", "feysythia");
         registerSpecialFlowerModel("mythicbotany_petrunia", "petrunia");
-        Minecraft.getMinecraft().getItemColors().registerItemColorHandler((stack, tintIndex) ->
-                tintIndex == 0 ? 0x9E65D6 : 0x28173D, ModItems.alfPixieSpawnEgg);
     }
     private static void register(Item item) {
         if (item != null && item.getRegistryName() != null)
@@ -44,4 +53,3 @@ public final class ModelHandler {
                 new ModelResourceLocation(location, "inventory"));
     }
 }
-

@@ -34,6 +34,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String TAG_ENABLED = "enabled";
     private static final String TAG_TIPPED = "tipped";
     private static final int MAX_MANA = Integer.MAX_VALUE;
+    private static final int MANA_PER_BLOCK = 1000;
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
             Material.PISTON, Material.ANVIL, Material.GRASS, Material.GROUND,
@@ -49,9 +50,17 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     }
 
     @Override
+    public float getDestroySpeed(ItemStack stack, IBlockState state) {
+        return getMana_(stack) >= MANA_PER_BLOCK ? super.getDestroySpeed(stack, state) : 0.0F;
+    }
+
+    @Override
     public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state,
                                     BlockPos pos, EntityLivingBase entityLiving) {
-        ToolCommons.damageItem(stack, 1, entityLiving, 100);
+        if (!worldIn.isRemote && !(entityLiving instanceof EntityPlayer
+                && ((EntityPlayer) entityLiving).capabilities.isCreativeMode)) {
+            addMana(stack, -MANA_PER_BLOCK);
+        }
         return true;
     }
 
@@ -93,7 +102,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
         int level = getLevel(stack);
         int range = level - 1;
-        if (range < 0) return;
+        if (range < 0 || getMana_(stack) < MANA_PER_BLOCK) return;
         int rangeY = Math.max(1, range);
         boolean doX = side.getXOffset() == 0;
         boolean doY = side.getYOffset() == 0;
