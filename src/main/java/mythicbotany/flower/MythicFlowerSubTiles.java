@@ -161,7 +161,7 @@ public final class MythicFlowerSubTiles {
 
         private boolean canFill(IBlockState state, TileEntity tile) {
             if (state.getBlock() == Blocks.CAULDRON) {
-                return true;
+                return state.getValue(BlockCauldron.LEVEL) < 3;
             }
             return tile instanceof IPetalApothecary && ((IPetalApothecary) tile).hasWater() == false;
         }
@@ -214,16 +214,25 @@ public final class MythicFlowerSubTiles {
     public static class Raindeletia extends SubTileGenerating {
         @Override
         public boolean canGeneratePassively() {
-            return getWorld().isRainingAt(getPos()) && getValueForPassiveGeneration() > 0;
+            return getGenerationRate() > 0.0F;
         }
 
         @Override
         public int getDelayBetweenPassiveGeneration() {
-            return 1;
+            float rate = getGenerationRate();
+            return rate <= 0.0F ? 1 : Math.max(1, Math.round(1.0F / rate));
         }
 
         @Override
         public int getValueForPassiveGeneration() {
+            float rate = getGenerationRate();
+            if (rate <= 0.0F) {
+                return 0;
+            }
+            return Math.max(1, Math.round(rate * getDelayBetweenPassiveGeneration()));
+        }
+
+        private float getGenerationRate() {
             float multiplier = 0.0F;
             if (getWorld().isRainingAt(getPos())) {
                 multiplier = getWorld().isThundering() ? 3.0F : 0.09F;
@@ -234,7 +243,7 @@ public final class MythicFlowerSubTiles {
             } else if (soil == vazkii.botania.common.block.ModBlocks.altGrass) {
                 multiplier *= 2.0F;
             }
-            return Math.round(multiplier * 5.0F);
+            return multiplier * 5.0F;
         }
 
         @Override public int getMaxMana() { return 300; }
