@@ -12,6 +12,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -35,7 +36,6 @@ import net.minecraftforge.common.ForgeHooks;
 import vazkii.botania.api.item.ISequentialBreaker;
 import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.IManaItem;
-import vazkii.botania.api.mana.IManaTooltipDisplay;
 import vazkii.botania.common.core.helper.ItemNBTHelper;
 import vazkii.botania.common.item.ItemTemperanceStone;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
@@ -43,7 +43,7 @@ import vazkii.botania.common.item.equipment.tool.elementium.ItemElementiumPick;
 import vazkii.botania.common.item.relic.ItemThorRing;
 
 /** Alfsteel's TerraPick-like shatterer with stored mana and a Loki-compatible mode. */
-public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaTooltipDisplay, ISequentialBreaker {
+public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, ISequentialBreaker {
     private static final String TAG_MANA = "mana";
     private static final String TAG_ENABLED = "enabled";
     private static final String TAG_TIPPED = "tipped";
@@ -79,7 +79,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         if (slot == EntityEquipmentSlot.MAINHAND) {
             ImmutableMultimap.Builder<String, AttributeModifier> builder = ImmutableMultimap.builder();
             builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
-                    new AttributeModifier(ATTACK_DAMAGE_UUID, "Weapon modifier", 4.0D, 0));
+                    new AttributeModifier(ATTACK_DAMAGE_UUID, "Weapon modifier", 5.0D, 0));
             builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
                     new AttributeModifier(ATTACK_SPEED_UUID, "Weapon modifier", -2.8D, 0));
             return builder.build();
@@ -282,14 +282,16 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         return after.getItem() != this || isEnabled(before) != isEnabled(after) || isTipped(before) != isTipped(after);
     }
 
-    /** Botania's tooltip handler uses this for the separate, colored mana bar. */
-    @Override
-    public float getManaFractionForDisplay(ItemStack stack) {
-        return (float) getMana(stack) / (float) getMaxMana(stack);
-    }
-
     /** The vanilla inventory bar is durability, not stored mana. */
     @Override public boolean showDurabilityBar(ItemStack stack) { return stack.isItemDamaged(); }
     @Override public double getDurabilityForDisplay(ItemStack stack) { return super.getDurabilityForDisplay(stack); }
     @Override public int getRGBDurabilityForDisplay(ItemStack stack) { return super.getRGBDurabilityForDisplay(stack); }
+
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        super.onUpdate(stack, world, entity, slot, selected);
+        if (!world.isRemote && entity instanceof EntityPlayer) {
+            AlfsteelRepairHelper.repair(stack, (EntityPlayer) entity, world.getTotalWorldTime());
+        }
+    }
 }

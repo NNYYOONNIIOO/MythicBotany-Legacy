@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -94,6 +95,14 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
         return super.getAttributeModifiers(slot, stack);
     }
 
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        super.onUpdate(stack, world, entity, slot, selected);
+        if (!world.isRemote && entity instanceof EntityPlayer) {
+            AlfsteelRepairHelper.repair(stack, (EntityPlayer) entity, world.getTotalWorldTime());
+        }
+    }
+
     private static EntityManaBurst createBurst(EntityPlayer player, EnumHand hand, ItemStack source) {
         EntityManaBurst burst = new EntityManaBurst(player, hand);
         burst.setColor(0xB9A7FF);
@@ -161,4 +170,3 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
         }
     }
 }
-

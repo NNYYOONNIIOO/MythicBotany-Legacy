@@ -22,7 +22,7 @@ import vazkii.botania.api.mana.IManaItem;
  */
 public class TileAlfsteelPylon extends ManaTileEntity {
     private static final int TRANSFER_PER_TICK = 2000;
-    private static final int REPAIR_MANA_PER_POINT = 80;
+    private static final int REPAIR_MANA_PER_POINT = 200;
 
     /** Kept as a block-break hook for parity with later pylon implementations. */
     public void detachSpark() {

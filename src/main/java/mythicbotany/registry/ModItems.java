@@ -2,6 +2,8 @@ package mythicbotany.registry;
 
 import mythicbotany.MythicBotany;
 import mythicbotany.item.ItemAlfPixieSpawnEgg;
+import mythicbotany.item.AlfsteelRepairHelper;
+import mythicbotany.item.ItemAlfsteelAxe;
 import mythicbotany.item.ItemAlfsteelPick;
 import mythicbotany.item.ItemAlfsteelSword;
 import mythicbotany.item.ItemMjoellnir;
@@ -12,18 +14,21 @@ import mythicbotany.item.ItemMythicRing;
 import mythicbotany.item.ItemManaMythicRing;
 import mythicbotany.item.ItemAuraMythicRing;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemFood;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ISpecialArmor;
 import net.minecraftforge.common.util.EnumHelper;
+import vazkii.botania.common.item.equipment.tool.ToolCommons;
 
 public final class ModItems {
     private static final Item.ToolMaterial ALFSTEEL_TOOLS = EnumHelper.addToolMaterial(
@@ -49,7 +54,7 @@ public final class ModItems {
     public static final Item alfsteelSword = named(new ItemAlfsteelSword(ALFSTEEL_TOOLS), "alfsteel_sword");
     public static final Item mjoellnir = named(new ItemMjoellnir(ALFSTEEL_TOOLS), "mjoellnir");
     public static final Item alfsteelPick = named(new ItemAlfsteelPick(ALFSTEEL_PICK_TOOLS), "alfsteel_pick");
-    public static final Item alfsteelAxe = named(new AlfsteelAxe(ALFSTEEL_TOOLS, 6.0F, -3.1F), "alfsteel_axe");
+    public static final Item alfsteelAxe = named(new ItemAlfsteelAxe(ALFSTEEL_TOOLS, 5.0F, -2.8F), "alfsteel_axe");
     public static final Item alfsteelHelmet = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
     public static final Item alfsteelChestplate = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
     public static final Item alfsteelLeggings = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.LEGS), "alfsteel_leggings");
@@ -95,13 +100,7 @@ public final class ModItems {
         return item;
     }
 
-    private static class AlfsteelAxe extends ItemAxe {
-        private AlfsteelAxe(Item.ToolMaterial material, float attackDamage, float attackSpeed) {
-            super(material, attackDamage, attackSpeed);
-        }
-    }
-
-    private static class AlfsteelArmor extends ItemArmor {
+    private static class AlfsteelArmor extends ItemArmor implements ISpecialArmor {
         private AlfsteelArmor(ItemArmor.ArmorMaterial material, EntityEquipmentSlot slot) {
             super(material, 0, slot);
         }
@@ -115,13 +114,35 @@ public final class ModItems {
 
         @Override
         public void onArmorTick(World world, EntityPlayer player, net.minecraft.item.ItemStack stack) {
-            if (!world.isRemote && world.getTotalWorldTime() % 40L == 0L) {
-                player.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 80, 0));
-                if (hasFullSet(player)) {
-                    player.addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 80, 0));
-                    player.addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 80, 0));
+            if (!world.isRemote) {
+                AlfsteelRepairHelper.repair(stack, player, world.getTotalWorldTime());
+                if (world.getTotalWorldTime() % 40L == 0L) {
+                    player.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 80, 0));
+                    if (hasFullSet(player)) {
+                        player.addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 80, 0));
+                        player.addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 80, 0));
+                    }
                 }
             }
+        }
+
+        @Override
+        public ISpecialArmor.ArmorProperties getProperties(EntityLivingBase player,
+                                                            net.minecraft.item.ItemStack armor,
+                                                            DamageSource source, double damage, int slot) {
+            return new ISpecialArmor.ArmorProperties(0, damageReduceAmount / 25.0D,
+                    armor.getMaxDamage());
+        }
+
+        @Override
+        public int getArmorDisplay(EntityPlayer player, net.minecraft.item.ItemStack armor, int slot) {
+            return damageReduceAmount;
+        }
+
+        @Override
+        public void damageArmor(EntityLivingBase entity, net.minecraft.item.ItemStack stack,
+                                DamageSource source, int damage, int slot) {
+            ToolCommons.damageItem(stack, damage, entity, AlfsteelRepairHelper.MANA_PER_DURABILITY);
         }
 
         private boolean hasFullSet(EntityPlayer player) {

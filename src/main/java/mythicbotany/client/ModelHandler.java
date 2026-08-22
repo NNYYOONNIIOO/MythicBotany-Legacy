@@ -35,6 +35,7 @@ public final class ModelHandler {
         registerTesrItems();
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
+        registerTesrItemModels();
     }
 
     @SubscribeEvent
@@ -70,10 +71,11 @@ public final class ModelHandler {
     }
 
     private static void registerSpecialFlowerModel(String subTileName, String modelName) {
-        ResourceLocation location = new ResourceLocation(MythicBotany.MODID, modelName);
+        ResourceLocation blockLocation = new ResourceLocation(MythicBotany.MODID, modelName);
+        ResourceLocation itemLocation = new ResourceLocation(MythicBotany.MODID, "item/" + modelName);
         BotaniaAPIClient.registerSubtileModel(subTileName,
-                new ModelResourceLocation(location, "normal"),
-                new ModelResourceLocation(location, "inventory"));
+                new ModelResourceLocation(blockLocation, "normal"),
+                new ModelResourceLocation(itemLocation, "inventory"));
     }
 
     /** Item models using a tile-entity renderer must be registered before model baking. */
@@ -84,5 +86,17 @@ public final class ModelHandler {
                 TileCentralRuneHolder.class);
         ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.alfsteelPylon), 0,
                 TileAlfsteelPylon.class);
+    }
+
+    /** Re-apply the item models after the generic ItemBlock registration. */
+    private static void registerTesrItemModels() {
+        registerTesrItemModel(ModBlocks.runeHolder, "rune_holder");
+        registerTesrItemModel(ModBlocks.centralRuneHolder, "central_rune_holder");
+        registerTesrItemModel(ModBlocks.alfsteelPylon, "alfsteel_pylon");
+    }
+
+    private static void registerTesrItemModel(Block block, String name) {
+        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), 0,
+                new ModelResourceLocation(new ResourceLocation(MythicBotany.MODID, "item/" + name), "inventory"));
     }
 }

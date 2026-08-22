@@ -2,6 +2,13 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "mythicbotany:items/alfsteel_axe"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "mythicbotany:active": 1.0
+      },
+      "model": "mythicbotany:item/alfsteel_axe_active"
+    }
+  ]
 }
-
