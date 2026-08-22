@@ -13,6 +13,7 @@ import mythicbotany.item.ItemKvasirMead;
 import mythicbotany.item.ItemMythicRing;
 import mythicbotany.item.ItemManaMythicRing;
 import mythicbotany.item.ItemAuraMythicRing;
+import net.minecraft.client.model.ModelBiped;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -28,6 +29,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ISpecialArmor;
 import net.minecraftforge.common.util.EnumHelper;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import vazkii.botania.client.model.armor.ModelArmorManasteel;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 
 public final class ModItems {
@@ -103,6 +107,16 @@ public final class ModItems {
     private static class AlfsteelArmor extends ItemArmor implements ISpecialArmor {
         private AlfsteelArmor(ItemArmor.ArmorMaterial material, EntityEquipmentSlot slot) {
             super(material, 0, slot);
+        }
+
+        @SideOnly(Side.CLIENT)
+        @Override
+        public ModelBiped getArmorModel(EntityLivingBase entityLiving,
+                                        net.minecraft.item.ItemStack stack,
+                                        EntityEquipmentSlot armorSlot, ModelBiped original) {
+            ModelBiped model = new ModelArmorManasteel(armorSlot);
+            model.setModelAttributes(original);
+            return model;
         }
 
         @Override

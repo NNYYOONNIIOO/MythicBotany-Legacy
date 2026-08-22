@@ -1,6 +1,7 @@
 package mythicbotany.item;
 
 import baubles.api.BaubleType;
+import baubles.api.BaublesApi;
 import baubles.api.IBauble;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -8,6 +9,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.DamageSource;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import vazkii.botania.api.mana.ManaItemHandler;
 
 public class ItemMythicRing extends Item implements IBauble {
@@ -17,6 +22,16 @@ public class ItemMythicRing extends Item implements IBauble {
     public ItemMythicRing(Effect effect) {
         this.effect = effect;
         setMaxStackSize(1);
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void onLivingHurt(LivingHurtEvent event) {
+        if (effect == Effect.ICE && event.getEntityLiving() instanceof EntityPlayer
+                && event.getSource() == DamageSource.IN_WALL
+                && BaublesApi.isBaubleEquipped((EntityPlayer) event.getEntityLiving(), this) >= 0) {
+            event.setCanceled(true);
+        }
     }
 
     @Override

@@ -315,5 +315,9 @@ tooltip.mythicbotany.rune_offset=Relative position: %s, %s
 tooltip.mythicbotany.rune_ritual=Rune Ritual
 tooltip.mythicbotany.sacrifice_entity1=Entity must be near the ritual.
 tooltip.mythicbotany.sacrifice_entity2=It will be sacrificed in the process.
+message.mythicbotany.waiting_matching_runes=Waiting for matching runes and mana
+message.mythicbotany.ritual_progress=Ritual progress: %s / %s
+message.mythicbotany.ritual_complete=Ritual complete
+message.mythicbotany.insert_ritual_focus=Insert a ritual focus
 
 entity.alf_pixie.name=Alf Pixie

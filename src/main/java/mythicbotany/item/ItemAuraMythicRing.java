@@ -10,7 +10,7 @@ import vazkii.botania.api.mana.ManaItemHandler;
 public class ItemAuraMythicRing extends ItemMythicRing implements IManaGivingItem {
     public ItemAuraMythicRing() { super(Effect.AURA); }
     @Override public void onWornTick(ItemStack stack, EntityLivingBase player) {
-        if (!player.world.isRemote && player instanceof EntityPlayer && player.ticksExisted % 50 == 0)
-            ManaItemHandler.dispatchManaExact(stack, (EntityPlayer) player, 1, true);
+        if (!player.world.isRemote && player instanceof EntityPlayer && player.ticksExisted % 20 == 0)
+            ManaItemHandler.dispatchManaExact(stack, (EntityPlayer) player, 20, true);
     }
 }

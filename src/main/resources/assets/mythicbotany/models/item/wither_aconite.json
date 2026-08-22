@@ -1,5 +1,5 @@
 {
-  "parent": "item/generated",
+  "parent": "mythicbotany:block/wither_aconite",
   "textures": {
     "layer0": "mythicbotany:blocks/wither_aconite"
   }

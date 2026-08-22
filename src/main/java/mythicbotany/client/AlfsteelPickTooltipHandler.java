@@ -6,7 +6,6 @@ import mythicbotany.MythicBotany;
 import mythicbotany.item.ItemAlfsteelPick;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.RenderTooltipEvent;
@@ -17,6 +16,8 @@ import net.minecraftforge.fml.relauncher.Side;
 /** Terra-Pick-style animated rainbow mana bar for the alfsteel shatterer. */
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class AlfsteelPickTooltipHandler {
+    private static final String[] RANKS = {"§cD", "§eC", "§bB", "§aA", "§dS", "§6SS"};
+
     private AlfsteelPickTooltipHandler() { }
 
     @SubscribeEvent
@@ -46,13 +47,12 @@ public final class AlfsteelPickTooltipHandler {
         }
         Gui.drawRect(mouseX + rainbowWidth, mouseY - height, mouseX + width, mouseY, 0xFF555555);
 
-        String rank = I18n.format("botania.rank" + level).replaceAll("&", "\\u00a7");
+        String rank = RANKS[Math.min(level, RANKS.length - 1)];
         font.drawStringWithShadow(rank, mouseX, mouseY - 12, 0xFFFFFF);
         if (!ss) {
-            rank = I18n.format("botania.rank" + (level + 1)).replaceAll("&", "\\u00a7");
+            rank = RANKS[Math.min(level + 1, RANKS.length - 1)];
             font.drawStringWithShadow(rank, mouseX + width - font.getStringWidth(rank), mouseY - 12, 0xFFFFFF);
         }
         GlStateManager.enableDepth();
     }
 }
-

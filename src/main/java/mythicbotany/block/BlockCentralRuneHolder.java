@@ -80,6 +80,15 @@ public class BlockCentralRuneHolder extends BlockContainer {
         if (worldIn.isRemote) {
             return true;
         }
+        if (playerIn.isSneaking()) {
+            ItemStack stored = holder.takeStoredItem();
+            if (!stored.isEmpty()) {
+                if (!playerIn.addItemStackToInventory(stored)) {
+                    playerIn.dropItem(stored, false);
+                }
+            }
+            return true;
+        }
         ItemStack held = playerIn.getHeldItem(hand);
         if (!held.isEmpty() && holder.insertCenter(held)) {
             if (!playerIn.capabilities.isCreativeMode) {
@@ -94,7 +103,7 @@ public class BlockCentralRuneHolder extends BlockContainer {
                     playerIn.dropItem(output, false);
                 }
             } else {
-                playerIn.sendStatusMessage(new TextComponentString(holder.getStatus()), true);
+                playerIn.sendStatusMessage(holder.getStatusText(), true);
             }
             return true;
         }

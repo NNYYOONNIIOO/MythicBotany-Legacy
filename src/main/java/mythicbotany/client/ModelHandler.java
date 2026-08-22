@@ -88,6 +88,10 @@ public final class ModelHandler {
                 TileAlfsteelPylon.class);
         Item.getItemFromBlock(ModBlocks.alfsteelPylon).setTileEntityItemStackRenderer(
                 new RenderAlfsteelPylon.ItemRenderer());
+        Item.getItemFromBlock(ModBlocks.runeHolder).setTileEntityItemStackRenderer(
+                new RenderRuneHolder.ItemRenderer());
+        Item.getItemFromBlock(ModBlocks.centralRuneHolder).setTileEntityItemStackRenderer(
+                new RenderCentralRuneHolder.ItemRenderer());
     }
 
     /** Re-apply the item models after the generic ItemBlock registration. */

@@ -34,21 +34,36 @@ public class TileCentralRuneHolder extends ManaTileEntity {
         return result;
     }
 
+    public ItemStack takeStoredItem() {
+        ItemStack result = !output.isEmpty() ? output : center;
+        output = ItemStack.EMPTY;
+        center = ItemStack.EMPTY;
+        activeRecipe = null;
+        progress = 0;
+        rotation = 0;
+        sync();
+        return result;
+    }
+
     public ItemStack getDisplayStack() {
         return !center.isEmpty() ? center.copy() : output.copy();
     }
 
-    public String getStatus() {
+    public net.minecraft.util.text.ITextComponent getStatusText() {
         if (activeRecipe != null) {
-            return "Ritual: " + progress + " / " + activeRecipe.getTicks();
+            return new net.minecraft.util.text.TextComponentTranslation(
+                    "message.mythicbotany.ritual_progress", progress, activeRecipe.getTicks());
         }
         if (!output.isEmpty()) {
-            return "Ritual complete";
+            return new net.minecraft.util.text.TextComponentTranslation(
+                    "message.mythicbotany.ritual_complete");
         }
         if (center.isEmpty()) {
-            return "Insert a ritual focus";
+            return new net.minecraft.util.text.TextComponentTranslation(
+                    "message.mythicbotany.insert_ritual_focus");
         }
-        return "Waiting for matching runes and mana";
+        return new net.minecraft.util.text.TextComponentTranslation(
+                "message.mythicbotany.waiting_matching_runes");
     }
 
     @Override

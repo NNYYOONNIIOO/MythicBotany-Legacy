@@ -79,6 +79,15 @@ public class BlockRuneHolder extends BlockContainer {
         if (worldIn.isRemote) {
             return true;
         }
+        if (playerIn.isSneaking()) {
+            ItemStack rune = holder.takeRune();
+            if (!rune.isEmpty()) {
+                if (!playerIn.addItemStackToInventory(rune)) {
+                    playerIn.dropItem(rune, false);
+                }
+            }
+            return true;
+        }
         ItemStack held = playerIn.getHeldItem(hand);
         if (!held.isEmpty() && holder.insertRune(held)) {
             if (!playerIn.capabilities.isCreativeMode) {

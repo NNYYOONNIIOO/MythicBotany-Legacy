@@ -1,5 +1,5 @@
 {
-  "parent": "item/generated",
+  "parent": "mythicbotany:block/feysythia",
   "textures": {
     "layer0": "mythicbotany:blocks/feysythia"
   }

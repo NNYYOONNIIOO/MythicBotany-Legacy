@@ -1,5 +1,5 @@
 {
-  "parent": "item/generated",
+  "parent": "mythicbotany:block/aquapanthus",
   "textures": {
     "layer0": "mythicbotany:blocks/aquapanthus"
   }
