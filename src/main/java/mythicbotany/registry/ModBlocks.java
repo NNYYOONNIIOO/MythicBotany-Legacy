@@ -6,6 +6,7 @@ import mythicbotany.block.BlockManaCollector;
 import mythicbotany.block.BlockManaInfuser;
 import mythicbotany.block.BlockCentralRuneHolder;
 import mythicbotany.block.BlockRuneHolder;
+import mythicbotany.block.BlockAlfsteelPylon;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
@@ -15,7 +16,7 @@ public final class ModBlocks {
     public static final Block manaInfuser = named(new BlockManaInfuser(), "mana_infuser");
     public static final Block manaCollector = named(new BlockManaCollector(), "mana_collector");
     public static final Block alfsteelBlock = named(rockBlock(5.0F, 10.0F, SoundType.METAL), "alfsteel_block");
-    public static final Block alfsteelPylon = named(rockBlock(3.0F, 10.0F, SoundType.METAL).setLightLevel(0.8F), "alfsteel_pylon");
+    public static final Block alfsteelPylon = named(new BlockAlfsteelPylon(), "alfsteel_pylon");
     public static final Block exoblaze = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.EXOBLAZE), "exoblaze");
     public static final Block witherAconite = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.WITHER_ACONITE), "wither_aconite");
     public static final Block aquapanthus = named(new BlockFunctionalFlower(BlockFunctionalFlower.Mode.AQUAPANTHUS), "aquapanthus");
