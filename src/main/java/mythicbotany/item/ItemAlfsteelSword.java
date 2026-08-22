@@ -2,7 +2,6 @@ package mythicbotany.item;
 
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraftforge.common.MinecraftForge;
@@ -10,18 +9,7 @@ import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import vazkii.botania.api.BotaniaAPI;
-import vazkii.botania.api.internal.IManaBurst;
 import vazkii.botania.api.mana.BurstProperties;
-import vazkii.botania.api.mana.ILensEffect;
-import vazkii.botania.common.core.handler.ModSounds;
-import vazkii.botania.common.item.ModItems;
-import vazkii.botania.common.item.equipment.tool.ToolCommons;
-import vazkii.botania.common.item.equipment.tool.manasteel.ItemManasteelSword;
-import vazkii.botania.common.lib.LibItemNames;
-import vazkii.botania.common.network.PacketHandler;
-import vazkii.botania.common.network.PacketLeftClick;
-import javax.annotation.Nonnull;
 import java.util.List;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -58,6 +46,33 @@ public class ItemAlfsteelSword extends ItemSword implements IManaItem, IManaTool
         super(material);
         setMaxStackSize(1);
         addPropertyOverride(new ResourceLocation("mythicbotany", "beam"), (stack, world, entity) -> 0.0F);
+    }
+
+    @SubscribeEvent
+    public void leftClick(PlayerInteractEvent.LeftClickEmpty event) {
+        if (!event.getItemStack().isEmpty() && event.getItemStack().getItem() == this) {
+            trySpawnBurst(event.getEntityPlayer());
+        }
+    }
+
+    @SubscribeEvent
+    public void attackEntity(net.minecraftforge.event.entity.player.AttackEntityEvent event) {
+        if (!event.getEntityPlayer().world.isRemote) {
+            trySpawnBurst(event.getEntityPlayer());
+        }
+    }
+
+    private void trySpawnBurst(EntityPlayer player) {
+        if (player.getHeldItemMainhand().getItem() != this || player.getCooledAttackStrength(0) < 1.0F) {
+            return;
+        }
+        ItemStack held = player.getHeldItemMainhand();
+        if (!player.capabilities.isCreativeMode && !ManaItemHandler.requestManaExactForTool(held, player, BURST_MANA, true)) {
+            return;
+        }
+        EntityManaBurst burst = createBurst(player, EnumHand.MAIN_HAND);
+        player.world.spawnEntity(burst);
+        held.damageItem(1, player);
     }
 
     @Override
@@ -200,6 +215,8 @@ public class ItemAlfsteelSword extends ItemSword implements IManaItem, IManaTool
             }
         }
 }
+
+
 
 
 

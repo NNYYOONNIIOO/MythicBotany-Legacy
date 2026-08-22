@@ -25,6 +25,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String TAG_MANA = "mana";
     private static final String TAG_ENABLED = "enabled";
     private static final String TAG_TIPPED = "tipped";
+    private static final String TAG_LEVEL = "level";
     private static final int MAX_MANA = 4000000;
     private static final int MANA_PER_BLOCK = 100;
 
@@ -61,7 +62,8 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 IBlockState state = player.world.getBlockState(target);
                 if (state.getBlockHardness(player.world, target) >= 0.0F
                         && stack.getDestroySpeed(state) > 0.0F
-                        && stack.canHarvestBlock(state)) {
+                        && stack.canHarvestBlock(state)
+                        && !state.getBlock().hasTileEntity(state)) {
                     targets[index++] = target;
                     cost += MANA_PER_BLOCK;
                 }
@@ -97,6 +99,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 || state.getBlock() == Blocks.SAND || state.getBlock() == Blocks.SANDSTONE;
     }
 
+    public static int getLevel(ItemStack stack) { return ItemNBTHelper.getInt(stack, TAG_LEVEL, 0); }
+    public static void setLevel(ItemStack stack, int level) { ItemNBTHelper.setInt(stack, TAG_LEVEL, Math.max(0, Math.min(5, level))); }
+
     public static boolean isEnabled(ItemStack stack) { return ItemNBTHelper.getBoolean(stack, TAG_ENABLED, false); }
     public static boolean isTipped(ItemStack stack) { return ItemNBTHelper.getBoolean(stack, TAG_TIPPED, false); }
     public static void setTipped(ItemStack stack, boolean tipped) { ItemNBTHelper.setBoolean(stack, TAG_TIPPED, tipped); }
@@ -119,3 +124,5 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         return net.minecraft.util.math.MathHelper.hsvToRGB(getManaFractionForDisplay(stack) / 3.0F, 1.0F, 1.0F);
     }
 }
+
+
