@@ -15,7 +15,7 @@ import vazkii.botania.api.mana.IManaItem;
 
 public class ItemMythicRing extends Item implements IBauble, IManaItem {
     public enum Effect {
-        MANA, AURA, FIRE, ICE, ANDWARI
+        MANA, AURA, FIRE, ICE, ANDWARI, CURSED_ANDWARI
     }
 
     private final Effect effect;
@@ -57,6 +57,12 @@ public class ItemMythicRing extends Item implements IBauble, IManaItem {
             case ANDWARI:
                 player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, 220, 0));
                 player.addPotionEffect(new PotionEffect(MobEffects.LUCK, 60, 0));
+                break;
+            case CURSED_ANDWARI:
+                if (getMana(stack) >= 500) {
+                    addMana(stack, -500);
+                }
+                player.addPotionEffect(new PotionEffect(MobEffects.POISON, 30, 0));
                 break;
             default:
                 break;
