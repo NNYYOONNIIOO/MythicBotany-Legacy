@@ -37,4 +37,9 @@ public class EntityAlfPixie extends EntityCreature {
         getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(20.0D);
         getEntityAttribute(SharedMonsterAttributes.KNOCKBACK_RESISTANCE).setBaseValue(0.15D);
     }
+
+    @Override
+    protected boolean canDespawn() {
+        return false;
+    }
 }

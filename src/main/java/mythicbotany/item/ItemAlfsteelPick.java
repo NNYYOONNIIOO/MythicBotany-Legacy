@@ -59,7 +59,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 if (a == 0 && b == 0) continue;
                 BlockPos target = offset(pos, facing, a, b);
                 IBlockState state = player.world.getBlockState(target);
-                if (state.getBlockHardness(player.world, target) >= 0.0F) {
+                if (state.getBlockHardness(player.world, target) >= 0.0F
+                        && stack.getDestroySpeed(state) > 0.0F
+                        && stack.canHarvestBlock(state)) {
                     targets[index++] = target;
                     cost += MANA_PER_BLOCK;
                 }
@@ -71,7 +73,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         for (int i = 0; i < index; i++) {
             BlockPos target = targets[i];
             IBlockState state = player.world.getBlockState(target);
-            player.world.destroyBlock(target, !(isTipped(stack) && isGarbage(state)));
+            if (player.world.destroyBlock(target, !(isTipped(stack) && isGarbage(state)))) {
+                stack.damageItem(1, player);
+            }
         }
         return false;
     }

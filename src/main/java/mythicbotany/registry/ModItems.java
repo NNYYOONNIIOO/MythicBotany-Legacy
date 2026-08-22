@@ -107,8 +107,8 @@ public final class ModItems {
         @Override
         public String getArmorTexture(net.minecraft.item.ItemStack stack, Entity entity,
                                       EntityEquipmentSlot slot, String type) {
-            return MythicBotany.MODID + ":textures/model/alfsteel_"
-                    + (slot == EntityEquipmentSlot.LEGS ? "1" : "0") + ".png";
+            return MythicBotany.MODID + ":textures/model/armor/alfsteel_"
+                    + (slot == EntityEquipmentSlot.LEGS ? "2" : "1") + ".png";
         }
 
         @Override
