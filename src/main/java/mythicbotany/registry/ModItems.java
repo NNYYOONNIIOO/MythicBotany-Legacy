@@ -1,6 +1,7 @@
 package mythicbotany.registry;
 
 import mythicbotany.MythicBotany;
+import mythicbotany.item.ItemAlfPixieSpawnEgg;
 import mythicbotany.item.ItemMythicRing;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -58,7 +59,7 @@ public final class ModItems {
     public static final Item kvasirMead = named(new ItemFood(8, 0.8F, false).setMaxStackSize(8), "kvasir_mead");
     public static final Item dreamCherry = named(createDreamCherry(), "dream_cherry");
     public static final Item rawElementium = named(new Item(), "raw_elementium");
-    public static final Item alfPixieSpawnEgg = named(new Item(), "alf_pixie_spawn_egg");
+    public static final Item alfPixieSpawnEgg = named(new ItemAlfPixieSpawnEgg(), "alf_pixie_spawn_egg");
 
     public static final Item[] ALL = {
             asgardRune, vanaheimRune, alfheimRune, midgardRune, joetunheimRune,
