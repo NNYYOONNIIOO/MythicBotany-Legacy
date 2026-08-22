@@ -3,6 +3,7 @@ package mythicbotany.client;
 import mythicbotany.MythicBotany;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
+import mythicbotany.pylon.RenderAlfsteelPylon;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
@@ -13,6 +14,7 @@ import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -23,11 +25,13 @@ import vazkii.botania.api.BotaniaAPIClient;
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class ModelHandler {
     private static boolean specialFlowerModelsRegistered;
+    private static boolean tileEntityRenderersRegistered;
 
     private ModelHandler() { }
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerModels(ModelRegistryEvent event) {
         registerSpecialFlowerModels();
+        registerTileEntityRenderers();
         registerTesrItems();
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
@@ -54,6 +58,15 @@ public final class ModelHandler {
     private static void register(Item item) {
         if (item != null && item.getRegistryName() != null)
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
+    }
+
+    /** Bind the same TESRs used by item stacks to their placed TileEntities. */
+    private static void registerTileEntityRenderers() {
+        if (tileEntityRenderersRegistered) return;
+        tileEntityRenderersRegistered = true;
+        ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
     }
 
     private static void registerSpecialFlowerModel(String subTileName, String modelName) {

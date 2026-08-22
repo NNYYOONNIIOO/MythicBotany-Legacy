@@ -2,6 +2,10 @@ package mythicbotany.item;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 
 import baubles.api.BaublesApi;
 import net.minecraft.block.Block;
@@ -9,8 +13,11 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
@@ -48,6 +55,8 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String LOKI_Z_OFFSET = "zOffset";
     private static final int MAX_MANA = 1000000000;
     private static final int MANA_PER_BLOCK = 200;
+    private static final UUID ATTACK_DAMAGE_UUID = UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a101");
+    private static final UUID ATTACK_SPEED_UUID = UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a102");
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
             Material.PISTON, Material.ANVIL, Material.GRASS, Material.GROUND,
@@ -62,6 +71,20 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 (stack, world, entity) -> isEnabled(stack) ? 1.0F : 0.0F);
         addPropertyOverride(new ResourceLocation("mythicbotany", "tipped"),
                 (stack, world, entity) -> isTipped(stack) ? 1.0F : 0.0F);
+    }
+
+    /** The shatterer is a 5-damage, 1.2-speed main-hand weapon. */
+    @Override
+    public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot, ItemStack stack) {
+        if (slot == EntityEquipmentSlot.MAINHAND) {
+            ImmutableMultimap.Builder<String, AttributeModifier> builder = ImmutableMultimap.builder();
+            builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
+                    new AttributeModifier(ATTACK_DAMAGE_UUID, "Weapon modifier", 4.0D, 0));
+            builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
+                    new AttributeModifier(ATTACK_SPEED_UUID, "Weapon modifier", -2.8D, 0));
+            return builder.build();
+        }
+        return super.getAttributeModifiers(slot, stack);
     }
 
     @Override
