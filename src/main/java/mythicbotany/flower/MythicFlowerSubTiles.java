@@ -288,8 +288,13 @@ public final class MythicFlowerSubTiles {
             if (value == null || value.isEmpty() || value.startsWith("forge:")) {
                 return false;
             }
-            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(value));
-            return item != null && stack.getItem() == item;
+            String[] parts = value.split("\\|", 2);
+            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(parts[0]));
+            if (item == null || stack.getItem() != item) {
+                return false;
+            }
+            return parts.length < 2 || Integer.parseInt(parts[1]) < 0
+                    || stack.getMetadata() == Integer.parseInt(parts[1]);
         }
 
         @Override public int getMaxMana() { return 300; }
@@ -329,4 +334,3 @@ public final class MythicFlowerSubTiles {
         @Override public int getColor() { return 0xB71A1A; }
     }
 }
-
