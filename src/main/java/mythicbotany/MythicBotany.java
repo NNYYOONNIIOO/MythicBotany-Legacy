@@ -7,6 +7,8 @@ import mythicbotany.registry.ModItems;
 import mythicbotany.tile.TileManaCollector;
 import mythicbotany.tile.TileFunctionalFlower;
 import mythicbotany.tile.TileManaInfuser;
+import mythicbotany.rune.TileCentralRuneHolder;
+import mythicbotany.rune.TileRuneHolder;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -50,6 +52,8 @@ public final class MythicBotany {
         GameRegistry.registerTileEntity(TileManaInfuser.class, "mythicbotany_mana_infuser");
         GameRegistry.registerTileEntity(TileManaCollector.class, "mythicbotany_mana_collector");
         GameRegistry.registerTileEntity(TileFunctionalFlower.class, "mythicbotany_functional_flower");
+        GameRegistry.registerTileEntity(TileRuneHolder.class, "mythicbotany_rune_holder");
+        GameRegistry.registerTileEntity(TileCentralRuneHolder.class, "mythicbotany_central_rune_holder");
         proxy.preInit();
     }
 

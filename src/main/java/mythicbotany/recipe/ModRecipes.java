@@ -3,6 +3,7 @@ package mythicbotany.recipe;
 import mythicbotany.MythicBotany;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
+import mythicbotany.rune.RuneRitualRegistry;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -42,5 +43,6 @@ public final class ModRecipes {
         InfuserRecipe.register(new ItemStack(Items.APPLE), new ItemStack(ModItems.dreamCherry), 10000);
         InfuserRecipe.register(new ItemStack(vazkii.botania.common.item.ModItems.manaResource, 1, 7),
                 new ItemStack(ModItems.alfsteelIngot), 50000);
+        RuneRitualRegistry.registerDefaults();
     }
 }
