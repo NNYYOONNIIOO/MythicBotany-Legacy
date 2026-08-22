@@ -12,13 +12,19 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
 public class BlockCentralRuneHolder extends BlockContainer {
+    private static final AxisAlignedBB HOLDER_BOX = new AxisAlignedBB(
+            5.0D / 16.0D, 0.0D, 5.0D / 16.0D,
+            11.0D / 16.0D, 3.0D / 16.0D, 11.0D / 16.0D);
+
     public BlockCentralRuneHolder() {
         super(Material.IRON);
         setHardness(3.0F);
@@ -46,6 +52,16 @@ public class BlockCentralRuneHolder extends BlockContainer {
     @Override
     public boolean isFullCube(IBlockState state) {
         return false;
+    }
+
+    @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+        return HOLDER_BOX;
+    }
+
+    @Override
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+        return HOLDER_BOX;
     }
 
     @Override

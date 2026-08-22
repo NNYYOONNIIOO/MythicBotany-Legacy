@@ -38,7 +38,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
     private static final String TAG_ENABLED = "enabled";
     private static final String TAG_TIPPED = "tipped";
     private static final int MAX_MANA = Integer.MAX_VALUE;
-    /** Botania's TerraPick uses 80 mana per extra block in 1.12.2. */
+    /** Active-area mining and Loki cursor mining each cost 200 mana per block. */
     private static final int MANA_PER_BLOCK = 200;
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
@@ -119,6 +119,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
                 || !MATERIALS.contains(originState.getMaterial())
                 || originState.getPlayerRelativeBlockHardness(player, player.world, pos) <= 0.0F
                 || !originState.getBlock().canHarvestBlock(player.world, pos, player)) return;
+        // Loki's own cursor loop removes exactly this block after this callback.
+        // Do not expand the configured Loki shape using the pick's mana level.
+        if (!isEnabled(stack)) return;
         int originalLevel = getLevel(stack);
         boolean thor = !ItemThorRing.getThorRing(player).isEmpty();
         int level = originalLevel + (thor ? 1 : 0);
@@ -128,10 +131,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, IManaToo
         int range = Math.max(0, level - 1);
         if (isEnabled(stack) && getMana_(stack) < MANA_PER_BLOCK) return;
         int rangeY = Math.max(1, range);
-        boolean fixedLokiShape = !isEnabled(stack) && !thor;
-        boolean doX = fixedLokiShape || thor || side.getXOffset() == 0;
-        boolean doY = fixedLokiShape ? level == 1 : thor || side.getYOffset() == 0;
-        boolean doZ = fixedLokiShape || thor || side.getZOffset() == 0;
+        boolean doX = thor || side.getXOffset() == 0;
+        boolean doY = thor || side.getYOffset() == 0;
+        boolean doZ = thor || side.getZOffset() == 0;
         int beginY = level == 0 ? 0 : (doY ? -1 : 0);
         int endY = level == 0 ? 0 : (doY ? rangeY * 2 - 1 : 0);
         Vec3i begin = new Vec3i(doX ? -range : 0, beginY, doZ ? -range : 0);

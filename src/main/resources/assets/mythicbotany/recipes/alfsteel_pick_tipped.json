@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {"item": "mythicbotany:alfsteel_pick"},
+    {"item": "botania:terrapick"}
+  ],
+  "result": {"item": "mythicbotany:alfsteel_pick"}
+}
