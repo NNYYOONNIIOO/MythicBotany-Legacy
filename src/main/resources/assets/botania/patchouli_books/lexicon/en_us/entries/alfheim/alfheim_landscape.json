@@ -1,6 +1,6 @@
 {
   "category": "botania:alfheim",
-  "icon": "mythicbotany:alf_pixie_spawn_egg",
+  "icon": "minecraft:spawn_egg{EntityTag:{id:\"mythicbotany:alf_pixie\"}}",
   "name": "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape",
   "pages": [
     {

@@ -136,6 +136,10 @@ public final class InfuserRecipe {
         return output.copy();
     }
 
+    public ItemStack getInput() {
+        return input.copy();
+    }
+
     public int getMana() {
         return mana;
     }

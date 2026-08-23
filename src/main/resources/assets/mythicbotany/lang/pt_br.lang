@@ -26,7 +26,6 @@ enchantment.mythicbotany.hammer_mobility=Manuseio de Martelo
 enchantment.mythicbotany.hammer_mobility.desc=Aumenta a velocidade de ataque do martelo.
 entity.mythicbotany:alf_pixie.name=Fada de Alfheim
 entity.mythicbotany:mjoellnir.name=Mjöllnir
-item.mythicbotany:alf_pixie_spawn_egg.name=Ovo Gerador de Fada de Alfheim
 item.mythicbotany:alfheim_rune.name=Runa de Alfheim
 item.mythicbotany:alfsteel_axe.name=Alf-Truncador
 item.mythicbotany:alfsteel_boots.description=Faz você pular mais alto.

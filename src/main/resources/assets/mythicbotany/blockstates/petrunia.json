@@ -1,10 +1,18 @@
 {
+  "forge_marker": 1,
   "variants": {
-    "normal": {
-      "model": "mythicbotany:petrunia"
-    },
-    "inventory": {
-      "model": "mythicbotany:item/petrunia"
-    }
+    "normal": [{
+      "model": "botania:shapes/cross_tinted",
+      "textures": {
+        "cross": "mythicbotany:blocks/petrunia"
+      }
+    }],
+    "inventory": [{
+      "model": "builtin/generated",
+      "transform": "forge:default-item",
+      "textures": {
+        "layer0": "mythicbotany:blocks/petrunia"
+      }
+    }]
   }
 }

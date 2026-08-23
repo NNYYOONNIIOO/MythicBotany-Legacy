@@ -1,7 +1,7 @@
 package mythicbotany.registry;
 
+import com.google.common.collect.Multimap;
 import mythicbotany.MythicBotany;
-import mythicbotany.item.ItemAlfPixieSpawnEgg;
 import mythicbotany.item.AlfsteelRepairHelper;
 import mythicbotany.item.ItemAlfsteelAxe;
 import mythicbotany.item.ItemAlfsteelPick;
@@ -16,12 +16,15 @@ import mythicbotany.item.ItemAuraMythicRing;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemStack;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
@@ -31,8 +34,13 @@ import net.minecraftforge.common.ISpecialArmor;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import vazkii.botania.api.mana.IManaDiscountArmor;
+import vazkii.botania.api.mana.IManaGivingItem;
+import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.model.armor.ModelArmorTerrasteel;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
+
+import java.util.UUID;
 
 public final class ModItems {
     private static final Item.ToolMaterial ALFSTEEL_TOOLS = EnumHelper.addToolMaterial(
@@ -41,7 +49,7 @@ public final class ModItems {
             "MYTHICBOTANY_ALFSTEEL_PICK", 3, 4600, 9.0F, 3.0F, 30);
     private static final ItemArmor.ArmorMaterial ALFSTEEL_ARMOR = EnumHelper.addArmorMaterial(
             "MYTHICBOTANY_ALFSTEEL", MythicBotany.MODID + ":alfsteel", 45,
-            new int[]{4, 9, 7, 4}, 30, SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, 3.0F);
+            new int[]{3, 8, 6, 3}, 30, SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, 3.0F);
 
     public static final Item asgardRune = named(new Item(), "asgard_rune");
     public static final Item vanaheimRune = named(new Item(), "vanaheim_rune");
@@ -76,7 +84,6 @@ public final class ModItems {
     public static final Item kvasirBlood = named(new Item().setMaxStackSize(8), "kvasir_blood");
     public static final Item kvasirMead = named(new ItemKvasirMead(), "kvasir_mead");
     public static final Item dreamCherry = named(createDreamCherry(), "dream_cherry");
-    public static final Item alfPixieSpawnEgg = named(new ItemAlfPixieSpawnEgg(), "alf_pixie_spawn_egg");
 
     public static final Item[] ALL = {
             asgardRune, vanaheimRune, alfheimRune, midgardRune, joetunheimRune,
@@ -85,7 +92,7 @@ public final class ModItems {
             alfsteelHelmet, alfsteelChestplate, alfsteelLeggings, alfsteelBoots,
             manaRingGreatest, auraRingGreatest, fadedNetherStar, fireRing, iceRing,
             gjallarHornEmpty, gjallarHornFull, cursedAndwariRing, andwariRing,
-            fimbultyrTablet, kvasirBlood, kvasirMead, dreamCherry, alfPixieSpawnEgg
+            fimbultyrTablet, kvasirBlood, kvasirMead, dreamCherry
     };
 
     private ModItems() {
@@ -104,9 +111,11 @@ public final class ModItems {
         return item;
     }
 
-    private static class AlfsteelArmor extends ItemArmor implements ISpecialArmor {
+    private static class AlfsteelArmor extends ItemArmor
+            implements ISpecialArmor, IManaDiscountArmor, IManaGivingItem {
         private AlfsteelArmor(ItemArmor.ArmorMaterial material, EntityEquipmentSlot slot) {
             super(material, 0, slot);
+            setMaxDamage(5200);
         }
 
         @SideOnly(Side.CLIENT)
@@ -122,20 +131,46 @@ public final class ModItems {
         @Override
         public String getArmorTexture(net.minecraft.item.ItemStack stack, Entity entity,
                                       EntityEquipmentSlot slot, String type) {
-            return MythicBotany.MODID + ":textures/model/armor/alfsteel_"
-                    + (slot == EntityEquipmentSlot.LEGS ? "2" : "1") + ".png";
+            return MythicBotany.MODID + ":textures/model/armor_alfsteel.png";
+        }
+
+        @Override
+        public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot,
+                                                                          ItemStack stack) {
+            Multimap<String, AttributeModifier> modifiers = super.getAttributeModifiers(slot, stack);
+            if (slot == armorType) {
+                UUID uuid = new UUID((getTranslationKey(stack) + slot.toString()).hashCode(), 0L);
+                if (armorType == EntityEquipmentSlot.HEAD) {
+                    modifiers.put(EntityPlayer.REACH_DISTANCE.getName(), new AttributeModifier(
+                            uuid, "Alfsteel reach", 2.0D, 0));
+                    modifiers.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(
+                            uuid, "Alfsteel knockback resistance", 0.15D, 0));
+                } else if (armorType == EntityEquipmentSlot.CHEST) {
+                    modifiers.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(
+                            uuid, "Alfsteel knockback resistance", 0.4D, 0));
+                } else if (armorType == EntityEquipmentSlot.LEGS) {
+                    modifiers.put(SharedMonsterAttributes.MOVEMENT_SPEED.getName(), new AttributeModifier(
+                            uuid, "Alfsteel movement speed", 0.4D, 1));
+                    modifiers.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(
+                            new UUID((getTranslationKey(stack) + slot.toString()).hashCode(), 1L),
+                            "Alfsteel knockback resistance", 0.3D, 0));
+                } else if (armorType == EntityEquipmentSlot.FEET) {
+                    modifiers.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(
+                            uuid, "Alfsteel knockback resistance", 0.15D, 0));
+                }
+            }
+            return modifiers;
         }
 
         @Override
         public void onArmorTick(World world, EntityPlayer player, net.minecraft.item.ItemStack stack) {
             if (!world.isRemote) {
-                AlfsteelRepairHelper.repair(stack, player, world.getTotalWorldTime());
-                if (world.getTotalWorldTime() % 40L == 0L) {
-                    player.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, 80, 0));
-                    if (hasFullSet(player)) {
-                        player.addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 80, 0));
-                        player.addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 80, 0));
+                AlfsteelRepairHelper.repairArmor(stack, player, world.getTotalWorldTime());
+                if (armorType == EntityEquipmentSlot.HEAD && hasFullSet(player)) {
+                    if (player.shouldHeal() && player.ticksExisted % 40 == 0) {
+                        player.heal(1.0F);
                     }
+                    ManaItemHandler.dispatchManaExact(stack, player, 1, true);
                 }
             }
         }
@@ -156,7 +191,12 @@ public final class ModItems {
         @Override
         public void damageArmor(EntityLivingBase entity, net.minecraft.item.ItemStack stack,
                                 DamageSource source, int damage, int slot) {
-            ToolCommons.damageItem(stack, damage, entity, AlfsteelRepairHelper.MANA_PER_DURABILITY);
+            ToolCommons.damageItem(stack, damage, entity, AlfsteelRepairHelper.ARMOR_MANA_PER_DURABILITY);
+        }
+
+        @Override
+        public float getDiscount(ItemStack stack, int slot, EntityPlayer player, ItemStack tool) {
+            return armorType == EntityEquipmentSlot.HEAD && hasFullSet(player) ? 0.2F : 0.0F;
         }
 
         private boolean hasFullSet(EntityPlayer player) {

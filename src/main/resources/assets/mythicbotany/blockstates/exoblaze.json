@@ -1,10 +1,18 @@
 {
+  "forge_marker": 1,
   "variants": {
-    "normal": {
-      "model": "mythicbotany:exoblaze"
-    },
-    "inventory": {
-      "model": "mythicbotany:item/exoblaze"
-    }
+    "normal": [{
+      "model": "botania:shapes/cross_tinted",
+      "textures": {
+        "cross": "mythicbotany:blocks/exoblaze"
+      }
+    }],
+    "inventory": [{
+      "model": "builtin/generated",
+      "transform": "forge:default-item",
+      "textures": {
+        "layer0": "mythicbotany:blocks/exoblaze"
+      }
+    }]
   }
 }

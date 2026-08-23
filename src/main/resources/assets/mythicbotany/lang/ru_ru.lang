@@ -25,7 +25,6 @@ biome.mythicbotany.golden_fields=Золотые поля
 enchantment.mythicbotany.hammer_mobility=Hammer Mobility
 entity.mythicbotany:alf_pixie.name=Пикси Альфхейма
 entity.mythicbotany:mjoellnir.name=Mjöllnir
-item.mythicbotany:alf_pixie_spawn_egg.name=Яйцо призыва альфхеймского пикси
 item.mythicbotany:alfheim_rune.name=Руна Альфхейма
 item.mythicbotany:alfsteel_axe.name=Топор Альф
 item.mythicbotany:alfsteel_boots.description=Заставляет прыгать выше.

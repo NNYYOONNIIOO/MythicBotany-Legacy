@@ -12,6 +12,7 @@ import mythicbotany.world.ModWorldGenerator;
 import mythicbotany.dimension.ModDimensions;
 import mythicbotany.lexicon.MythicLexicon;
 import mythicbotany.network.NetworkHandler;
+import mythicbotany.item.AlfsteelArmorHandler;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import net.minecraft.creativetab.CreativeTabs;
@@ -65,6 +66,7 @@ public final class MythicBotany {
 
     public MythicBotany() {
         MinecraftForge.EVENT_BUS.register(new mythicbotany.registry.ModRegistry());
+        MinecraftForge.EVENT_BUS.register(new AlfsteelArmorHandler());
     }
 
     @Mod.EventHandler

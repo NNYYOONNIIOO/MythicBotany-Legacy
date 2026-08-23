@@ -48,6 +48,14 @@ public final class RuneRitualRecipe {
         public ItemStack getRune() {
             return rune.copy();
         }
+
+        public int getOriginalX() {
+            return x;
+        }
+
+        public int getOriginalZ() {
+            return z;
+        }
     }
 
     private final ItemStack center;
@@ -77,6 +85,10 @@ public final class RuneRitualRecipe {
 
     public boolean matchesCenter(ItemStack stack) {
         return matches(center, stack);
+    }
+
+    public ItemStack getCenter() {
+        return center.copy();
     }
 
     public ItemStack getOutput() {

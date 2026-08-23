@@ -1,10 +1,18 @@
 {
+  "forge_marker": 1,
   "variants": {
-    "normal": {
-      "model": "mythicbotany:wither_aconite"
-    },
-    "inventory": {
-      "model": "mythicbotany:item/wither_aconite"
-    }
+    "normal": [{
+      "model": "botania:shapes/cross_tinted",
+      "textures": {
+        "cross": "mythicbotany:blocks/wither_aconite"
+      }
+    }],
+    "inventory": [{
+      "model": "builtin/generated",
+      "transform": "forge:default-item",
+      "textures": {
+        "layer0": "mythicbotany:blocks/wither_aconite"
+      }
+    }]
   }
 }

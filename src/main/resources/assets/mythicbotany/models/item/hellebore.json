@@ -1,6 +1,6 @@
 {
-  "parent": "block/cross",
+  "parent": "item/generated",
   "textures": {
-    "cross": "mythicbotany:blocks/hellebore"
+    "layer0": "mythicbotany:blocks/hellebore"
   }
 }

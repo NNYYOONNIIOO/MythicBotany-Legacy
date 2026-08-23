@@ -28,20 +28,13 @@ public final class ModelHandler {
     private static boolean tileEntityRenderersRegistered;
 
     private ModelHandler() { }
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void registerModels(ModelRegistryEvent event) {
         registerSpecialFlowerModels();
         registerTileEntityRenderers();
         registerTesrItems();
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
-        registerTesrItemModels();
-    }
-
-    @SubscribeEvent
-    public static void registerItemColors(ColorHandlerEvent.Item event) {
-        event.getItemColors().registerItemColorHandler((stack, tintIndex) ->
-                tintIndex == 0 ? 0x9E65D6 : 0x28173D, ModItems.alfPixieSpawnEgg);
     }
 
     /** Register addon special-flower models before Botania bakes its model map. */
@@ -71,38 +64,15 @@ public final class ModelHandler {
     }
 
     private static void registerSpecialFlowerModel(String subTileName, String modelName) {
-        ResourceLocation blockLocation = new ResourceLocation(MythicBotany.MODID, modelName);
-        ResourceLocation itemLocation = new ResourceLocation(MythicBotany.MODID, "item/" + modelName);
+        ResourceLocation location = new ResourceLocation(MythicBotany.MODID, modelName);
         BotaniaAPIClient.registerSubtileModel(subTileName,
-                new ModelResourceLocation(blockLocation, "normal"),
-                new ModelResourceLocation(itemLocation, "inventory"));
+                new ModelResourceLocation(location, "normal"),
+                new ModelResourceLocation(location, "inventory"));
     }
 
     /** Item models using a tile-entity renderer must be registered before model baking. */
     private static void registerTesrItems() {
-        ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.runeHolder), 0,
-                TileRuneHolder.class);
-        ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.centralRuneHolder), 0,
-                TileCentralRuneHolder.class);
         ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(ModBlocks.alfsteelPylon), 0,
                 TileAlfsteelPylon.class);
-        Item.getItemFromBlock(ModBlocks.alfsteelPylon).setTileEntityItemStackRenderer(
-                new RenderAlfsteelPylon.ItemRenderer());
-        Item.getItemFromBlock(ModBlocks.runeHolder).setTileEntityItemStackRenderer(
-                new RenderRuneHolder.ItemRenderer());
-        Item.getItemFromBlock(ModBlocks.centralRuneHolder).setTileEntityItemStackRenderer(
-                new RenderCentralRuneHolder.ItemRenderer());
-    }
-
-    /** Re-apply the item models after the generic ItemBlock registration. */
-    private static void registerTesrItemModels() {
-        registerTesrItemModel(ModBlocks.runeHolder, "rune_holder");
-        registerTesrItemModel(ModBlocks.centralRuneHolder, "central_rune_holder");
-        registerTesrItemModel(ModBlocks.alfsteelPylon, "alfsteel_pylon");
-    }
-
-    private static void registerTesrItemModel(Block block, String name) {
-        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), 0,
-                new ModelResourceLocation(new ResourceLocation(MythicBotany.MODID, "item/" + name), "inventory"));
     }
 }

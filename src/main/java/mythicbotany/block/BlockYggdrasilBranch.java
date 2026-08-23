@@ -2,6 +2,7 @@ package mythicbotany.block;
 
 import mythicbotany.registry.ModItems;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -11,6 +12,9 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.Mirror;
+import net.minecraft.util.Rotation;
+import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -22,9 +26,19 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 /** A Yggdrasil branch that fills an empty Gjallar Horn. */
 public class BlockYggdrasilBranch extends Block {
-    private static final AxisAlignedBB BRANCH_BOX = new AxisAlignedBB(
+    public static final PropertyDirection FACING = BlockHorizontal.FACING;
+    private static final AxisAlignedBB NORTH_BOX = new AxisAlignedBB(
             5.0D / 16.0D, 0.0D, 8.0D / 16.0D,
             11.0D / 16.0D, 12.0D / 16.0D, 14.0D / 16.0D);
+    private static final AxisAlignedBB EAST_BOX = new AxisAlignedBB(
+            2.0D / 16.0D, 0.0D, 5.0D / 16.0D,
+            8.0D / 16.0D, 12.0D / 16.0D, 11.0D / 16.0D);
+    private static final AxisAlignedBB SOUTH_BOX = new AxisAlignedBB(
+            5.0D / 16.0D, 0.0D, 2.0D / 16.0D,
+            11.0D / 16.0D, 12.0D / 16.0D, 8.0D / 16.0D);
+    private static final AxisAlignedBB WEST_BOX = new AxisAlignedBB(
+            8.0D / 16.0D, 0.0D, 5.0D / 16.0D,
+            14.0D / 16.0D, 12.0D / 16.0D, 11.0D / 16.0D);
 
     public BlockYggdrasilBranch() {
         super(Material.WOOD);
@@ -32,6 +46,34 @@ public class BlockYggdrasilBranch extends Block {
         setResistance(4.0F);
         setSoundType(SoundType.WOOD);
         setLightOpacity(0);
+        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+    }
+
+    @Override
+    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing,
+                                            float hitX, float hitY, float hitZ, int meta,
+                                            net.minecraft.entity.EntityLivingBase placer) {
+        return getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+    }
+
+    @Override
+    public IBlockState getStateFromMeta(int meta) {
+        return getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta & 3));
+    }
+
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        return state.getValue(FACING).getHorizontalIndex();
+    }
+
+    @Override
+    public IBlockState withRotation(IBlockState state, Rotation rotation) {
+        return state.withProperty(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    public IBlockState withMirror(IBlockState state, Mirror mirrorIn) {
+        return state.withRotation(mirrorIn.toRotation(state.getValue(FACING)));
     }
 
     @Override
@@ -57,12 +99,21 @@ public class BlockYggdrasilBranch extends Block {
 
     @Override
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-        return BRANCH_BOX;
+        return getBox(state);
     }
 
     @Override
     public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-        return BRANCH_BOX;
+        return getBox(state);
+    }
+
+    private static AxisAlignedBB getBox(IBlockState state) {
+        switch (state.getValue(FACING)) {
+            case EAST: return EAST_BOX;
+            case SOUTH: return SOUTH_BOX;
+            case WEST: return WEST_BOX;
+            default: return NORTH_BOX;
+        }
     }
 
     @Override

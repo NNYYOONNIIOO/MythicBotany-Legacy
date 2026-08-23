@@ -1,7 +1,8 @@
 {
   "variants": {
-    "normal": {
-      "model": "mythicbotany:yggdrasil_branch"
-    }
+    "facing=north": { "model": "mythicbotany:yggdrasil_branch", "y": 0 },
+    "facing=east": { "model": "mythicbotany:yggdrasil_branch", "y": 90 },
+    "facing=south": { "model": "mythicbotany:yggdrasil_branch", "y": 180 },
+    "facing=west": { "model": "mythicbotany:yggdrasil_branch", "y": 270 }
   }
 }

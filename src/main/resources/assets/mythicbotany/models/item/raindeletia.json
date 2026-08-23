@@ -1,6 +1,6 @@
 {
-  "parent": "block/cross",
+  "parent": "item/generated",
   "textures": {
-    "cross": "mythicbotany:blocks/raindeletia"
+    "layer0": "mythicbotany:blocks/raindeletia"
   }
 }

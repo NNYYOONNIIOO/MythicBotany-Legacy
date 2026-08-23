@@ -26,7 +26,6 @@ enchantment.mythicbotany.hammer_mobility=Dynamischer Hammer
 enchantment.mythicbotany.hammer_mobility.desc=Erhöht die Angriffsgeschwindigkeit des Hammers.
 entity.mythicbotany:alf_pixie.name=Alfheim Fee
 entity.mythicbotany:mjoellnir.name=Mjöllnir
-item.mythicbotany:alf_pixie_spawn_egg.name=Alfheim Fee Spawn-Ei
 item.mythicbotany:alfheim_rune.name=Rune von Alfheim
 item.mythicbotany:alfsteel_axe.name=Alf-Abschneider
 item.mythicbotany:alfsteel_boots.description=Lässt dich höher springen.

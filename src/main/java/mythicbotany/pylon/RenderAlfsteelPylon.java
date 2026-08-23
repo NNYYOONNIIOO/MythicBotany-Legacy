@@ -5,8 +5,11 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import mythicbotany.registry.ModBlocks;
 
 /** Client renderer for the Alfsteel pylon's ring and crystal. */
 public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelPylon> {
@@ -14,14 +17,22 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
             "mythicbotany", "textures/model/pylon_alfsteel.png");
     private final PylonModelNatura model = new PylonModelNatura();
 
-    /** Uses the same TESR for the held, inventory and dropped block item. */
-    public static final class ItemRenderer extends TileEntityItemStackRenderer {
-        private final RenderAlfsteelPylon renderer = new RenderAlfsteelPylon();
-        private final TileAlfsteelPylon dummy = new TileAlfsteelPylon();
+    /** Forwards only this block's builtin/entity item to its bound tile renderer. */
+    public static final class ForwardingTEISR extends TileEntityItemStackRenderer {
+        private static final TileAlfsteelPylon DUMMY = new TileAlfsteelPylon();
+        private final TileEntityItemStackRenderer compose;
+
+        public ForwardingTEISR(TileEntityItemStackRenderer compose) {
+            this.compose = compose;
+        }
 
         @Override
         public void renderByItem(ItemStack stack, float partialTicks) {
-            renderer.render(dummy, 0.0D, 0.0D, 0.0D, partialTicks, 0, 1.0F);
+            if (stack.getItem() == Item.getItemFromBlock(ModBlocks.alfsteelPylon)) {
+                TileEntityRendererDispatcher.instance.render(DUMMY, 0.0D, 0.0D, 0.0D, partialTicks);
+            } else {
+                compose.renderByItem(stack, partialTicks);
+            }
         }
     }
 
@@ -31,30 +42,41 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         if (tile == null) {
             return;
         }
+        boolean renderingItem = tile == ForwardingTEISR.DUMMY;
         GlStateManager.pushMatrix();
         GlStateManager.enableRescaleNormal();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(770, 771);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        double time = tile.getWorld() == null ? partialTicks
-                : tile.getWorld().getTotalWorldTime() + partialTicks;
-        time += new java.util.Random(tile.getPos() == null ? 0 : tile.getPos().hashCode()).nextInt(360);
+        double time = renderingItem || tile.getWorld() == null
+                ? partialTicks : tile.getWorld().getTotalWorldTime() + partialTicks;
+        if (!renderingItem) {
+            time += new java.util.Random(tile.getPos().hashCode()).nextInt(360);
+        }
         bindTexture(TEXTURE);
 
-        GlStateManager.translate(x, y + 1.5D, z);
+        GlStateManager.translate(x, y + (renderingItem ? 1.35D : 1.5D), z);
         GlStateManager.scale(1.0F, -1.0F, -1.0F);
 
         GlStateManager.pushMatrix();
         GlStateManager.translate(0.5F, 0.0F, -0.5F);
-        GlStateManager.rotate((float) time * 1.5F, 0.0F, 1.0F, 0.0F);
+        if (!renderingItem) {
+            GlStateManager.rotate((float) time * 1.5F, 0.0F, 1.0F, 0.0F);
+        }
         model.renderRing();
-        GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 20.0D - 0.025D, 0.0D);
+        if (!renderingItem) {
+            GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 20.0D - 0.025D, 0.0D);
+        }
         GlStateManager.popMatrix();
 
         GlStateManager.pushMatrix();
-        GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 17.5D, 0.0D);
+        if (!renderingItem) {
+            GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 17.5D, 0.0D);
+        }
         GlStateManager.translate(0.5F, 0.0F, -0.5F);
-        GlStateManager.rotate((float) -time, 0.0F, 1.0F, 0.0F);
+        if (!renderingItem) {
+            GlStateManager.rotate((float) -time, 0.0F, 1.0F, 0.0F);
+        }
         GlStateManager.disableCull();
         GlStateManager.disableAlpha();
         model.renderCrystal();
@@ -63,6 +85,7 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         GlStateManager.popMatrix();
 
         GlStateManager.disableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableRescaleNormal();
         GlStateManager.popMatrix();
     }

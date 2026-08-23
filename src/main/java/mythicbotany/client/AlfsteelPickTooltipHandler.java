@@ -16,7 +16,7 @@ import net.minecraftforge.fml.relauncher.Side;
 /** Terra-Pick-style animated rainbow mana bar for the alfsteel shatterer. */
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class AlfsteelPickTooltipHandler {
-    private static final String[] RANKS = {"§cD", "§eC", "§bB", "§aA", "§dS", "§6SS"};
+    private static final String[] RANKS = {"\u00A7cD", "\u00A7eC", "\u00A7bB", "\u00A7aA", "\u00A7dS", "\u00A76SS"};
 
     private AlfsteelPickTooltipHandler() { }
 
