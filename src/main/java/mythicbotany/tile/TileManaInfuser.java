@@ -156,7 +156,7 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
 
     @Override
     public boolean isFull() {
-        return activeRecipe != null && mana >= manaRequirement;
+        return activeRecipe == null || mana >= manaRequirement;
     }
 
     @Override
@@ -261,8 +261,9 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
         manaRequirement = Math.max(0, compound.getInteger("ManaRequirement"));
         int recipeIndex = compound.hasKey("Recipe") ? compound.getInteger("Recipe") : -1;
         activeRecipe = InfuserRecipe.getRecipe(recipeIndex);
-        if (activeRecipe != null && manaRequirement <= 0) {
+        if (activeRecipe != null) {
             manaRequirement = activeRecipe.getMana();
+            mana = Math.min(mana, manaRequirement);
         }
         if (activeRecipe == null) {
             mana = 0;
