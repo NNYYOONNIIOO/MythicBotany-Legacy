@@ -34,11 +34,11 @@ public class ItemMjoellnir extends ItemSword {
             EntityMjoellnir thrown = new EntityMjoellnir(worldIn, playerIn, thrownStack);
             thrown.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
             worldIn.spawnEntity(thrown);
-            if (!playerIn.capabilities.isCreativeMode) {
-                stack.shrink(1);
-            }
             worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ,
                     SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 0.8F, 0.8F);
+        }
+        if (!playerIn.capabilities.isCreativeMode) {
+            stack.shrink(1);
         }
         playerIn.getCooldownTracker().setCooldown(this, 20);
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
@@ -62,6 +62,6 @@ public class ItemMjoellnir extends ItemSword {
     }
 
     private void strike(World world, double x, double y, double z) {
-        world.addWeatherEffect(new EntityLightningBolt(world, x, y, z, false));
+        world.addWeatherEffect(new EntityLightningBolt(world, x, y, z, true));
     }
 }

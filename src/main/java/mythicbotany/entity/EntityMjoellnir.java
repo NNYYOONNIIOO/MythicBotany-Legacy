@@ -24,11 +24,13 @@ public class EntityMjoellnir extends EntityThrowable {
 
     public EntityMjoellnir(World world) {
         super(world);
+        setNoGravity(true);
     }
 
     public EntityMjoellnir(World world, EntityLivingBase thrower, ItemStack stack) {
         super(world, thrower);
         setItem(stack);
+        setNoGravity(true);
     }
 
     @Override
@@ -64,13 +66,14 @@ public class EntityMjoellnir extends EntityThrowable {
         }
         if (result.entityHit instanceof EntityLivingBase && result.entityHit != getThrower()) {
             EntityLivingBase target = (EntityLivingBase) result.entityHit;
-            world.addWeatherEffect(new EntityLightningBolt(world, target.posX, target.posY, target.posZ, false));
+            world.addWeatherEffect(new EntityLightningBolt(world, target.posX, target.posY, target.posZ, true));
         }
         startReturning();
     }
 
     @Override
     public void onUpdate() {
+        setNoGravity(true);
         if (!isReturning()) {
             super.onUpdate();
             if (!world.isRemote && !isDead) {
@@ -117,6 +120,11 @@ public class EntityMjoellnir extends EntityThrowable {
         rotationYaw = (float) (Math.atan2(motionX, motionZ) * 180.0D / Math.PI);
         rotationPitch = (float) (Math.atan2(motionY,
                 Math.sqrt(motionX * motionX + motionZ * motionZ)) * 180.0D / Math.PI);
+    }
+
+    @Override
+    protected float getGravityVelocity() {
+        return 0.0F;
     }
 
     private void returnToOwner(EntityPlayer player) {

@@ -26,9 +26,12 @@ import net.minecraft.world.World;
 import net.minecraft.init.SoundEvents;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import vazkii.botania.api.wand.IWandHUD;
 
 /** A Yggdrasil branch that fills an empty Gjallar Horn. */
-public class BlockYggdrasilBranch extends BlockContainer {
+public class BlockYggdrasilBranch extends BlockContainer implements IWandHUD {
     public static final PropertyDirection FACING = BlockHorizontal.FACING;
     private static final AxisAlignedBB NORTH_BOX = new AxisAlignedBB(
             5.0D / 16.0D, 0.0D, 8.0D / 16.0D,
@@ -126,6 +129,15 @@ public class BlockYggdrasilBranch extends BlockContainer {
             case SOUTH: return SOUTH_BOX;
             case WEST: return WEST_BOX;
             default: return NORTH_BOX;
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void renderHUD(Minecraft mc, ScaledResolution res, World world, BlockPos pos) {
+        TileEntity tile = world.getTileEntity(pos);
+        if (tile instanceof TileYggdrasilBranch) {
+            ((TileYggdrasilBranch) tile).renderHUD(mc, res);
         }
     }
 

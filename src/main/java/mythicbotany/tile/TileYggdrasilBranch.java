@@ -6,6 +6,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.resources.I18n;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.opengl.GL11;
+import vazkii.botania.client.core.handler.HUDHandler;
+import vazkii.botania.client.core.helper.RenderHelper;
 
 /** Stores and fills a Gjallar horn using mana supplied by a Mana Spreader. */
 public class TileYggdrasilBranch extends ManaTileEntity {
@@ -68,6 +77,49 @@ public class TileYggdrasilBranch extends ManaTileEntity {
 
     public ItemStack getHorn() {
         return horn.copy();
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public int getProgressRequired() {
+        return TICKS_TO_FILL;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void renderHUD(Minecraft mc, ScaledResolution res) {
+        HUDHandler.drawSimpleManaHUD(0x4444FF, mana, getMaxMana(),
+                I18n.format("block.mythicbotany.yggdrasil_branch"), res);
+
+        ItemStack stored = getHorn();
+        if (stored.isEmpty()) {
+            return;
+        }
+
+        int centerX = res.getScaledWidth() / 2;
+        int centerY = res.getScaledHeight() / 2 - 32;
+        boolean complete = stored.getItem() == ModItems.gjallarHornFull;
+        float fraction = complete ? 1.0F
+                : Math.min(1.0F, Math.max(0.0F, (float) progress / (float) TICKS_TO_FILL));
+
+        GlStateManager.enableBlend();
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
+        mc.getRenderItem().renderItemIntoGUI(stored, centerX - 8, centerY - 8);
+
+        mc.renderEngine.bindTexture(HUDHandler.manaBar);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderHelper.drawTexturedModalRect(centerX + 33, centerY - 8, 0,
+                fraction >= 1.0F ? 0 : 22, 8, 22, 15);
+        RenderHelper.renderProgressPie(centerX + 56, centerY - 8, fraction,
+                new ItemStack(ModItems.gjallarHornFull));
+
+        net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.disableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public void dropContents() {
