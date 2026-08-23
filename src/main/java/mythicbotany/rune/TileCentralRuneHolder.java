@@ -1,6 +1,9 @@
 package mythicbotany.rune;
 
 import mythicbotany.registry.ModBlocks;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.item.EntityItem;
@@ -18,11 +21,16 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.mana.ICreativeManaProvider;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.api.mana.ManaItemHandler;
+import vazkii.botania.client.core.handler.HUDHandler;
+import vazkii.botania.client.core.helper.RenderHelper;
 import vazkii.botania.common.core.handler.ModSounds;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -80,6 +88,53 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
 
     public ItemStack getDisplayStack() {
         return !center.isEmpty() ? center.copy() : output.copy();
+    }
+
+    /** Draw the same radial wand HUD used by Botania's Rune Altar while a ritual runs. */
+    @SideOnly(Side.CLIENT)
+    public void renderHUD(Minecraft mc, ScaledResolution res) {
+        if (activeRecipe == null) {
+            return;
+        }
+
+        int centerX = res.getScaledWidth() / 2;
+        int centerY = res.getScaledHeight() / 2;
+        int radius = 34;
+        List<RuneRitualRecipe.RunePosition> runes = activeRecipe.getRunes();
+        float progressFraction = Math.min(1.0F, Math.max(0.0F,
+                (float) progress / (float) activeRecipe.getTicks()));
+
+        GlStateManager.enableBlend();
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
+
+        if (!center.isEmpty()) {
+            mc.getRenderItem().renderItemIntoGUI(center, centerX - 8, centerY - 8);
+        }
+
+        if (!runes.isEmpty()) {
+            float angle = -90.0F;
+            float anglePerRune = 360.0F / runes.size();
+            for (RuneRitualRecipe.RunePosition rune : runes) {
+                double x = centerX + Math.cos(angle * Math.PI / 180.0D) * radius - 8.0D;
+                double y = centerY + Math.sin(angle * Math.PI / 180.0D) * radius - 8.0D;
+                mc.getRenderItem().renderItemIntoGUI(rune.getRune(), (int) x, (int) y);
+                angle += anglePerRune;
+            }
+        }
+
+        mc.renderEngine.bindTexture(HUDHandler.manaBar);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderHelper.drawTexturedModalRect(centerX + radius + 9, centerY - 8, 0,
+                progressFraction >= 1.0F ? 0 : 22, 8, 22, 15);
+        RenderHelper.renderProgressPie(centerX + radius + 32, centerY - 8,
+                progressFraction, activeRecipe.getOutput());
+
+        net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.disableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public ITextComponent getStatusText() {

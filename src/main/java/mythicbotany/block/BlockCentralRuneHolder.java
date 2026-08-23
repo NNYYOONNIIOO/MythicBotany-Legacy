@@ -5,6 +5,8 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -19,10 +21,11 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import vazkii.botania.api.wand.IWandHUD;
 import vazkii.botania.api.wand.IWandable;
 import vazkii.botania.common.item.ItemTwigWand;
 
-public class BlockCentralRuneHolder extends BlockContainer implements IWandable {
+public class BlockCentralRuneHolder extends BlockContainer implements IWandable, IWandHUD {
     private static final AxisAlignedBB HOLDER_BOX = new AxisAlignedBB(
             5.0D / 16.0D, 0.0D, 5.0D / 16.0D,
             11.0D / 16.0D, 3.0D / 16.0D, 11.0D / 16.0D);
@@ -69,6 +72,15 @@ public class BlockCentralRuneHolder extends BlockContainer implements IWandable 
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TileCentralRuneHolder();
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void renderHUD(Minecraft mc, ScaledResolution res, World world, BlockPos pos) {
+        TileEntity tile = world.getTileEntity(pos);
+        if (tile instanceof TileCentralRuneHolder) {
+            ((TileCentralRuneHolder) tile).renderHUD(mc, res);
+        }
     }
 
     @Override

@@ -1,7 +1,0 @@
-{
-  "type": "minecraft:crafting_shaped",
-  "group": "mythicbotany.recipes",
-  "pattern": ["III", "I I", "I I"],
-  "key": {"I": {"item": "mythicbotany:alfsteel_ingot"}},
-  "result": {"item": "mythicbotany:alfsteel_leggings"}
-}

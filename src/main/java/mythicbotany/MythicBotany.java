@@ -7,6 +7,7 @@ import mythicbotany.registry.ModItems;
 import mythicbotany.registry.ModEntities;
 import mythicbotany.tile.TileManaCollector;
 import mythicbotany.tile.TileManaInfuser;
+import mythicbotany.tile.TileYggdrasilBranch;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.world.ModWorldGenerator;
 import mythicbotany.dimension.ModDimensions;
@@ -78,6 +79,7 @@ public final class MythicBotany {
         ModRecipes.registerSpecialFlowerSubTiles();
         GameRegistry.registerTileEntity(TileManaInfuser.class, tileId("mana_infuser"));
         GameRegistry.registerTileEntity(TileManaCollector.class, tileId("mana_collector"));
+        GameRegistry.registerTileEntity(TileYggdrasilBranch.class, tileId("yggdrasil_branch"));
         GameRegistry.registerTileEntity(TileRuneHolder.class, tileId("rune_holder"));
         GameRegistry.registerTileEntity(TileCentralRuneHolder.class, tileId("central_rune_holder"));
         GameRegistry.registerTileEntity(TileAlfsteelPylon.class, tileId("alfsteel_pylon"));

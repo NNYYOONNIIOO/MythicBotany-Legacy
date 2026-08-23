@@ -1,5 +1,0 @@
-{
-  "input": {"item": "minecraft:iron_ingot"},
-  "output": {"item": "mythicbotany:alfsteel_nugget", "count": 2},
-  "mana": 5000
-}

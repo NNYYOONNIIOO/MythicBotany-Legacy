@@ -1,7 +1,8 @@
 package mythicbotany.block;
 
 import mythicbotany.registry.ModItems;
-import net.minecraft.block.Block;
+import mythicbotany.tile.TileYggdrasilBranch;
+import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.SoundType;
@@ -19,6 +20,7 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.init.SoundEvents;
@@ -26,7 +28,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 /** A Yggdrasil branch that fills an empty Gjallar Horn. */
-public class BlockYggdrasilBranch extends Block {
+public class BlockYggdrasilBranch extends BlockContainer {
     public static final PropertyDirection FACING = BlockHorizontal.FACING;
     private static final AxisAlignedBB NORTH_BOX = new AxisAlignedBB(
             5.0D / 16.0D, 0.0D, 8.0D / 16.0D,
@@ -48,6 +50,11 @@ public class BlockYggdrasilBranch extends Block {
         setSoundType(SoundType.WOOD);
         setLightOpacity(0);
         setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+    }
+
+    @Override
+    public TileEntity createNewTileEntity(World worldIn, int meta) {
+        return new TileYggdrasilBranch();
     }
 
     @Override
@@ -125,21 +132,41 @@ public class BlockYggdrasilBranch extends Block {
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
                                     EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        ItemStack held = playerIn.getHeldItem(hand);
-        if (held.isEmpty() || held.getItem() != ModItems.gjallarHornEmpty) {
+        TileEntity tile = worldIn.getTileEntity(pos);
+        if (!(tile instanceof TileYggdrasilBranch)) {
             return false;
         }
+        TileYggdrasilBranch branch = (TileYggdrasilBranch) tile;
+        ItemStack held = playerIn.getHeldItem(hand);
+        if (held.isEmpty()) {
+            ItemStack stored = branch.takeHorn();
+            if (!stored.isEmpty() && !worldIn.isRemote) {
+                if (!playerIn.addItemStackToInventory(stored)) {
+                    playerIn.dropItem(stored, false);
+                }
+            }
+            return !stored.isEmpty();
+        }
+        if (held.getItem() != ModItems.gjallarHornEmpty || held.getCount() != 1
+                || !branch.insertHorn(held)) {
+            return false;
+        }
+        if (!worldIn.isRemote && !playerIn.capabilities.isCreativeMode) {
+            held.shrink(1);
+        }
         if (!worldIn.isRemote) {
-            ItemStack fullHorn = new ItemStack(ModItems.gjallarHornFull);
-            if (!playerIn.capabilities.isCreativeMode) {
-                held.shrink(1);
-            }
-            if (!playerIn.addItemStackToInventory(fullHorn)) {
-                playerIn.dropItem(fullHorn, false);
-            }
             worldIn.playSound(null, pos, SoundEvents.BLOCK_WOOD_STEP, SoundCategory.BLOCKS,
                     1.0F, 0.7F);
         }
         return true;
+    }
+
+    @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        TileEntity tile = worldIn.getTileEntity(pos);
+        if (tile instanceof TileYggdrasilBranch) {
+            ((TileYggdrasilBranch) tile).dropContents();
+        }
+        super.breakBlock(worldIn, pos, state);
     }
 }

@@ -1,5 +1,0 @@
-{
-  "input": {"item": "minecraft:nether_star"},
-  "output": {"item": "mythicbotany:faded_nether_star"},
-  "mana": 10000
-}

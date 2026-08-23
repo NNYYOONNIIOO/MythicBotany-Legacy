@@ -7,6 +7,7 @@ import mythicbotany.pylon.RenderAlfsteelPylon;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
+import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -64,6 +65,7 @@ public final class ModelHandler {
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileYggdrasilBranch.class, new RenderYggdrasilBranch());
     }
 
     private static void registerSpecialFlowerModel(String subTileName, String modelName) {

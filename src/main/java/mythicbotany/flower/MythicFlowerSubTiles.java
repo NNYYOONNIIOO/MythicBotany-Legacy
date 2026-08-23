@@ -15,6 +15,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.EnumFacing;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import vazkii.botania.api.subtile.SubTileFunctional;
 import vazkii.botania.api.subtile.SubTileGenerating;
@@ -86,6 +91,10 @@ public final class MythicFlowerSubTiles {
             }
             if (stack.getItem() == Items.NETHER_STAR) {
                 stack = new ItemStack(ModItems.fadedNetherStar);
+                entity.setItem(stack);
+                entity.setNoDespawn();
+                sync();
+                return;
             }
             if (stack.getItem() != ModItems.fadedNetherStar) {
                 return;
@@ -163,6 +172,9 @@ public final class MythicFlowerSubTiles {
             if (state.getBlock() == Blocks.CAULDRON) {
                 return state.getValue(BlockCauldron.LEVEL) < 3;
             }
+            if (isThaumcraftCrucible(tile)) {
+                return fillThaumcraftWater(tile, false) > 0;
+            }
             return tile instanceof IPetalApothecary && ((IPetalApothecary) tile).hasWater() == false;
         }
 
@@ -173,9 +185,42 @@ public final class MythicFlowerSubTiles {
                 if (level < 3) {
                     getWorld().setBlockState(pos, state.withProperty(BlockCauldron.LEVEL, level + 1), 3);
                 }
+            } else if (isThaumcraftCrucible(tile)) {
+                fillThaumcraftWater(tile, true);
             } else if (tile instanceof IPetalApothecary) {
                 ((IPetalApothecary) tile).setWater(true);
                 tile.markDirty();
+            }
+        }
+
+        private boolean isThaumcraftCrucible(TileEntity tile) {
+            return tile != null && "thaumcraft.common.tiles.crafting.TileCrucible".equals(
+                    tile.getClass().getName());
+        }
+
+        private int fillThaumcraftWater(TileEntity tile, boolean doFill) {
+            if (!isThaumcraftCrucible(tile) || FluidRegistry.WATER == null) {
+                return 0;
+            }
+            FluidStack water = new FluidStack(FluidRegistry.WATER, 1000);
+            try {
+                if (tile.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, EnumFacing.UP)) {
+                    IFluidHandler handler = tile.getCapability(
+                            CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, EnumFacing.UP);
+                    if (handler != null) {
+                        return handler.fill(water, doFill);
+                    }
+                }
+            } catch (Exception ignored) {
+                // Thaumcraft revisions expose the tank differently; use the public fill method below.
+            }
+            try {
+                java.lang.reflect.Method method = tile.getClass().getMethod(
+                        "fill", FluidStack.class, boolean.class);
+                Object result = method.invoke(tile, water, doFill);
+                return result instanceof Number ? ((Number) result).intValue() : 0;
+            } catch (Exception ignored) {
+                return 0;
             }
         }
 
