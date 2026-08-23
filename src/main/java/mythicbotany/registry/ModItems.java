@@ -73,7 +73,8 @@ public final class ModItems {
     public static final Item alfsteelBoots = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.FEET), "alfsteel_boots");
     public static final Item manaRingGreatest = named(new ItemManaMythicRing(), "mana_ring_greatest");
     public static final Item auraRingGreatest = named(new ItemAuraMythicRing(), "aura_ring_greatest");
-    public static final Item fadedNetherStar = named(new Item().setMaxDamage(1200000), "faded_nether_star");
+    public static final Item fadedNetherStar = named(
+            new Item().setMaxStackSize(1).setMaxDamage(1200000), "faded_nether_star");
     public static final Item fireRing = named(new ItemMythicRing(ItemMythicRing.Effect.FIRE), "fire_ring");
     public static final Item iceRing = named(new ItemMythicRing(ItemMythicRing.Effect.ICE), "ice_ring");
     public static final Item gjallarHornEmpty = named(new Item().setMaxStackSize(1), "gjallar_horn_empty");
