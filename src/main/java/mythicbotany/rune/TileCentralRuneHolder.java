@@ -1,7 +1,6 @@
 package mythicbotany.rune;
 
 import mythicbotany.registry.ModBlocks;
-import mythicbotany.tile.ManaTileEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -10,6 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.mana.IManaItem;
@@ -19,7 +19,7 @@ import vazkii.botania.common.core.handler.ModSounds;
 import java.util.List;
 import java.util.Map;
 
-public class TileCentralRuneHolder extends ManaTileEntity {
+public class TileCentralRuneHolder extends TileEntity implements ITickable {
     private ItemStack center = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
     private RuneRitualRecipe activeRecipe;
@@ -102,17 +102,15 @@ public class TileCentralRuneHolder extends ManaTileEntity {
         if (center.isEmpty() || !output.isEmpty()) {
             return;
         }
-        tryStartRitual(null);
     }
 
-    /** Starts a matching ritual, using the tile mana or the activating player's mana. */
+    /** Starts a matching ritual and consumes its mana from the activating player. */
     public boolean tryStartRitual(EntityPlayer player) {
-        if (world == null || world.isRemote || center.isEmpty() || !output.isEmpty()
+        if (world == null || world.isRemote || player == null || center.isEmpty() || !output.isEmpty()
                 || activeRecipe != null) {
             return false;
         }
-        ItemStack manaTarget = player == null
-                ? ItemStack.EMPTY : new ItemStack(Blocks.COBBLESTONE);
+        ItemStack manaTarget = new ItemStack(Blocks.COBBLESTONE);
         for (RuneRitualRecipe recipe : RuneRitualRegistry.getRecipes()) {
             if (!recipe.matchesCenter(center)) {
                 continue;
@@ -127,12 +125,7 @@ public class TileCentralRuneHolder extends ManaTileEntity {
             if (candidateRotation < 0) {
                 continue;
             }
-            if (player == null) {
-                if (mana < recipe.getMana()) {
-                    continue;
-                }
-                mana -= recipe.getMana();
-            } else if (!consumePlayerMana(manaTarget, player, recipe.getMana())) {
+            if (!consumePlayerMana(manaTarget, player, recipe.getMana())) {
                 continue;
             }
             activeRecipe = recipe;

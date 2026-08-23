@@ -119,12 +119,18 @@ public final class InfuserRecipe {
             return null;
         }
         for (InfuserRecipe recipe : RECIPES) {
-            if (recipe.input.getItem() == stack.getItem()
-                    && (recipe.input.getMetadata() == stack.getMetadata() || recipe.input.getMetadata() == 32767)) {
+            if (recipe.matches(stack)) {
                 return recipe;
             }
         }
         return null;
+    }
+
+    public boolean matches(ItemStack stack) {
+        return stack != null && !stack.isEmpty()
+                && input.getItem() == stack.getItem()
+                && (input.getMetadata() == stack.getMetadata() || input.getMetadata() == 32767)
+                && input.getCount() <= stack.getCount();
     }
 
     public static List<InfuserRecipe> getRecipes() {
@@ -142,5 +148,14 @@ public final class InfuserRecipe {
 
     public int getMana() {
         return mana;
+    }
+
+    public static InfuserRecipe getRecipe(int index) {
+        List<InfuserRecipe> recipes = getRecipes();
+        return index >= 0 && index < recipes.size() ? recipes.get(index) : null;
+    }
+
+    public static int indexOf(InfuserRecipe recipe) {
+        return getRecipes().indexOf(recipe);
     }
 }
