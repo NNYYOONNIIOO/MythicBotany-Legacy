@@ -128,12 +128,6 @@ public class EntityMjoellnir extends EntityThrowable {
     }
 
     private void returnToOwner(EntityPlayer player) {
-        if (player.capabilities.isCreativeMode) {
-            setItem(ItemStack.EMPTY);
-            setDead();
-            return;
-        }
-
         ItemStack stack = getItem();
         if (!stack.isEmpty()) {
             if (player.getHeldItemMainhand().isEmpty()) {

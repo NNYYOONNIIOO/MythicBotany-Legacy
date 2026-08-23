@@ -37,9 +37,9 @@ public class ItemMjoellnir extends ItemSword {
             worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ,
                     SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 0.8F, 0.8F);
         }
-        if (!playerIn.capabilities.isCreativeMode) {
-            stack.shrink(1);
-        }
+        // The server and client both remove the held stack while the projectile is in flight.
+        // The projectile returns that exact stack to the owner when it reaches them.
+        stack.shrink(1);
         playerIn.getCooldownTracker().setCooldown(this, 20);
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
     }

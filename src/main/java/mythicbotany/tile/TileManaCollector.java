@@ -23,6 +23,12 @@ public class TileManaCollector extends ManaTileEntity implements IManaCollector,
     private boolean networkRegistered;
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        registerToManaNetwork();
+    }
+
+    @Override
     public void update() {
         if (world == null) {
             return;
@@ -31,10 +37,7 @@ public class TileManaCollector extends ManaTileEntity implements IManaCollector,
             onClientDisplayTick();
             return;
         }
-        if (!networkRegistered) {
-            ManaNetworkEvent.addCollector(this);
-            networkRegistered = true;
-        }
+        registerToManaNetwork();
 
         ISparkEntity spark = getAttachedSpark();
         if (spark == null) {
@@ -92,6 +95,13 @@ public class TileManaCollector extends ManaTileEntity implements IManaCollector,
         if (networkRegistered) {
             ManaNetworkEvent.removeCollector(this);
             networkRegistered = false;
+        }
+    }
+
+    private void registerToManaNetwork() {
+        if (world != null && !world.isRemote && !isInvalid() && !networkRegistered) {
+            ManaNetworkEvent.addCollector(this);
+            networkRegistered = true;
         }
     }
 

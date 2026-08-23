@@ -70,8 +70,10 @@ public final class MythicFlowerSubTiles {
 
     public static class WitherAconite extends SubTileGenerating {
         public static final int DEFAULT_MANA_PER_STAR = 1200000;
+        private static final int CONSUMPTION_TICKS = 20 * 100;
         private static final int MAX_MANA = DEFAULT_MANA_PER_STAR / 500;
-        private static final int MAX_TRANSFER = DEFAULT_MANA_PER_STAR / 2000;
+        private static final int MAX_TRANSFER = (DEFAULT_MANA_PER_STAR + CONSUMPTION_TICKS - 1)
+                / CONSUMPTION_TICKS;
         private long lastConsumptionWorldTime = Long.MIN_VALUE;
 
         @Override
@@ -81,7 +83,7 @@ public final class MythicFlowerSubTiles {
                 return;
             }
             long worldTime = getWorld().getTotalWorldTime();
-            if (worldTime == lastConsumptionWorldTime) {
+            if (worldTime <= lastConsumptionWorldTime) {
                 return;
             }
             lastConsumptionWorldTime = worldTime;

@@ -14,7 +14,6 @@ import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -53,14 +52,6 @@ public class BlockManaCollector extends BlockContainer implements IWandHUD {
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
                                     EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        if (!worldIn.isRemote) {
-            TileEntity tileEntity = worldIn.getTileEntity(pos);
-            if (tileEntity instanceof TileManaCollector) {
-                TileManaCollector collector = (TileManaCollector) tileEntity;
-                playerIn.sendStatusMessage(new TextComponentString("Mana: " + collector.getCurrentMana()
-                        + " / " + collector.getMaxMana()), true);
-            }
-        }
         return true;
     }
 }
