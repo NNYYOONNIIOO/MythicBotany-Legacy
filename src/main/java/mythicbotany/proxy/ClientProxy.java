@@ -1,7 +1,9 @@
 package mythicbotany.proxy;
 
 import mythicbotany.client.RenderAlfPixie;
+import mythicbotany.entity.EntityMjoellnir;
 import mythicbotany.entity.EntityAlfPixie;
+import mythicbotany.registry.ModItems;
 import mythicbotany.pylon.RenderAlfsteelPylon;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.rune.TileCentralRuneHolder;
@@ -16,6 +18,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import vazkii.botania.client.render.entity.RenderSnowballStack;
 
 @SideOnly(Side.CLIENT)
 public final class ClientProxy extends CommonProxy {
@@ -24,6 +27,9 @@ public final class ClientProxy extends CommonProxy {
     @Override
     public void init() {
         RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);
+        RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnir.class,
+                manager -> new RenderSnowballStack<>(manager, ModItems.mjoellnir,
+                        Minecraft.getMinecraft().getRenderItem(), EntityMjoellnir::getItem));
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());

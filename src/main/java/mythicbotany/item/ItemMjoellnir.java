@@ -1,16 +1,18 @@
 package mythicbotany.item;
 
-import net.minecraft.entity.EntityLivingBase;
+import mythicbotany.entity.EntityMjoellnir;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 
@@ -27,11 +29,16 @@ public class ItemMjoellnir extends ItemSword {
             return new ActionResult<>(EnumActionResult.PASS, stack);
         }
         if (!worldIn.isRemote) {
-            Vec3d look = playerIn.getLookVec();
-            strike(worldIn, playerIn.posX + look.x * 8.0D,
-                    playerIn.posY + playerIn.getEyeHeight() + look.y * 8.0D,
-                    playerIn.posZ + look.z * 8.0D);
-            ToolCommons.damageItem(stack, 4, playerIn, AlfsteelRepairHelper.MANA_PER_DURABILITY);
+            ItemStack thrownStack = stack.copy();
+            ToolCommons.damageItem(thrownStack, 4, playerIn, AlfsteelRepairHelper.MANA_PER_DURABILITY);
+            EntityMjoellnir thrown = new EntityMjoellnir(worldIn, playerIn, thrownStack);
+            thrown.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
+            worldIn.spawnEntity(thrown);
+            if (!playerIn.capabilities.isCreativeMode) {
+                stack.shrink(1);
+            }
+            worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ,
+                    SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 0.8F, 0.8F);
         }
         playerIn.getCooldownTracker().setCooldown(this, 20);
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);

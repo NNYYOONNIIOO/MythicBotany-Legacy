@@ -2,6 +2,7 @@ package mythicbotany.registry;
 
 import mythicbotany.MythicBotany;
 import mythicbotany.entity.EntityAlfPixie;
+import mythicbotany.entity.EntityMjoellnir;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 
@@ -14,6 +15,8 @@ public final class ModEntities {
         EntityRegistry.registerModEntity(id, EntityAlfPixie.class, "alf_pixie", 100,
                 MythicBotany.INSTANCE, 64, 3, true);
         EntityRegistry.registerEgg(id, 0x9E65D6, 0x28173D);
+        EntityRegistry.registerModEntity(new ResourceLocation(MythicBotany.MODID, "mjoellnir"),
+                EntityMjoellnir.class, "mjoellnir", 101, MythicBotany.INSTANCE, 64, 1, true);
         registered = true;
     }
 }
