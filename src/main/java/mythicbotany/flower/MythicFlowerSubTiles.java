@@ -72,6 +72,7 @@ public final class MythicFlowerSubTiles {
         public static final int DEFAULT_MANA_PER_STAR = 1200000;
         private static final int MAX_MANA = DEFAULT_MANA_PER_STAR / 500;
         private static final int MAX_TRANSFER = DEFAULT_MANA_PER_STAR / 2000;
+        private long lastConsumptionWorldTime = Long.MIN_VALUE;
 
         @Override
         public void onUpdate() {
@@ -79,6 +80,11 @@ public final class MythicFlowerSubTiles {
             if (getWorld().isRemote) {
                 return;
             }
+            long worldTime = getWorld().getTotalWorldTime();
+            if (worldTime == lastConsumptionWorldTime) {
+                return;
+            }
+            lastConsumptionWorldTime = worldTime;
             List<EntityItem> items = getWorld().getEntitiesWithinAABB(EntityItem.class,
                     new AxisAlignedBB(getPos()).grow(1.0D));
             if (items.size() != 1) {
@@ -106,11 +112,12 @@ public final class MythicFlowerSubTiles {
             }
             stack.setItemDamage(stack.getItemDamage() + transfer);
             if (stack.getItemDamage() >= stack.getMaxDamage()) {
-                stack = ItemStack.EMPTY;
+                entity.setDead();
+            } else {
+                entity.setItem(stack);
+                entity.setNoDespawn();
             }
             mana = Math.min(MAX_MANA, mana + transfer);
-            entity.setItem(stack);
-            entity.setNoDespawn();
             sync();
         }
 

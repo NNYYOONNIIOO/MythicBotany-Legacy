@@ -1,10 +1,15 @@
 package mythicbotany.tile;
 
 import com.google.common.base.Predicates;
+import javax.annotation.Nullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import vazkii.botania.api.internal.IManaBurst;
+import vazkii.botania.api.internal.VanillaPacketDispatcher;
 import vazkii.botania.api.mana.IManaCollector;
 import vazkii.botania.api.mana.ManaNetworkEvent;
 import vazkii.botania.api.mana.spark.ISparkAttachable;
@@ -43,6 +48,32 @@ public class TileManaCollector extends ManaTileEntity implements IManaCollector,
                 spark.registerTransfer(other);
             }
         }
+    }
+
+    @Override
+    public void recieveMana(int amount) {
+        int oldMana = mana;
+        super.recieveMana(amount);
+        if (oldMana != mana && world != null && !world.isRemote) {
+            VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
+        }
+    }
+
+    @Override
+    public NBTTagCompound getUpdateTag() {
+        return writeToNBT(new NBTTagCompound());
+    }
+
+    @Nullable
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(pos, -999, getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+        super.onDataPacket(net, packet);
+        readFromNBT(packet.getNbtCompound());
     }
 
     @Override

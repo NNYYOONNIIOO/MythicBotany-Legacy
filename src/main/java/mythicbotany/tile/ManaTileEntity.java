@@ -34,9 +34,13 @@ public abstract class ManaTileEntity extends TileEntity implements ITickable, IM
 
     @Override
     public void recieveMana(int amount) {
-        if (amount > 0) {
-            mana = Math.min(getMaxMana(), mana + amount);
-            markDirty();
+        if (amount != 0) {
+            int oldMana = mana;
+            long updatedMana = (long) mana + amount;
+            mana = (int) Math.max(0L, Math.min((long) getMaxMana(), updatedMana));
+            if (oldMana != mana) {
+                markDirty();
+            }
         }
     }
 
