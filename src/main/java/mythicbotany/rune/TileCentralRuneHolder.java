@@ -5,11 +5,13 @@ import mythicbotany.tile.ManaTileEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.SoundCategory;
+import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.common.core.handler.ModSounds;
@@ -110,7 +112,7 @@ public class TileCentralRuneHolder extends ManaTileEntity {
             return false;
         }
         ItemStack manaTarget = player == null
-                ? ItemStack.EMPTY : new ItemStack(ModBlocks.centralRuneHolder);
+                ? ItemStack.EMPTY : new ItemStack(Blocks.COBBLESTONE);
         for (RuneRitualRecipe recipe : RuneRitualRegistry.getRecipes()) {
             if (!recipe.matchesCenter(center)) {
                 continue;
@@ -130,11 +132,8 @@ public class TileCentralRuneHolder extends ManaTileEntity {
                     continue;
                 }
                 mana -= recipe.getMana();
-            } else {
-                if (!hasPlayerMana(manaTarget, player, recipe.getMana())
-                        || !consumePlayerMana(manaTarget, player, recipe.getMana())) {
-                    continue;
-                }
+            } else if (!consumePlayerMana(manaTarget, player, recipe.getMana())) {
+                continue;
             }
             activeRecipe = recipe;
             rotation = candidateRotation;
@@ -148,29 +147,6 @@ public class TileCentralRuneHolder extends ManaTileEntity {
         return false;
     }
 
-    private boolean hasPlayerMana(ItemStack target, EntityPlayer player, int amount) {
-        long available = 0L;
-        List<ItemStack> inventory = ManaItemHandler.getManaItems(player);
-        for (ItemStack source : inventory) {
-            if (canExport(source, target)) {
-                available += ((IManaItem) source.getItem()).getMana(source);
-                if (available >= amount) {
-                    return true;
-                }
-            }
-        }
-        for (Map.Entry<Integer, ItemStack> entry : ManaItemHandler.getManaBaubles(player).entrySet()) {
-            ItemStack source = entry.getValue();
-            if (canExport(source, target)) {
-                available += ((IManaItem) source.getItem()).getMana(source);
-                if (available >= amount) {
-                    return true;
-                }
-            }
-        }
-        return amount <= 0;
-    }
-
     private boolean canExport(ItemStack source, ItemStack target) {
         return source != null && !source.isEmpty() && source.getItem() instanceof IManaItem
                 && ((IManaItem) source.getItem()).getMana(source) > 0
@@ -178,15 +154,52 @@ public class TileCentralRuneHolder extends ManaTileEntity {
     }
 
     private boolean consumePlayerMana(ItemStack target, EntityPlayer player, int amount) {
-        int remaining = amount;
-        while (remaining > 0) {
-            int received = ManaItemHandler.requestMana(target, player, remaining, true);
-            if (received <= 0) {
-                return false;
-            }
-            remaining -= received;
+        if (amount <= 0) {
+            return true;
         }
-        return true;
+        List<ItemStack> inventory = ManaItemHandler.getManaItems(player);
+        Map<Integer, ItemStack> baubles = ManaItemHandler.getManaBaubles(player);
+        long available = 0L;
+        for (ItemStack source : inventory) {
+            if (canExport(source, target)) {
+                available += ((IManaItem) source.getItem()).getMana(source);
+            }
+        }
+        for (ItemStack source : baubles.values()) {
+            if (canExport(source, target)) {
+                available += ((IManaItem) source.getItem()).getMana(source);
+            }
+        }
+        if (available < amount) {
+            return false;
+        }
+
+        int remaining = amount;
+        for (ItemStack source : inventory) {
+            if (remaining <= 0) {
+                break;
+            }
+            if (canExport(source, target)) {
+                int extracted = Math.min(remaining,
+                        ((IManaItem) source.getItem()).getMana(source));
+                ((IManaItem) source.getItem()).addMana(source, -extracted);
+                remaining -= extracted;
+            }
+        }
+        for (Map.Entry<Integer, ItemStack> entry : baubles.entrySet()) {
+            if (remaining <= 0) {
+                break;
+            }
+            ItemStack source = entry.getValue();
+            if (canExport(source, target)) {
+                int extracted = Math.min(remaining,
+                        ((IManaItem) source.getItem()).getMana(source));
+                ((IManaItem) source.getItem()).addMana(source, -extracted);
+                BotaniaAPI.internalHandler.sendBaubleUpdatePacket(player, entry.getKey());
+                remaining -= extracted;
+            }
+        }
+        return remaining == 0;
     }
 
     private boolean patternMatches(RuneRitualRecipe recipe, int candidateRotation) {
@@ -268,6 +281,7 @@ public class TileCentralRuneHolder extends ManaTileEntity {
         output = compound.hasKey("Output") ? new ItemStack(compound.getCompoundTag("Output")) : ItemStack.EMPTY;
         progress = Math.max(0, compound.getInteger("Progress"));
         rotation = compound.getInteger("Rotation") & 3;
-        activeRecipe = RuneRitualRegistry.getRecipe(compound.getInteger("Recipe"));
+        int recipeIndex = compound.hasKey("Recipe") ? compound.getInteger("Recipe") : -1;
+        activeRecipe = RuneRitualRegistry.getRecipe(recipeIndex);
     }
 }

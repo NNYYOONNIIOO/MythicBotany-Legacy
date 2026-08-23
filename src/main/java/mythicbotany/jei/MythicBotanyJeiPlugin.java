@@ -23,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import vazkii.botania.client.core.handler.HUDHandler;
+import vazkii.botania.common.block.tile.mana.TilePool;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,14 +63,12 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         private static final String UID = MythicBotany.MODID + ":infuser";
         private final IDrawable background;
         private final IDrawable overlay;
-        private final IDrawable slot;
         private final IDrawable icon;
 
         private InfuserCategory(IGuiHelper helper) {
-            background = helper.createBlankDrawable(114, 141);
+            background = helper.createBlankDrawable(114, 104);
             overlay = helper.createDrawable(new ResourceLocation("botania",
-                    "textures/gui/terrasteeloverlay.png"), 42, 29, 64, 64);
-            slot = helper.getSlotDrawable();
+                    "textures/gui/petalOverlay.png"), 17, 11, 114, 82);
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.manaInfuser));
         }
 
@@ -83,7 +82,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         public void drawExtras(Minecraft minecraft) {
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
-            overlay.draw(minecraft, 25, 14);
+            overlay.draw(minecraft, 0, 4);
             GlStateManager.disableBlend();
             GlStateManager.disableAlpha();
         }
@@ -91,17 +90,14 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override
         public void setRecipe(IRecipeLayout layout, InfuserWrapper wrapper, IIngredients ingredients) {
             IGuiItemStackGroup stacks = layout.getItemStacks();
-            stacks.init(0, false, 48, 37);
-            stacks.setBackground(0, slot);
-            stacks.set(0, wrapper.recipe.getOutput());
+            stacks.init(0, true, 47, 44);
+            stacks.set(0, new ItemStack(ModBlocks.manaInfuser));
 
-            stacks.init(1, true, 49, 6);
-            stacks.setBackground(1, slot);
+            stacks.init(1, true, 47, 12);
             stacks.set(1, wrapper.recipe.getInput());
 
-            stacks.init(2, true, 49, 93);
-            stacks.setBackground(2, slot);
-            stacks.set(2, new ItemStack(ModBlocks.manaInfuser));
+            stacks.init(2, false, 86, 11);
+            stacks.set(2, wrapper.recipe.getOutput());
         }
     }
 
@@ -127,7 +123,6 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         public void setRecipe(IRecipeLayout layout, RitualWrapper wrapper, IIngredients ingredients) {
             IGuiItemStackGroup stacks = layout.getItemStacks();
             stacks.init(0, true, 62, 62);
-            stacks.setBackground(0, slot);
             stacks.set(0, wrapper.recipe.getCenter());
 
             final int runeCount = wrapper.recipe.getRunes().size();
@@ -136,7 +131,6 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 int x = 2 + 12 * (rune.getOriginalX() + 5);
                 int y = 2 + 12 * ((-rune.getOriginalZ()) + 5);
                 stacks.init(slotIndex, true, x, y);
-                stacks.setBackground(slotIndex, slot);
                 stacks.set(slotIndex, rune.getRune());
                 slotIndex++;
             }
@@ -152,7 +146,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         RuneRitualRecipe.RunePosition rune = wrapper.recipe.getRunes().get(hoveredSlot - 1);
                         tooltip.add(TextFormatting.GOLD + I18n.format(
                                 "tooltip.mythicbotany.rune_offset",
-                                rune.getOriginalX(), rune.getOriginalZ()));
+                                rune.getOriginalX() / 2, rune.getOriginalZ() / 2));
                     }
                 }
             });
@@ -175,7 +169,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override
         public void drawInfo(Minecraft minecraft, int width, int height, int mouseX, int mouseY) {
             HUDHandler.renderManaBar(6, height - 15, 0x0000FF, 0.75F,
-                    recipe.getMana(), 4000000);
+                    recipe.getMana(), TilePool.MAX_MANA / 10);
         }
     }
 

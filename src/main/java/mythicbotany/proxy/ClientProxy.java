@@ -8,7 +8,6 @@ import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.client.RenderCentralRuneHolder;
 import mythicbotany.client.RenderRuneHolder;
-import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -22,7 +21,5 @@ public final class ClientProxy extends CommonProxy {
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
-        TileEntityItemStackRenderer.instance = new RenderAlfsteelPylon.ForwardingTEISR(
-                TileEntityItemStackRenderer.instance);
     }
 }

@@ -3,13 +3,8 @@ package mythicbotany.pylon;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import mythicbotany.registry.ModBlocks;
 
 /** Client renderer for the Alfsteel pylon's ring and crystal. */
 public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelPylon> {
@@ -17,32 +12,13 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
             "mythicbotany", "textures/model/pylon_alfsteel.png");
     private final PylonModelNatura model = new PylonModelNatura();
 
-    /** Forwards only this block's builtin/entity item to its bound tile renderer. */
-    public static final class ForwardingTEISR extends TileEntityItemStackRenderer {
-        private static final TileAlfsteelPylon DUMMY = new TileAlfsteelPylon();
-        private final TileEntityItemStackRenderer compose;
-
-        public ForwardingTEISR(TileEntityItemStackRenderer compose) {
-            this.compose = compose;
-        }
-
-        @Override
-        public void renderByItem(ItemStack stack, float partialTicks) {
-            if (stack.getItem() == Item.getItemFromBlock(ModBlocks.alfsteelPylon)) {
-                TileEntityRendererDispatcher.instance.render(DUMMY, 0.0D, 0.0D, 0.0D, partialTicks);
-            } else {
-                compose.renderByItem(stack, partialTicks);
-            }
-        }
-    }
-
     @Override
     public void render(TileAlfsteelPylon tile, double x, double y, double z, float partialTicks,
                        int destroyStage, float alpha) {
         if (tile == null) {
             return;
         }
-        boolean renderingItem = tile == ForwardingTEISR.DUMMY;
+        boolean renderingItem = tile.getWorld() == null;
         GlStateManager.pushMatrix();
         try {
             GlStateManager.enableRescaleNormal();
