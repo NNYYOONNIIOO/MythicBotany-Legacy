@@ -44,50 +44,65 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         }
         boolean renderingItem = tile == ForwardingTEISR.DUMMY;
         GlStateManager.pushMatrix();
-        GlStateManager.enableRescaleNormal();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(770, 771);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        double time = renderingItem || tile.getWorld() == null
-                ? partialTicks : tile.getWorld().getTotalWorldTime() + partialTicks;
-        if (!renderingItem) {
-            time += new java.util.Random(tile.getPos().hashCode()).nextInt(360);
-        }
-        bindTexture(TEXTURE);
+        try {
+            GlStateManager.enableRescaleNormal();
+            GlStateManager.enableBlend();
+            GlStateManager.blendFunc(770, 771);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            double time = renderingItem || tile.getWorld() == null
+                    ? partialTicks : tile.getWorld().getTotalWorldTime() + partialTicks;
+            if (!renderingItem) {
+                time += new java.util.Random(tile.getPos().hashCode()).nextInt(360);
+            }
+            bindTexture(TEXTURE);
 
-        GlStateManager.translate(x, y + (renderingItem ? 1.35D : 1.5D), z);
-        GlStateManager.scale(1.0F, -1.0F, -1.0F);
+            GlStateManager.translate(x, y + (renderingItem ? 1.35D : 1.5D), z);
+            GlStateManager.scale(1.0F, -1.0F, -1.0F);
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(0.5F, 0.0F, -0.5F);
-        if (!renderingItem) {
-            GlStateManager.rotate((float) time * 1.5F, 0.0F, 1.0F, 0.0F);
-        }
-        model.renderRing();
-        if (!renderingItem) {
-            GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 20.0D - 0.025D, 0.0D);
-        }
-        GlStateManager.popMatrix();
+            GlStateManager.pushMatrix();
+            try {
+                GlStateManager.translate(0.5F, 0.0F, -0.5F);
+                if (!renderingItem) {
+                    GlStateManager.rotate((float) time * 1.5F, 0.0F, 1.0F, 0.0F);
+                }
+                model.renderRing();
+                if (!renderingItem) {
+                    GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 20.0D - 0.025D, 0.0D);
+                }
+            } finally {
+                GlStateManager.popMatrix();
+            }
 
-        GlStateManager.pushMatrix();
-        if (!renderingItem) {
-            GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 17.5D, 0.0D);
+            GlStateManager.pushMatrix();
+            try {
+                if (!renderingItem) {
+                    GlStateManager.translate(0.0D, Math.sin(time / 20.0D) / 17.5D, 0.0D);
+                }
+                GlStateManager.translate(0.5F, 0.0F, -0.5F);
+                if (!renderingItem) {
+                    GlStateManager.rotate((float) -time, 0.0F, 1.0F, 0.0F);
+                }
+                GlStateManager.disableCull();
+                GlStateManager.disableAlpha();
+                model.renderCrystal();
+            } finally {
+                GlStateManager.enableAlpha();
+                GlStateManager.enableCull();
+                GlStateManager.popMatrix();
+            }
+        } finally {
+            // TESR item rendering shares the RenderItem GL state with the next stack.
+            // Restore the states touched above so this crystal cannot leave inventory
+            // lighting or block rendering in a corrupted state.
+            GlStateManager.enableAlpha();
+            GlStateManager.enableCull();
+            GlStateManager.enableDepth();
+            GlStateManager.enableLighting();
+            GlStateManager.enableTexture2D();
+            GlStateManager.disableBlend();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.popMatrix();
         }
-        GlStateManager.translate(0.5F, 0.0F, -0.5F);
-        if (!renderingItem) {
-            GlStateManager.rotate((float) -time, 0.0F, 1.0F, 0.0F);
-        }
-        GlStateManager.disableCull();
-        GlStateManager.disableAlpha();
-        model.renderCrystal();
-        GlStateManager.enableAlpha();
-        GlStateManager.enableCull();
-        GlStateManager.popMatrix();
-
-        GlStateManager.disableBlend();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.enableRescaleNormal();
-        GlStateManager.popMatrix();
     }
 
     private static final class PylonModel extends ModelBase {

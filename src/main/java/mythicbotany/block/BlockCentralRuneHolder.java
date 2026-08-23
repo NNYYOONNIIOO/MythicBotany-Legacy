@@ -19,8 +19,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import vazkii.botania.api.wand.IWandable;
 
-public class BlockCentralRuneHolder extends BlockContainer {
+public class BlockCentralRuneHolder extends BlockContainer implements IWandable {
     private static final AxisAlignedBB HOLDER_BOX = new AxisAlignedBB(
             5.0D / 16.0D, 0.0D, 5.0D / 16.0D,
             11.0D / 16.0D, 3.0D / 16.0D, 11.0D / 16.0D);
@@ -67,6 +68,22 @@ public class BlockCentralRuneHolder extends BlockContainer {
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TileCentralRuneHolder();
+    }
+
+    @Override
+    public boolean onUsedByWand(EntityPlayer player, ItemStack stack, World world, BlockPos pos, EnumFacing side) {
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(tile instanceof TileCentralRuneHolder)) {
+            return false;
+        }
+        if (world.isRemote) {
+            return true;
+        }
+        TileCentralRuneHolder holder = (TileCentralRuneHolder) tile;
+        if (!holder.tryStartRitual(player) && player != null) {
+            player.sendStatusMessage(holder.getStatusText(), true);
+        }
+        return true;
     }
 
     @Override

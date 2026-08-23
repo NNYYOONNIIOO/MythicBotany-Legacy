@@ -29,6 +29,7 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
@@ -37,6 +38,7 @@ import vazkii.botania.api.item.ISequentialBreaker;
 import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.common.core.helper.ItemNBTHelper;
+import vazkii.botania.common.core.handler.ModSounds;
 import vazkii.botania.common.item.ItemTemperanceStone;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 import vazkii.botania.common.item.equipment.tool.elementium.ItemElementiumPick;
@@ -108,7 +110,7 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, ISequent
     public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
         ItemStack stack = player.getHeldItem(hand);
         if (getLevel(stack) > 0) {
-            setEnabled(stack, !isEnabled(stack));
+            toggleEnabled(world, player, stack);
             return new ActionResult<>(EnumActionResult.SUCCESS, stack);
         }
         return new ActionResult<>(EnumActionResult.PASS, stack);
@@ -118,8 +120,16 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, ISequent
     public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand,
                                       EnumFacing side, float hitX, float hitY, float hitZ) {
         if (!player.isSneaking()) return EnumActionResult.PASS;
-        if (!world.isRemote) setEnabled(player.getHeldItem(hand), !isEnabled(player.getHeldItem(hand)));
+        toggleEnabled(world, player, player.getHeldItem(hand));
         return EnumActionResult.SUCCESS;
+    }
+
+    private static void toggleEnabled(World world, EntityPlayer player, ItemStack stack) {
+        setEnabled(stack, !isEnabled(stack));
+        if (!world.isRemote) {
+            world.playSound(null, player.posX, player.posY, player.posZ,
+                    ModSounds.terraPickMode, SoundCategory.PLAYERS, 0.5F, 0.4F);
+        }
     }
 
     @Override

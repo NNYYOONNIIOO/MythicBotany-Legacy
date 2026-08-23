@@ -7,6 +7,7 @@ import mezz.jei.api.JEIPlugin;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
 import mezz.jei.api.gui.IRecipeLayout;
+import mezz.jei.api.gui.ITooltipCallback;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IRecipeWrapper;
@@ -16,9 +17,12 @@ import mythicbotany.registry.ModBlocks;
 import mythicbotany.rune.RuneRitualRecipe;
 import mythicbotany.rune.RuneRitualRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
+import vazkii.botania.client.core.handler.HUDHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +31,7 @@ import java.util.List;
 /** JEI 4.x integration for the 1.12.2 mana infuser and rune holders. */
 @JEIPlugin
 public final class MythicBotanyJeiPlugin implements IModPlugin {
-    private static final ResourceLocation BACKGROUND = new ResourceLocation(
+    private static final ResourceLocation RITUAL_BACKGROUND = new ResourceLocation(
             MythicBotany.MODID, "textures/gui/jei_ritual.png");
 
     @Override
@@ -54,17 +58,18 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.runeHolder), RitualCategory.UID);
     }
 
-    private static IDrawable background(IGuiHelper helper, int height) {
-        return helper.createDrawable(BACKGROUND, 0, 0, 160, height);
-    }
-
     private static final class InfuserCategory implements IRecipeCategory<InfuserWrapper> {
         private static final String UID = MythicBotany.MODID + ":infuser";
         private final IDrawable background;
+        private final IDrawable overlay;
+        private final IDrawable slot;
         private final IDrawable icon;
 
         private InfuserCategory(IGuiHelper helper) {
-            background = background(helper, 64);
+            background = helper.createBlankDrawable(114, 141);
+            overlay = helper.createDrawable(new ResourceLocation("botania",
+                    "textures/gui/terrasteeloverlay.png"), 42, 29, 64, 64);
+            slot = helper.getSlotDrawable();
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.manaInfuser));
         }
 
@@ -75,22 +80,40 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override public IDrawable getIcon() { return icon; }
 
         @Override
+        public void drawExtras(Minecraft minecraft) {
+            GlStateManager.enableAlpha();
+            GlStateManager.enableBlend();
+            overlay.draw(minecraft, 25, 14);
+            GlStateManager.disableBlend();
+            GlStateManager.disableAlpha();
+        }
+
+        @Override
         public void setRecipe(IRecipeLayout layout, InfuserWrapper wrapper, IIngredients ingredients) {
             IGuiItemStackGroup stacks = layout.getItemStacks();
-            stacks.init(0, true, 25, 25);
-            stacks.init(1, false, 117, 25);
-            stacks.set(0, wrapper.recipe.getInput());
-            stacks.set(1, wrapper.recipe.getOutput());
+            stacks.init(0, false, 48, 37);
+            stacks.setBackground(0, slot);
+            stacks.set(0, wrapper.recipe.getOutput());
+
+            stacks.init(1, true, 49, 6);
+            stacks.setBackground(1, slot);
+            stacks.set(1, wrapper.recipe.getInput());
+
+            stacks.init(2, true, 49, 93);
+            stacks.setBackground(2, slot);
+            stacks.set(2, new ItemStack(ModBlocks.manaInfuser));
         }
     }
 
     private static final class RitualCategory implements IRecipeCategory<RitualWrapper> {
         private static final String UID = MythicBotany.MODID + ":ritual";
         private final IDrawable background;
+        private final IDrawable slot;
         private final IDrawable icon;
 
         private RitualCategory(IGuiHelper helper) {
-            background = background(helper, 96);
+            background = helper.createDrawable(RITUAL_BACKGROUND, 0, 0, 136, 196);
+            slot = helper.getSlotDrawable();
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.centralRuneHolder));
         }
 
@@ -103,24 +126,45 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override
         public void setRecipe(IRecipeLayout layout, RitualWrapper wrapper, IIngredients ingredients) {
             IGuiItemStackGroup stacks = layout.getItemStacks();
-            stacks.init(0, true, 70, 38);
-            stacks.init(1, false, 124, 38);
+            stacks.init(0, true, 62, 62);
+            stacks.setBackground(0, slot);
             stacks.set(0, wrapper.recipe.getCenter());
-            stacks.set(1, wrapper.recipe.getOutput());
-            int slot = 2;
+
+            final int runeCount = wrapper.recipe.getRunes().size();
+            int slotIndex = 1;
             for (RuneRitualRecipe.RunePosition rune : wrapper.recipe.getRunes()) {
-                int x = 70 + rune.getOriginalX() * 18;
-                int y = 38 + rune.getOriginalZ() * 18;
-                stacks.init(slot, true, x, y);
-                stacks.set(slot, rune.getRune());
-                slot++;
+                int x = 2 + 12 * (rune.getOriginalX() + 5);
+                int y = 2 + 12 * ((-rune.getOriginalZ()) + 5);
+                stacks.init(slotIndex, true, x, y);
+                stacks.setBackground(slotIndex, slot);
+                stacks.set(slotIndex, rune.getRune());
+                slotIndex++;
             }
+
+            stacks.init(slotIndex, false, 60, 170);
+            stacks.setBackground(slotIndex, slot);
+            stacks.set(slotIndex, wrapper.recipe.getOutput());
+
+            stacks.addTooltipCallback(new ITooltipCallback<ItemStack>() {
+                @Override
+                public void onTooltip(int hoveredSlot, boolean input, ItemStack ingredient, List<String> tooltip) {
+                    if (hoveredSlot > 0 && hoveredSlot <= runeCount) {
+                        RuneRitualRecipe.RunePosition rune = wrapper.recipe.getRunes().get(hoveredSlot - 1);
+                        tooltip.add(TextFormatting.GOLD + I18n.format(
+                                "tooltip.mythicbotany.rune_offset",
+                                rune.getOriginalX(), rune.getOriginalZ()));
+                    }
+                }
+            });
         }
     }
 
     private static final class InfuserWrapper implements IRecipeWrapper {
         private final InfuserRecipe recipe;
-        private InfuserWrapper(InfuserRecipe recipe) { this.recipe = recipe; }
+
+        private InfuserWrapper(InfuserRecipe recipe) {
+            this.recipe = recipe;
+        }
 
         @Override
         public void getIngredients(IIngredients ingredients) {
@@ -130,14 +174,17 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
         @Override
         public void drawInfo(Minecraft minecraft, int width, int height, int mouseX, int mouseY) {
-            minecraft.fontRenderer.drawString(I18n.format("jei.mythicbotany.mana", recipe.getMana()),
-                    4, height - 12, 0x404040);
+            HUDHandler.renderManaBar(6, height - 15, 0x0000FF, 0.75F,
+                    recipe.getMana(), 4000000);
         }
     }
 
     private static final class RitualWrapper implements IRecipeWrapper {
         private final RuneRitualRecipe recipe;
-        private RitualWrapper(RuneRitualRecipe recipe) { this.recipe = recipe; }
+
+        private RitualWrapper(RuneRitualRecipe recipe) {
+            this.recipe = recipe;
+        }
 
         @Override
         public void getIngredients(IIngredients ingredients) {
@@ -152,9 +199,10 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
         @Override
         public void drawInfo(Minecraft minecraft, int width, int height, int mouseX, int mouseY) {
-            minecraft.fontRenderer.drawString(I18n.format("jei.mythicbotany.mana", recipe.getMana()),
-                    4, height - 20, 0x404040);
-            minecraft.fontRenderer.drawString(recipe.getTicks() + " t", 4, height - 10, 0x404040);
+            if (recipe.getMana() > 0) {
+                HUDHandler.renderManaBar(17, height - 7, 0x0000FF, 0.75F,
+                        recipe.getMana(), 1000000);
+            }
         }
     }
 }

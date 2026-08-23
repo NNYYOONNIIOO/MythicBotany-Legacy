@@ -2,13 +2,20 @@ package mythicbotany.rune;
 
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.tile.ManaTileEntity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.SoundCategory;
+import vazkii.botania.api.mana.IManaItem;
+import vazkii.botania.api.mana.ManaItemHandler;
+import vazkii.botania.common.core.handler.ModSounds;
+
+import java.util.List;
+import java.util.Map;
 
 public class TileCentralRuneHolder extends ManaTileEntity {
     private ItemStack center = ItemStack.EMPTY;
@@ -93,23 +100,93 @@ public class TileCentralRuneHolder extends ManaTileEntity {
         if (center.isEmpty() || !output.isEmpty()) {
             return;
         }
+        tryStartRitual(null);
+    }
+
+    /** Starts a matching ritual, using the tile mana or the activating player's mana. */
+    public boolean tryStartRitual(EntityPlayer player) {
+        if (world == null || world.isRemote || center.isEmpty() || !output.isEmpty()
+                || activeRecipe != null) {
+            return false;
+        }
+        ItemStack manaTarget = player == null
+                ? ItemStack.EMPTY : new ItemStack(ModBlocks.centralRuneHolder);
         for (RuneRitualRecipe recipe : RuneRitualRegistry.getRecipes()) {
-            if (!recipe.matchesCenter(center) || mana < recipe.getMana()) {
+            if (!recipe.matchesCenter(center)) {
                 continue;
             }
-            for (int candidateRotation = 0; candidateRotation < 4; candidateRotation++) {
-                if (patternMatches(recipe, candidateRotation)) {
-                    activeRecipe = recipe;
-                    rotation = candidateRotation;
-                    progress = 0;
-                    mana -= recipe.getMana();
-                    center = ItemStack.EMPTY;
-                    markDirty();
-                    world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-                    return;
+            int candidateRotation = -1;
+            for (int candidate = 0; candidate < 4; candidate++) {
+                if (patternMatches(recipe, candidate)) {
+                    candidateRotation = candidate;
+                    break;
+                }
+            }
+            if (candidateRotation < 0) {
+                continue;
+            }
+            if (player == null) {
+                if (mana < recipe.getMana()) {
+                    continue;
+                }
+                mana -= recipe.getMana();
+            } else {
+                if (!hasPlayerMana(manaTarget, player, recipe.getMana())
+                        || !consumePlayerMana(manaTarget, player, recipe.getMana())) {
+                    continue;
+                }
+            }
+            activeRecipe = recipe;
+            rotation = candidateRotation;
+            progress = 0;
+            center = ItemStack.EMPTY;
+            markDirty();
+            world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+            world.playSound(null, pos, ModSounds.runeAltarStart, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasPlayerMana(ItemStack target, EntityPlayer player, int amount) {
+        long available = 0L;
+        List<ItemStack> inventory = ManaItemHandler.getManaItems(player);
+        for (ItemStack source : inventory) {
+            if (canExport(source, target)) {
+                available += ((IManaItem) source.getItem()).getMana(source);
+                if (available >= amount) {
+                    return true;
                 }
             }
         }
+        for (Map.Entry<Integer, ItemStack> entry : ManaItemHandler.getManaBaubles(player).entrySet()) {
+            ItemStack source = entry.getValue();
+            if (canExport(source, target)) {
+                available += ((IManaItem) source.getItem()).getMana(source);
+                if (available >= amount) {
+                    return true;
+                }
+            }
+        }
+        return amount <= 0;
+    }
+
+    private boolean canExport(ItemStack source, ItemStack target) {
+        return source != null && !source.isEmpty() && source.getItem() instanceof IManaItem
+                && ((IManaItem) source.getItem()).getMana(source) > 0
+                && ((IManaItem) source.getItem()).canExportManaToItem(source, target);
+    }
+
+    private boolean consumePlayerMana(ItemStack target, EntityPlayer player, int amount) {
+        int remaining = amount;
+        while (remaining > 0) {
+            int received = ManaItemHandler.requestMana(target, player, remaining, true);
+            if (received <= 0) {
+                return false;
+            }
+            remaining -= received;
+        }
+        return true;
     }
 
     private boolean patternMatches(RuneRitualRecipe recipe, int candidateRotation) {
