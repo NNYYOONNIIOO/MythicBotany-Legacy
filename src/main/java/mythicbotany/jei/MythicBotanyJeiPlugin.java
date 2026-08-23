@@ -128,8 +128,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             final int runeCount = wrapper.recipe.getRunes().size();
             int slotIndex = 1;
             for (RuneRitualRecipe.RunePosition rune : wrapper.recipe.getRunes()) {
-                int x = 2 + 12 * (rune.getOriginalX() / 2 + 5);
-                int y = 2 + 12 * ((-rune.getOriginalZ() / 2) + 5);
+                int x = 62 + 16 * (rune.getOriginalX() / 2);
+                int y = 62 - 16 * (rune.getOriginalZ() / 2);
                 stacks.init(slotIndex, true, x, y);
                 stacks.set(slotIndex, rune.getRune());
                 slotIndex++;

@@ -105,7 +105,7 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
 
     private static EntityManaBurst createBurst(EntityPlayer player, EnumHand hand, ItemStack source) {
         EntityManaBurst burst = new EntityManaBurst(player, hand);
-        burst.setColor(0xB9A7FF);
+        burst.setColor(0xDD8307);
         burst.setMana(BURST_MANA);
         burst.setStartingMana(BURST_MANA);
         burst.setMinManaLoss(40);

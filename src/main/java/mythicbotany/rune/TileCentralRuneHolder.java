@@ -36,6 +36,8 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
     private final List<ItemStack> consumedInputs = new ArrayList<>();
     private int progress;
     private int rotation;
+    /** 1 is the normal world spacing; 2 also accepts the compact one-block-gap-free layout. */
+    private int runeCoordinateScale = 1;
     private String lastStatusKey = "message.mythicbotany.waiting_matching_runes";
 
     private static final class InputSelection {
@@ -71,6 +73,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         activeRecipe = null;
         progress = 0;
         rotation = 0;
+        runeCoordinateScale = 1;
         sync();
         return result;
     }
@@ -98,7 +101,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         if (world == null || world.isRemote || activeRecipe == null) {
             return;
         }
-        if (!patternMatches(activeRecipe, rotation)) {
+        if (!patternMatches(activeRecipe, rotation, runeCoordinateScale)) {
             cancelActive(true);
             lastStatusKey = "message.mythicbotany.ritual_wrong_shape";
             sync();
@@ -133,10 +136,21 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             }
             foundCenterRecipe = true;
             int candidateTransform = -1;
+            int candidateScale = -1;
             for (int candidate = 0; candidate < 8; candidate++) {
-                if (patternMatches(recipe, candidate)) {
+                if (patternMatches(recipe, candidate, 1)) {
                     candidateTransform = candidate;
+                    candidateScale = 1;
                     break;
+                }
+            }
+            if (candidateTransform < 0) {
+                for (int candidate = 0; candidate < 8; candidate++) {
+                    if (patternMatches(recipe, candidate, 2)) {
+                        candidateTransform = candidate;
+                        candidateScale = 2;
+                        break;
+                    }
                 }
             }
             if (candidateTransform < 0) {
@@ -158,6 +172,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             consumeSpecialInput(recipe.getSpecialInput());
             activeRecipe = recipe;
             rotation = candidateTransform;
+            runeCoordinateScale = candidateScale;
             progress = 0;
             lastStatusKey = "message.mythicbotany.ritual_running";
             markDirty();
@@ -343,9 +358,9 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
                 && ((IManaItem) source.getItem()).getMana(source) > 0;
     }
 
-    private boolean patternMatches(RuneRitualRecipe recipe, int transform) {
+    private boolean patternMatches(RuneRitualRecipe recipe, int transform, int coordinateScale) {
         for (RuneRitualRecipe.RunePosition rune : recipe.getRunes()) {
-            BlockPos runePos = pos.add(rune.getX(transform), 0, rune.getZ(transform));
+            BlockPos runePos = getRunePos(rune, transform, coordinateScale);
             if (world.getBlockState(runePos).getBlock() != ModBlocks.runeHolder) {
                 return false;
             }
@@ -358,6 +373,16 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         return true;
     }
 
+    private BlockPos getRunePos(RuneRitualRecipe.RunePosition rune, int transform, int coordinateScale) {
+        int x = rune.getX(transform);
+        int z = rune.getZ(transform);
+        if (coordinateScale > 1) {
+            x /= coordinateScale;
+            z /= coordinateScale;
+        }
+        return pos.add(x, 0, z);
+    }
+
     private void finishRecipe() {
         RuneRitualRecipe recipe = activeRecipe;
         center = ItemStack.EMPTY;
@@ -367,7 +392,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             drop(results.get(i));
         }
         for (RuneRitualRecipe.RunePosition rune : recipe.getRunes()) {
-            BlockPos runePos = pos.add(rune.getX(rotation), 0, rune.getZ(rotation));
+            BlockPos runePos = getRunePos(rune, rotation, runeCoordinateScale);
             TileEntity tile = world.getTileEntity(runePos);
             if (tile instanceof TileRuneHolder) {
                 ItemStack runeStack = ((TileRuneHolder) tile).takeRune();
@@ -379,6 +404,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         activeRecipe = null;
         progress = 0;
         rotation = 0;
+        runeCoordinateScale = 1;
         consumedInputs.clear();
         lastStatusKey = "message.mythicbotany.ritual_complete";
         world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
@@ -394,6 +420,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         activeRecipe = null;
         progress = 0;
         rotation = 0;
+        runeCoordinateScale = 1;
         markDirty();
         sync();
     }
@@ -413,6 +440,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         activeRecipe = null;
         progress = 0;
         rotation = 0;
+        runeCoordinateScale = 1;
         sync();
     }
 
@@ -464,6 +492,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         compound.setTag("ConsumedInputs", consumed);
         compound.setInteger("Progress", progress);
         compound.setInteger("Rotation", rotation);
+        compound.setInteger("RuneCoordinateScale", runeCoordinateScale);
         compound.setInteger("Recipe", RuneRitualRegistry.indexOf(activeRecipe));
         compound.setString("Status", lastStatusKey);
         return compound;
@@ -481,6 +510,8 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         }
         progress = Math.max(0, compound.getInteger("Progress"));
         rotation = compound.getInteger("Rotation") & 7;
+        runeCoordinateScale = compound.hasKey("RuneCoordinateScale")
+                ? Math.max(1, Math.min(2, compound.getInteger("RuneCoordinateScale"))) : 1;
         int recipeIndex = compound.hasKey("Recipe") ? compound.getInteger("Recipe") : -1;
         activeRecipe = RuneRitualRegistry.getRecipe(recipeIndex);
         lastStatusKey = compound.hasKey("Status") ? compound.getString("Status")
