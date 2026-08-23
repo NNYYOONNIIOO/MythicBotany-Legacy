@@ -48,8 +48,13 @@ public final class ModelHandler {
         registerSpecialFlowerModel("mythicbotany_petrunia", "petrunia");
     }
     private static void register(Item item) {
-        if (item != null && item.getRegistryName() != null)
-            ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
+        if (item == null || item.getRegistryName() == null) {
+            return;
+        }
+        ResourceLocation model = item == Item.getItemFromBlock(ModBlocks.alfsteelPylon)
+                ? new ResourceLocation(MythicBotany.MODID, "itemblock/alfsteel_pylon")
+                : item.getRegistryName();
+        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(model, "inventory"));
     }
 
     /** Bind the same TESRs used by item stacks to their placed TileEntities. */

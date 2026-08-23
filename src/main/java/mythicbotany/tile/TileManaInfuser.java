@@ -1,6 +1,7 @@
 package mythicbotany.tile;
 
 import com.google.common.base.Predicates;
+import mythicbotany.network.NetworkHandler;
 import mythicbotany.recipe.InfuserRecipe;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
@@ -39,7 +40,6 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
         }
 
         if (world.isRemote) {
-            spawnProgressParticles();
             return;
         }
 
@@ -67,7 +67,10 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
 
         receiveManaFromSparks();
         if (mana >= manaRequirement) {
+            NetworkHandler.sendInfuserEffect(world, pos, manaRequirement, manaRequirement, true);
             finishRecipe(items.get(0));
+        } else if (mana > 0) {
+            NetworkHandler.sendInfuserEffect(world, pos, mana, manaRequirement, false);
         }
     }
 
@@ -105,20 +108,36 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
     }
 
     private void finishRecipe(EntityItem ingredient) {
+        InfuserRecipe recipe = activeRecipe;
         ItemStack remaining = ingredient.getItem().copy();
-        remaining.shrink(activeRecipe.getInput().getCount());
+        remaining.shrink(recipe.getInput().getCount());
+        ItemStack result = recipe.getOutput();
         if (remaining.isEmpty()) {
-            ingredient.setDead();
+            // Reuse the ingredient entity, as Terra Plate does, so the output
+            // stays on the plate instead of receiving EntityItem's upward motion.
+            ingredient.setItem(result);
+            stopItemMotion(ingredient);
         } else {
             ingredient.setItem(remaining);
+            EntityItem output = new EntityItem(world, ingredient.posX, ingredient.posY,
+                    ingredient.posZ, result);
+            output.setPickupDelay(40);
+            stopItemMotion(output);
+            world.spawnEntity(output);
         }
-        ItemStack result = activeRecipe.getOutput();
-        EntityItem output = new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D,
-                pos.getZ() + 0.5D, result);
-        world.spawnEntity(output);
-        world.playSound(null, output.posX, output.posY, output.posZ,
+        world.playSound(null, ingredient.posX, ingredient.posY, ingredient.posZ,
                 ModSounds.terrasteelCraft, SoundCategory.BLOCKS, 1.0F, 1.0F);
         clearRecipe();
+    }
+
+    private static void stopItemMotion(EntityItem item) {
+        item.setPickupDelay(40);
+        item.motionX = 0.0D;
+        item.motionY = 0.0D;
+        item.motionZ = 0.0D;
+        item.prevPosX = item.posX;
+        item.prevPosY = item.posY;
+        item.prevPosZ = item.posZ;
     }
 
     private void clearRecipe() {
@@ -217,31 +236,39 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
                 ? 0.0D : (double) mana / (double) manaRequirement;
     }
 
-    private void spawnProgressParticles() {
+    public static void spawnProgressParticles(BlockPos pos, int mana, int manaRequirement, boolean complete) {
         if (mana <= 0 || manaRequirement <= 0) {
             return;
         }
-        int ticks = Math.min(100, Math.max(0, (int) (getProgress() * 100.0D)));
-        double tickIncrement = 120.0D;
-        double angle = ticks * 5.0D - tickIncrement;
+        int ticks = Math.min(100, Math.max(0, (int) (100.0D * (double) mana / (double) manaRequirement)));
+        int totalSpiritCount = 3;
+        double tickIncrement = 360.0D / totalSpiritCount;
+        double wticks = ticks * 5.0D - tickIncrement;
         double radius = Math.sin((ticks - 100) / 10.0D) * 2.0D;
-        double vertical = Math.sin(angle * Math.PI / 180.0D * 0.55D);
+        double vertical = Math.sin(wticks * Math.PI / 180.0D * 0.55D);
         float progress = ticks / 100.0F;
-        float red = 0.0F;
-        float green = progress;
-        float blue = 1.0F - progress;
-        for (int i = 0; i < 3; i++) {
-            double x = pos.getX() + Math.sin(angle * Math.PI / 180.0D) * radius + 0.5D;
+        for (int i = 0; i < totalSpiritCount; i++) {
+            double x = pos.getX() + Math.sin(wticks * Math.PI / 180.0D) * radius + 0.5D;
             double y = pos.getY() + 0.25D + Math.abs(radius) * 0.7D;
-            double z = pos.getZ() + Math.cos(angle * Math.PI / 180.0D) * radius + 0.5D;
-            angle += tickIncrement;
-            Botania.proxy.wispFX(x, y, z, red, green, blue, 0.85F,
-                    (float) vertical * 0.05F, 0.25F, 0.0F);
-            Botania.proxy.wispFX(x, y, z, red, green, blue,
+            double z = pos.getZ() + Math.cos(wticks * Math.PI / 180.0D) * radius + 0.5D;
+            wticks += tickIncrement;
+            Botania.proxy.wispFX(x, y, z, 0.0F, progress, 1.0F - progress, 0.85F,
+                    (float) vertical * 0.05F, 0.25F);
+            Botania.proxy.wispFX(x, y, z, 0.0F, progress, 1.0F - progress,
                     (float) Math.random() * 0.1F + 0.1F,
                     (float) (Math.random() - 0.5D) * 0.05F,
                     (float) (Math.random() - 0.5D) * 0.05F,
                     (float) (Math.random() - 0.5D) * 0.05F, 0.9F);
+            if (complete || ticks == 100) {
+                for (int j = 0; j < 15; j++) {
+                    Botania.proxy.wispFX(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D,
+                            0.0F, progress, 1.0F - progress,
+                            (float) Math.random() * 0.15F + 0.15F,
+                            (float) (Math.random() - 0.5F) * 0.125F,
+                            (float) (Math.random() - 0.5F) * 0.125F,
+                            (float) (Math.random() - 0.5F) * 0.125F);
+                }
+            }
         }
     }
 

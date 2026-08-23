@@ -17,10 +17,21 @@ public final class NetworkHandler {
     public static void init() {
         CHANNEL.registerMessage(PacketLeftClick.Handler.class, PacketLeftClick.class,
                 nextMessageId++, Side.SERVER);
+        CHANNEL.registerMessage(PacketInfuserEffect.Handler.class, PacketInfuserEffect.class,
+                nextMessageId++, Side.CLIENT);
+    }
+
+    public static void sendInfuserEffect(net.minecraft.world.World world, net.minecraft.util.math.BlockPos pos,
+                                         int mana, int requirement, boolean complete) {
+        if (world == null || world.isRemote) {
+            return;
+        }
+        CHANNEL.sendToAllAround(new PacketInfuserEffect(pos, mana, requirement, complete),
+                new NetworkRegistry.TargetPoint(world.provider.getDimension(),
+                        pos.getX(), pos.getY(), pos.getZ(), 64.0D));
     }
 
     public static void sendToServer(PacketLeftClick message) {
         CHANNEL.sendToServer(message);
     }
 }
-

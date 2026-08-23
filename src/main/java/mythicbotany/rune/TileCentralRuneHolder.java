@@ -1,21 +1,31 @@
 package mythicbotany.rune;
 
 import mythicbotany.registry.ModBlocks;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import vazkii.botania.api.BotaniaAPI;
+import vazkii.botania.api.mana.ICreativeManaProvider;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.common.core.handler.ModSounds;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +33,14 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
     private ItemStack center = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
     private RuneRitualRecipe activeRecipe;
+    private final List<ItemStack> consumedInputs = new ArrayList<>();
     private int progress;
     private int rotation;
+    private String lastStatusKey = "message.mythicbotany.waiting_matching_runes";
+
+    private static final class InputSelection {
+        private final Map<EntityItem, Integer> amounts = new LinkedHashMap<>();
+    }
 
     public boolean insertCenter(ItemStack stack) {
         if (stack == null || stack.isEmpty() || !center.isEmpty() || !output.isEmpty() || activeRecipe != null) {
@@ -32,19 +48,24 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         }
         center = stack.copy();
         center.setCount(1);
+        lastStatusKey = "message.mythicbotany.waiting_matching_runes";
         sync();
         return true;
     }
 
     public ItemStack takeOutput() {
-        ItemStack result = output;
+        ItemStack result = output.copy();
         output = ItemStack.EMPTY;
+        lastStatusKey = "message.mythicbotany.insert_ritual_focus";
         sync();
         return result;
     }
 
     public ItemStack takeStoredItem() {
-        ItemStack result = !output.isEmpty() ? output : center;
+        if (activeRecipe != null) {
+            cancelActive(true);
+        }
+        ItemStack result = !output.isEmpty() ? output.copy() : center.copy();
         output = ItemStack.EMPTY;
         center = ItemStack.EMPTY;
         activeRecipe = null;
@@ -58,108 +79,228 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         return !center.isEmpty() ? center.copy() : output.copy();
     }
 
-    public net.minecraft.util.text.ITextComponent getStatusText() {
+    public ITextComponent getStatusText() {
         if (activeRecipe != null) {
-            return new net.minecraft.util.text.TextComponentTranslation(
+            return new TextComponentTranslation(
                     "message.mythicbotany.ritual_progress", progress, activeRecipe.getTicks());
         }
         if (!output.isEmpty()) {
-            return new net.minecraft.util.text.TextComponentTranslation(
-                    "message.mythicbotany.ritual_complete");
+            return new TextComponentTranslation("message.mythicbotany.ritual_complete");
         }
         if (center.isEmpty()) {
-            return new net.minecraft.util.text.TextComponentTranslation(
-                    "message.mythicbotany.insert_ritual_focus");
+            return new TextComponentTranslation("message.mythicbotany.insert_ritual_focus");
         }
-        return new net.minecraft.util.text.TextComponentTranslation(
-                "message.mythicbotany.waiting_matching_runes");
+        return new TextComponentTranslation(lastStatusKey);
     }
 
     @Override
     public void update() {
-        if (world == null || world.isRemote) {
+        if (world == null || world.isRemote || activeRecipe == null) {
             return;
         }
-        if (activeRecipe != null) {
-            if (!patternMatches(activeRecipe, rotation)) {
-                activeRecipe = null;
-                progress = 0;
-                rotation = 0;
-                markDirty();
-                return;
-            }
-            progress++;
-            if (progress >= activeRecipe.getTicks()) {
-                output = activeRecipe.getOutput();
-                activeRecipe = null;
-                progress = 0;
-                rotation = 0;
-                world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-            }
-            markDirty();
+        if (!patternMatches(activeRecipe, rotation)) {
+            cancelActive(true);
+            lastStatusKey = "message.mythicbotany.ritual_wrong_shape";
+            sync();
             return;
         }
-        if (center.isEmpty() || !output.isEmpty()) {
-            return;
+        progress++;
+        if (progress >= activeRecipe.getTicks()) {
+            finishRecipe();
         }
+        markDirty();
     }
 
-    /** Starts a matching ritual and consumes its mana from the activating player. */
+    /** Starts a matching ritual and consumes its mana and dropped ingredients from the player/world. */
     public boolean tryStartRitual(EntityPlayer player) {
-        if (world == null || world.isRemote || player == null || center.isEmpty() || !output.isEmpty()
-                || activeRecipe != null) {
+        if (world == null || world.isRemote || player == null) {
             return false;
         }
-        ItemStack manaTarget = new ItemStack(Blocks.COBBLESTONE);
+        if (activeRecipe != null) {
+            lastStatusKey = "message.mythicbotany.ritual_running";
+            return false;
+        }
+        if (center.isEmpty() || !output.isEmpty()) {
+            lastStatusKey = center.isEmpty() ? "message.mythicbotany.insert_ritual_focus"
+                    : "message.mythicbotany.ritual_complete";
+            return false;
+        }
+
+        boolean foundCenterRecipe = false;
         for (RuneRitualRecipe recipe : RuneRitualRegistry.getRecipes()) {
             if (!recipe.matchesCenter(center)) {
                 continue;
             }
-            int candidateRotation = -1;
-            for (int candidate = 0; candidate < 4; candidate++) {
+            foundCenterRecipe = true;
+            int candidateTransform = -1;
+            for (int candidate = 0; candidate < 8; candidate++) {
                 if (patternMatches(recipe, candidate)) {
-                    candidateRotation = candidate;
+                    candidateTransform = candidate;
                     break;
                 }
             }
-            if (candidateRotation < 0) {
+            if (candidateTransform < 0) {
+                lastStatusKey = "message.mythicbotany.ritual_wrong_shape";
                 continue;
             }
-            if (!consumePlayerMana(manaTarget, player, recipe.getMana())) {
-                continue;
+
+            InputSelection selection = findInputs(recipe);
+            if (selection == null || !hasSpecialInput(recipe.getSpecialInput())) {
+                lastStatusKey = "message.mythicbotany.ritual_wrong_items";
+                return false;
             }
+            if (!consumePlayerMana(player, recipe.getMana())) {
+                lastStatusKey = "message.mythicbotany.ritual_less_mana";
+                return false;
+            }
+
+            consumeInputs(selection);
+            consumeSpecialInput(recipe.getSpecialInput());
             activeRecipe = recipe;
-            rotation = candidateRotation;
+            rotation = candidateTransform;
             progress = 0;
-            center = ItemStack.EMPTY;
+            lastStatusKey = "message.mythicbotany.ritual_running";
             markDirty();
             world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
             world.playSound(null, pos, ModSounds.runeAltarStart, SoundCategory.BLOCKS, 1.0F, 1.0F);
             return true;
         }
+        if (!foundCenterRecipe) {
+            lastStatusKey = "message.mythicbotany.ritual_wrong_items";
+        }
         return false;
     }
 
-    private boolean canExport(ItemStack source, ItemStack target) {
-        return source != null && !source.isEmpty() && source.getItem() instanceof IManaItem
-                && ((IManaItem) source.getItem()).getMana(source) > 0
-                && ((IManaItem) source.getItem()).canExportManaToItem(source, target);
+    private InputSelection findInputs(RuneRitualRecipe recipe) {
+        InputSelection selection = new InputSelection();
+        if (recipe.getInputs().isEmpty()) {
+            return selection;
+        }
+        AxisAlignedBB bounds = new AxisAlignedBB(
+                pos.getX() - 2.0D, pos.getY() - 2.0D, pos.getZ() - 2.0D,
+                pos.getX() + 3.0D, pos.getY() + 3.0D, pos.getZ() + 3.0D);
+        List<EntityItem> entities = world.getEntitiesWithinAABB(EntityItem.class, bounds);
+        Map<EntityItem, Integer> available = new LinkedHashMap<>();
+        for (EntityItem entity : entities) {
+            if (!entity.getItem().isEmpty()) {
+                available.put(entity, entity.getItem().getCount());
+            }
+        }
+        for (RuneRitualRecipe.InputRequirement requirement : recipe.getInputs()) {
+            int needed = requirement.getRequiredCount();
+            for (Map.Entry<EntityItem, Integer> entry : available.entrySet()) {
+                if (needed <= 0) {
+                    break;
+                }
+                EntityItem entity = entry.getKey();
+                if (entry.getValue() <= 0 || !requirement.matches(entity.getItem())) {
+                    continue;
+                }
+                int take = Math.min(needed, entry.getValue());
+                entry.setValue(entry.getValue() - take);
+                selection.amounts.put(entity,
+                        selection.amounts.containsKey(entity) ? selection.amounts.get(entity) + take : take);
+                needed -= take;
+            }
+            if (needed > 0) {
+                return null;
+            }
+        }
+        return selection;
     }
 
-    private boolean consumePlayerMana(ItemStack target, EntityPlayer player, int amount) {
-        if (amount <= 0) {
+    private void consumeInputs(InputSelection selection) {
+        consumedInputs.clear();
+        for (Map.Entry<EntityItem, Integer> entry : selection.amounts.entrySet()) {
+            EntityItem entity = entry.getKey();
+            int amount = entry.getValue();
+            ItemStack stack = entity.getItem().copy();
+            int take = Math.min(amount, stack.getCount());
+            ItemStack consumed = stack.copy();
+            consumed.setCount(take);
+            consumedInputs.add(consumed);
+            stack.shrink(take);
+            entity.setItem(stack);
+            if (stack.isEmpty()) {
+                entity.setDead();
+            }
+        }
+    }
+
+    private boolean hasSpecialInput(String specialInput) {
+        return specialInput == null || findSpecialInput(specialInput) != null;
+    }
+
+    private Entity findSpecialInput(String specialInput) {
+        AxisAlignedBB bounds = new AxisAlignedBB(
+                pos.getX() - 2.0D, pos.getY() - 2.0D, pos.getZ() - 2.0D,
+                pos.getX() + 3.0D, pos.getY() + 3.0D, pos.getZ() + 3.0D);
+        for (Entity entity : world.getEntitiesWithinAABB(Entity.class, bounds)) {
+            String id = EntityList.getEntityString(entity);
+            if (matchesEntityId(specialInput, id)) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
+    private boolean matchesEntityId(String expected, String actual) {
+        if (expected == null || actual == null) {
+            return false;
+        }
+        if (expected.equals(actual)) {
             return true;
         }
-        List<ItemStack> inventory = ManaItemHandler.getManaItems(player);
-        Map<Integer, ItemStack> baubles = ManaItemHandler.getManaBaubles(player);
+        int separator = expected.indexOf(':');
+        String path = separator < 0 ? expected : expected.substring(separator + 1);
+        String normalizedPath = path.replace("_", "").toLowerCase(java.util.Locale.ROOT);
+        String normalizedActual = actual.replace("_", "").toLowerCase(java.util.Locale.ROOT);
+        return normalizedPath.equals(normalizedActual);
+    }
+
+    private void consumeSpecialInput(String specialInput) {
+        if (specialInput != null) {
+            Entity entity = findSpecialInput(specialInput);
+            if (entity != null) {
+                entity.setDead();
+            }
+        }
+    }
+
+    private boolean isCreativeMana(ItemStack stack) {
+        return stack.getItem() instanceof ICreativeManaProvider
+                && ((ICreativeManaProvider) stack.getItem()).isCreative(stack);
+    }
+
+    private boolean hasCreativeMana(EntityPlayer player) {
+        for (ItemStack source : ManaItemHandler.getManaItems(player)) {
+            if (isCreativeMana(source)) {
+                return true;
+            }
+        }
+        for (ItemStack source : ManaItemHandler.getManaBaubles(player).values()) {
+            if (isCreativeMana(source)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean consumePlayerMana(EntityPlayer player, int amount) {
+        if (amount <= 0 || player.capabilities.isCreativeMode || hasCreativeMana(player)) {
+            return true;
+        }
+        ItemStack requestor = new ItemStack(Blocks.COBBLESTONE);
         long available = 0L;
+        List<ItemStack> inventory = ManaItemHandler.getManaItems(player);
         for (ItemStack source : inventory) {
-            if (canExport(source, target)) {
+            if (canExport(source, requestor)) {
                 available += ((IManaItem) source.getItem()).getMana(source);
             }
         }
+        Map<Integer, ItemStack> baubles = ManaItemHandler.getManaBaubles(player);
         for (ItemStack source : baubles.values()) {
-            if (canExport(source, target)) {
+            if (canExport(source, requestor)) {
                 available += ((IManaItem) source.getItem()).getMana(source);
             }
         }
@@ -172,11 +313,11 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             if (remaining <= 0) {
                 break;
             }
-            if (canExport(source, target)) {
-                int extracted = Math.min(remaining,
-                        ((IManaItem) source.getItem()).getMana(source));
-                ((IManaItem) source.getItem()).addMana(source, -extracted);
-                remaining -= extracted;
+            if (canExport(source, requestor)) {
+                IManaItem manaItem = (IManaItem) source.getItem();
+                int taken = Math.min(remaining, manaItem.getMana(source));
+                manaItem.addMana(source, -taken);
+                remaining -= taken;
             }
         }
         for (Map.Entry<Integer, ItemStack> entry : baubles.entrySet()) {
@@ -184,21 +325,27 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
                 break;
             }
             ItemStack source = entry.getValue();
-            if (canExport(source, target)) {
-                int extracted = Math.min(remaining,
-                        ((IManaItem) source.getItem()).getMana(source));
-                ((IManaItem) source.getItem()).addMana(source, -extracted);
+            if (canExport(source, requestor)) {
+                IManaItem manaItem = (IManaItem) source.getItem();
+                int taken = Math.min(remaining, manaItem.getMana(source));
+                manaItem.addMana(source, -taken);
+                remaining -= taken;
                 BotaniaAPI.internalHandler.sendBaubleUpdatePacket(player, entry.getKey());
-                remaining -= extracted;
             }
         }
         return remaining == 0;
     }
 
-    private boolean patternMatches(RuneRitualRecipe recipe, int candidateRotation) {
+    private boolean canExport(ItemStack source, ItemStack requestor) {
+        return source != null && !source.isEmpty()
+                && source.getItem() instanceof IManaItem
+                && ((IManaItem) source.getItem()).canExportManaToItem(source, requestor)
+                && ((IManaItem) source.getItem()).getMana(source) > 0;
+    }
+
+    private boolean patternMatches(RuneRitualRecipe recipe, int transform) {
         for (RuneRitualRecipe.RunePosition rune : recipe.getRunes()) {
-            net.minecraft.util.math.BlockPos runePos = pos.add(rune.getX(candidateRotation), 0,
-                    rune.getZ(candidateRotation));
+            BlockPos runePos = pos.add(rune.getX(transform), 0, rune.getZ(transform));
             if (world.getBlockState(runePos).getBlock() != ModBlocks.runeHolder) {
                 return false;
             }
@@ -211,21 +358,70 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         return true;
     }
 
+    private void finishRecipe() {
+        RuneRitualRecipe recipe = activeRecipe;
+        center = ItemStack.EMPTY;
+        List<ItemStack> results = recipe.getOutputs();
+        output = results.isEmpty() ? ItemStack.EMPTY : results.get(0).copy();
+        for (int i = 1; i < results.size(); i++) {
+            drop(results.get(i));
+        }
+        for (RuneRitualRecipe.RunePosition rune : recipe.getRunes()) {
+            BlockPos runePos = pos.add(rune.getX(rotation), 0, rune.getZ(rotation));
+            TileEntity tile = world.getTileEntity(runePos);
+            if (tile instanceof TileRuneHolder) {
+                ItemStack runeStack = ((TileRuneHolder) tile).takeRune();
+                if (!runeStack.isEmpty() && !rune.isConsumed()) {
+                    drop(runeStack);
+                }
+            }
+        }
+        activeRecipe = null;
+        progress = 0;
+        rotation = 0;
+        consumedInputs.clear();
+        lastStatusKey = "message.mythicbotany.ritual_complete";
+        world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+    }
+
+    private void cancelActive(boolean restoreInputs) {
+        if (restoreInputs) {
+            for (ItemStack stack : consumedInputs) {
+                drop(stack);
+            }
+        }
+        consumedInputs.clear();
+        activeRecipe = null;
+        progress = 0;
+        rotation = 0;
+        markDirty();
+        sync();
+    }
+
     public void dropContents() {
         if (world == null || world.isRemote) {
             return;
+        }
+        if (activeRecipe != null) {
+            cancelActive(true);
         }
         drop(center);
         drop(output);
         center = ItemStack.EMPTY;
         output = ItemStack.EMPTY;
+        consumedInputs.clear();
+        activeRecipe = null;
+        progress = 0;
+        rotation = 0;
         sync();
     }
 
     private void drop(ItemStack stack) {
         if (!stack.isEmpty()) {
-            world.spawnEntity(new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D,
-                    pos.getZ() + 0.5D, stack.copy()));
+            EntityItem entity = new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D,
+                    pos.getZ() + 0.5D, stack.copy());
+            entity.setPickupDelay(20);
+            world.spawnEntity(entity);
         }
     }
 
@@ -261,9 +457,15 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         if (!output.isEmpty()) {
             compound.setTag("Output", output.writeToNBT(new NBTTagCompound()));
         }
+        NBTTagList consumed = new NBTTagList();
+        for (ItemStack stack : consumedInputs) {
+            consumed.appendTag(stack.writeToNBT(new NBTTagCompound()));
+        }
+        compound.setTag("ConsumedInputs", consumed);
         compound.setInteger("Progress", progress);
         compound.setInteger("Rotation", rotation);
         compound.setInteger("Recipe", RuneRitualRegistry.indexOf(activeRecipe));
+        compound.setString("Status", lastStatusKey);
         return compound;
     }
 
@@ -272,9 +474,17 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         super.readFromNBT(compound);
         center = compound.hasKey("Center") ? new ItemStack(compound.getCompoundTag("Center")) : ItemStack.EMPTY;
         output = compound.hasKey("Output") ? new ItemStack(compound.getCompoundTag("Output")) : ItemStack.EMPTY;
+        consumedInputs.clear();
+        NBTTagList consumed = compound.getTagList("ConsumedInputs", 10);
+        for (int i = 0; i < consumed.tagCount(); i++) {
+            consumedInputs.add(new ItemStack(consumed.getCompoundTagAt(i)));
+        }
         progress = Math.max(0, compound.getInteger("Progress"));
-        rotation = compound.getInteger("Rotation") & 3;
+        rotation = compound.getInteger("Rotation") & 7;
         int recipeIndex = compound.hasKey("Recipe") ? compound.getInteger("Recipe") : -1;
         activeRecipe = RuneRitualRegistry.getRecipe(recipeIndex);
+        lastStatusKey = compound.hasKey("Status") ? compound.getString("Status")
+                : activeRecipe == null && output.isEmpty()
+                ? "message.mythicbotany.waiting_matching_runes" : "message.mythicbotany.ritual_running";
     }
 }

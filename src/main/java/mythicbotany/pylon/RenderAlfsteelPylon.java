@@ -1,9 +1,14 @@
 package mythicbotany.pylon;
 
+import mythicbotany.registry.ModBlocks;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
 /** Client renderer for the Alfsteel pylon's ring and crystal. */
@@ -11,24 +16,23 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
     private static final ResourceLocation TEXTURE = new ResourceLocation(
             "mythicbotany", "textures/model/pylon_alfsteel.png");
     private final PylonModelNatura model = new PylonModelNatura();
+    private static final TileAlfsteelPylon ITEM_DUMMY = new TileAlfsteelPylon();
 
     @Override
     public void render(TileAlfsteelPylon tile, double x, double y, double z, float partialTicks,
                        int destroyStage, float alpha) {
-        if (tile == null) {
-            return;
-        }
-        boolean renderingItem = tile.getWorld() == null;
+        boolean renderingItem = tile == ForwardingTEISR.DUMMY || tile == null || tile.getWorld() == null;
+        TileAlfsteelPylon renderTile = tile == null ? ITEM_DUMMY : tile;
         GlStateManager.pushMatrix();
         try {
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(770, 771);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            double time = renderingItem || tile.getWorld() == null
-                    ? partialTicks : tile.getWorld().getTotalWorldTime() + partialTicks;
+            double time = renderingItem
+                    ? partialTicks : renderTile.getWorld().getTotalWorldTime() + partialTicks;
             if (!renderingItem) {
-                time += new java.util.Random(tile.getPos().hashCode()).nextInt(360);
+                time += new java.util.Random(renderTile.getPos().hashCode()).nextInt(360);
             }
             bindTexture(TEXTURE);
 
@@ -99,6 +103,25 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
             base.render(scale);
             ring.render(scale);
             crystal.render(scale);
+        }
+    }
+
+    /** Forwards the builtin/entity item model through the same TESR as the placed pylon. */
+    public static final class ForwardingTEISR extends TileEntityItemStackRenderer {
+        private static final TileAlfsteelPylon DUMMY = new TileAlfsteelPylon();
+        private final TileEntityItemStackRenderer compose;
+
+        public ForwardingTEISR(TileEntityItemStackRenderer compose) {
+            this.compose = compose;
+        }
+
+        @Override
+        public void renderByItem(ItemStack stack, float partialTicks) {
+            if (stack.getItem() == Item.getItemFromBlock(ModBlocks.alfsteelPylon)) {
+                TileEntityRendererDispatcher.instance.render(DUMMY, 0, 0, 0, partialTicks);
+            } else {
+                compose.renderByItem(stack, partialTicks);
+            }
         }
     }
 }

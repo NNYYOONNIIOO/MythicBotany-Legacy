@@ -20,6 +20,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import vazkii.botania.api.wand.IWandable;
+import vazkii.botania.common.item.ItemTwigWand;
 
 public class BlockCentralRuneHolder extends BlockContainer implements IWandable {
     private static final AxisAlignedBB HOLDER_BOX = new AxisAlignedBB(
@@ -107,6 +108,12 @@ public class BlockCentralRuneHolder extends BlockContainer implements IWandable 
             return true;
         }
         ItemStack held = playerIn.getHeldItem(hand);
+        if (!held.isEmpty() && held.getItem() instanceof ItemTwigWand) {
+            if (!holder.tryStartRitual(playerIn)) {
+                playerIn.sendStatusMessage(holder.getStatusText(), true);
+            }
+            return true;
+        }
         if (!held.isEmpty() && holder.insertCenter(held)) {
             if (!playerIn.capabilities.isCreativeMode) {
                 held.shrink(1);

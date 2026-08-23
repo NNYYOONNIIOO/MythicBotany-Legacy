@@ -15,6 +15,7 @@ import mythicbotany.network.NetworkHandler;
 import mythicbotany.item.AlfsteelArmorHandler;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
+import mythicbotany.rune.RuneRitualRegistry;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
@@ -88,6 +89,7 @@ public final class MythicBotany {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         ModRecipes.register();
+        RuneRitualRegistry.registerDefaults();
         MythicLexicon.register();
         proxy.init();
         logger.info("MythicBotany 1.12.2 core initialized with {} blocks and {} items",

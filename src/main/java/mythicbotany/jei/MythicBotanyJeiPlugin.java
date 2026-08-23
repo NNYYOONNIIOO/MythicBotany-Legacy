@@ -128,10 +128,16 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             final int runeCount = wrapper.recipe.getRunes().size();
             int slotIndex = 1;
             for (RuneRitualRecipe.RunePosition rune : wrapper.recipe.getRunes()) {
-                int x = 2 + 12 * (rune.getOriginalX() + 5);
-                int y = 2 + 12 * ((-rune.getOriginalZ()) + 5);
+                int x = 2 + 12 * (rune.getOriginalX() / 2 + 5);
+                int y = 2 + 12 * ((-rune.getOriginalZ() / 2) + 5);
                 stacks.init(slotIndex, true, x, y);
                 stacks.set(slotIndex, rune.getRune());
+                slotIndex++;
+            }
+
+            for (RuneRitualRecipe.InputRequirement input : wrapper.recipe.getInputs()) {
+                stacks.init(slotIndex, true, 8 + 18 * (slotIndex - runeCount - 1), 116);
+                stacks.set(slotIndex, input.getDisplayStack());
                 slotIndex++;
             }
 
@@ -186,6 +192,9 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             inputs.add(Collections.singletonList(recipe.getCenter()));
             for (RuneRitualRecipe.RunePosition rune : recipe.getRunes()) {
                 inputs.add(Collections.singletonList(rune.getRune()));
+            }
+            for (RuneRitualRecipe.InputRequirement input : recipe.getInputs()) {
+                inputs.add(input.getAlternatives());
             }
             ingredients.setInputLists(ItemStack.class, inputs);
             ingredients.setOutput(ItemStack.class, recipe.getOutput());
