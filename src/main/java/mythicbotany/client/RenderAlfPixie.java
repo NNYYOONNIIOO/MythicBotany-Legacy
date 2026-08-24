@@ -9,7 +9,7 @@ import vazkii.botania.client.model.ModelPixie;
 
 public class RenderAlfPixie extends RenderLiving<EntityAlfPixie> {
     private static final ResourceLocation TEXTURE =
-            new ResourceLocation(MythicBotany.MODID, "textures/model/pixie.png");
+            new ResourceLocation("botania", "textures/model/pixie.png");
 
     public RenderAlfPixie(RenderManager manager) {
         super(manager, new ModelPixie(), 0.25F);
