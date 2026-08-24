@@ -35,6 +35,11 @@ public class BlockAlfsteelPylon extends BlockContainer {
     }
 
     @Override
+    public float getEnchantPowerBonus(World world, BlockPos pos) {
+        return 15.0F;
+    }
+
+    @Override
     public boolean isOpaqueCube(IBlockState state) {
         return false;
     }
