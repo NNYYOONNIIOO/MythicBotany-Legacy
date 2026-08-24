@@ -80,7 +80,7 @@ public final class MythicFlowerSubTiles {
         @Override
         public void onUpdate() {
             super.onUpdate();
-            if (getWorld().isRemote) {
+            if (getWorld().isRemote || mana >= getMaxMana()) {
                 return;
             }
             long worldTime = getWorld().getTotalWorldTime();
@@ -112,7 +112,8 @@ public final class MythicFlowerSubTiles {
             int remaining = ItemFadedNetherStar.MAX_DAMAGE - currentCharge;
             // The star's depletion is independent of the flower's small mana buffer.
             // One full 1,200,000-damage star therefore takes exactly 2,000 ticks.
-            int transfer = Math.min(MAX_TRANSFER, remaining);
+            int transfer = Math.min(Math.min(MAX_TRANSFER, remaining),
+                            Math.max(0, getMaxMana() - mana));
             if (transfer <= 0) {
                 return;
             }

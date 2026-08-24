@@ -54,7 +54,13 @@ public final class ModelHandler {
         if (item == null || item.getRegistryName() == null) {
             return;
         }
-        if (item == ModItems.mjoellnir || item == ModItems.fadedNetherStar) {
+        if (item == ModItems.mjoellnir
+                || item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {
+            ModelLoader.setCustomModelResourceLocation(item, 0,
+                    new ModelResourceLocation(item.getRegistryName(), "inventory"));
+            return;
+        }
+        if (item == ModItems.fadedNetherStar) {
             final ModelResourceLocation location = new ModelResourceLocation(
                     item.getRegistryName(), "inventory");
             ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition() {

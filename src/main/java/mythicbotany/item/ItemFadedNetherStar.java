@@ -44,12 +44,8 @@ public class ItemFadedNetherStar extends Item {
         if (tag != null && tag.hasKey(CHARGE_TAG, 3)) {
             return Math.max(0, Math.min(MAX_DAMAGE, tag.getInteger(CHARGE_TAG)));
         }
-
         int rawDamage = super.getDamage(stack);
         if (rawDamage > Short.MAX_VALUE) {
-            // /give writes the metadata directly into ItemStack. Migrate it
-            // before the next ItemStack NBT save, which stores vanilla damage
-            // as a short.
             setDamage(stack, rawDamage);
         }
         return Math.max(0, Math.min(MAX_DAMAGE, rawDamage));
@@ -79,16 +75,13 @@ public class ItemFadedNetherStar extends Item {
     @Override
     public int getMetadata(ItemStack stack) {
         // The charge is durability, never an item-model variant.
-        return 0;
+        return getCharge(stack);
     }
 
     @Override
     public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         super.onUpdate(stack, world, entity, slot, selected);
-        int rawDamage = stack.getItemDamage();
-        if ((stack.getTagCompound() == null || !stack.getTagCompound().hasKey(CHARGE_TAG, 3))
-                && rawDamage > Short.MAX_VALUE) {
-            setDamage(stack, rawDamage);
-        }
+        // Migrate a high /give metadata value before ItemStack writes Damage as a short.
+        getDamage(stack);
     }
 }
