@@ -57,8 +57,6 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, ISequent
     private static final String LOKI_Z_OFFSET = "zOffset";
     private static final int MAX_MANA = 1000000000;
     private static final int MANA_PER_BLOCK = 200;
-    private static final UUID ATTACK_DAMAGE_UUID = UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a101");
-    private static final UUID ATTACK_SPEED_UUID = UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a102");
     private static final List<Material> MATERIALS = Arrays.asList(
             Material.ROCK, Material.IRON, Material.ICE, Material.GLASS,
             Material.PISTON, Material.ANVIL, Material.GRASS, Material.GROUND,
@@ -81,9 +79,9 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, ISequent
         if (slot == EntityEquipmentSlot.MAINHAND) {
             ImmutableMultimap.Builder<String, AttributeModifier> builder = ImmutableMultimap.builder();
             builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
-                    new AttributeModifier(ATTACK_DAMAGE_UUID, "Weapon modifier", 5.0D, 0));
+                    new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 5.0D, 0));
             builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
-                    new AttributeModifier(ATTACK_SPEED_UUID, "Weapon modifier", -2.8D, 0));
+                    new AttributeModifier(Item.ATTACK_SPEED_MODIFIER, "Weapon modifier", -2.8D, 0));
             return builder.build();
         }
         return super.getAttributeModifiers(slot, stack);

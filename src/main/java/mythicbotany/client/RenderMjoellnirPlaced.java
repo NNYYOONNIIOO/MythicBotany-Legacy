@@ -18,6 +18,11 @@ public final class RenderMjoellnirPlaced extends RenderSnowballStack<EntityMjoel
 
     private static ItemStack getRenderStack(EntityMjoellnirPlaced entity) {
         ItemStack stack = entity.getItem();
-        return stack.isEmpty() ? new ItemStack(ModItems.mjoellnir) : stack;
+        if (stack.isEmpty()) {
+            return new ItemStack(ModItems.mjoellnir);
+        }
+        ItemStack renderStack = stack.copy();
+        renderStack.setItemDamage(0);
+        return renderStack;
     }
 }

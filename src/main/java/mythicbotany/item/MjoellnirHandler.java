@@ -32,6 +32,17 @@ public final class MjoellnirHandler {
                 && player.getEntityData().getLong(GOLDEN_APPLE_UNTIL_TAG) >= player.world.getTotalWorldTime();
     }
 
+    /** Marks an automatic loss of the hammer so it becomes the placed hammer on landing. */
+    public static void dropForFailedReturn(EntityPlayer player, ItemStack stack) {
+        if (player == null || stack == null || stack.isEmpty()) {
+            return;
+        }
+        EntityItem drop = player.dropItem(stack, false);
+        if (drop != null) {
+            drop.getEntityData().setBoolean(RETURN_DROP_TAG, true);
+        }
+    }
+
     @SubscribeEvent
     public void onGoldenAppleFinished(LivingEntityUseItemEvent.Finish event) {
         if (!(event.getEntityLiving() instanceof EntityPlayer) || event.getEntityLiving().world.isRemote) {

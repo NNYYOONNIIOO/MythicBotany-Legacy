@@ -55,15 +55,8 @@ public final class ModelHandler {
             return;
         }
         if (item == ModItems.mjoellnir) {
-            final ModelResourceLocation location = new ModelResourceLocation(
-                    item.getRegistryName(), "inventory");
-            ModelLoader.setCustomModelResourceLocation(item, 0, location);
-            ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition() {
-                @Override
-                public ModelResourceLocation getModelLocation(ItemStack stack) {
-                    return location;
-                }
-            });
+            ModelLoader.setCustomModelResourceLocation(item, 0,
+                    new ModelResourceLocation(item.getRegistryName(), "inventory"));
             return;
         }
         if (item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {

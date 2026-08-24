@@ -48,10 +48,6 @@ public class ItemAlfsteelAxe extends ItemAxe implements ISequentialBreaker {
     private static final int MANA_PER_DAMAGE = AlfsteelRepairHelper.MANA_PER_DURABILITY;
     private static final int LOG_RANGE = 31;
     private static final int LEAF_RANGE = 3;
-    private static final java.util.UUID ATTACK_DAMAGE_UUID =
-            java.util.UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a201");
-    private static final java.util.UUID ATTACK_SPEED_UUID =
-            java.util.UUID.fromString("7f0e7e20-0f64-4d5b-9f3a-2cc37b01a202");
     private static final String LOKI_CURSOR_LIST = "cursorList";
     private static final String LOKI_CURSOR_COUNT = "cursorCount";
     private static final String LOKI_CURSOR_PREFIX = "cursor";
@@ -73,9 +69,9 @@ public class ItemAlfsteelAxe extends ItemAxe implements ISequentialBreaker {
         if (slot == EntityEquipmentSlot.MAINHAND) {
             ImmutableMultimap.Builder<String, AttributeModifier> builder = ImmutableMultimap.builder();
             builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
-                    new AttributeModifier(ATTACK_DAMAGE_UUID, "Weapon modifier", 5.0D, 0));
+                    new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 5.0D, 0));
             builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
-                    new AttributeModifier(ATTACK_SPEED_UUID, "Weapon modifier", -2.8D, 0));
+                    new AttributeModifier(Item.ATTACK_SPEED_MODIFIER, "Weapon modifier", -2.8D, 0));
             return builder.build();
         }
         return super.getAttributeModifiers(slot, stack);

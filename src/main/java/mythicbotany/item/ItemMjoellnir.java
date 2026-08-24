@@ -40,7 +40,7 @@ public class ItemMjoellnir extends ItemSword {
             if (!worldIn.isRemote) {
                 ItemStack dropped = stack.copy();
                 stack.setCount(0);
-                playerIn.dropItem(dropped, false);
+                MjoellnirHandler.dropForFailedReturn(playerIn, dropped);
             }
             return new ActionResult<>(EnumActionResult.FAIL, stack);
         }
@@ -83,7 +83,7 @@ public class ItemMjoellnir extends ItemSword {
             if (!MjoellnirHandler.canHold(player)) {
                 ItemStack dropped = stack.copy();
                 stack.setCount(0);
-                player.dropItem(dropped, false);
+                MjoellnirHandler.dropForFailedReturn(player, dropped);
                 return;
             }
             AlfsteelRepairHelper.repair(stack, player, world.getTotalWorldTime());

@@ -151,7 +151,7 @@ public class EntityMjoellnir extends EntityThrowable {
         ItemStack stack = getItem();
         if (!stack.isEmpty()) {
             if (!MjoellnirHandler.canHold(player)) {
-                player.dropItem(stack, false);
+                MjoellnirHandler.dropForFailedReturn(player, stack);
                 setItem(ItemStack.EMPTY);
                 setDead();
                 return;
