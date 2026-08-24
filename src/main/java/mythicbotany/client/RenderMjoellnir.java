@@ -14,6 +14,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public final class RenderMjoellnir extends Render<EntityMjoellnir> {
+    /** Easy-to-tune model-only yaw offset; entity flight yaw remains separate. */
+    private static final float MODEL_Y_ROTATION = 90.0F;
+
     public RenderMjoellnir(RenderManager manager) {
         super(manager);
         shadowSize = 0.0F;
@@ -31,6 +34,7 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
         try {
             GlStateManager.translate(x, y, z);
             GlStateManager.rotate(yaw, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(MODEL_Y_ROTATION, 0.0F, 1.0F, 0.0F);
             GlStateManager.rotate(-pitch, 1.0F, 0.0F, 0.0F);
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
