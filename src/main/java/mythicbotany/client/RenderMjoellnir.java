@@ -66,6 +66,11 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
                 GlStateManager.rotate(-MODEL_Y_ROTATION, 1.0F, 0.0F, 0.0F);
                 GlStateManager.rotate(-pitch, 1.0F, 0.0F, 0.0F);
             }
+            if (entity.isReturning()) {
+                // Flip around the model centre so the handle, rather than the head,
+                // points at the player during the return flight.
+                GlStateManager.rotate(180.0F, 1.0F, 0.0F, 0.0F);
+            }
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             dispatcher.renderBlockBrightness(ModBlocks.mjoellnir.getDefaultState(), 1.0F);

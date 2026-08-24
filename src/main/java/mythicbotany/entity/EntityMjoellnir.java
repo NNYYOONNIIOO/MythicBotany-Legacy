@@ -64,7 +64,7 @@ public class EntityMjoellnir extends EntityThrowable {
         return dataManager.get(CREATIVE_THROW);
     }
 
-    private boolean isReturning() {
+    public boolean isReturning() {
         return dataManager.get(RETURNING);
     }
 

@@ -10,8 +10,6 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemTool;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 
@@ -23,10 +21,27 @@ import net.minecraft.util.math.AxisAlignedBB;
  * stored mana to adjacent MythicBotany mana tiles.
  */
 public class TileAlfsteelPylon extends ManaTileEntity {
-    private static final int TRANSFER_PER_TICK = 2000;
     private static final int ALFSTEEL_TOOL_MANA_PER_POINT = 100;
     private static final int ALFSTEEL_ARMOR_MANA_PER_POINT = 70;
     private static final int MENDING_MANA_PER_POINT = 200;
+    private static final int MAX_PYLON_MANA = 1000;
+
+    @Override
+    public int getMaxMana() {
+        return MAX_PYLON_MANA;
+    }
+
+    @Override
+    public void recieveMana(int amount) {
+        if (amount > 0) {
+            super.recieveMana(amount);
+        }
+    }
+
+    @Override
+    public boolean canRecieveManaFromBursts() {
+        return mana < getMaxMana();
+    }
 
     /** Kept as a block-break hook for parity with later pylon implementations. */
     public void detachSpark() {
@@ -38,23 +53,6 @@ public class TileAlfsteelPylon extends ManaTileEntity {
             return;
         }
         repairTopItem();
-        if (mana <= 0) {
-            return;
-        }
-        for (EnumFacing facing : EnumFacing.values()) {
-            TileEntity tile = world.getTileEntity(pos.offset(facing));
-            if (tile instanceof ManaTileEntity && tile != this) {
-                ManaTileEntity receiver = (ManaTileEntity) tile;
-                int space = receiver.getMaxMana() - receiver.getCurrentMana();
-                if (space > 0) {
-                    int amount = Math.min(Math.min(mana, space), TRANSFER_PER_TICK);
-                    receiver.recieveMana(amount);
-                    mana -= amount;
-                    markDirty();
-                    return;
-                }
-            }
-        }
     }
 
     /** Repairs alfsteel equipment and Mending equipment dropped on the pylon. */
@@ -87,9 +85,7 @@ public class TileAlfsteelPylon extends ManaTileEntity {
             return 0;
         }
         if (isAlfsteel(stack)) {
-            if (!(stack.getItem() instanceof ItemArmor
-                    || stack.getItem() instanceof ItemTool
-                    || stack.getItem() instanceof ItemSword)) {
+            if (!stack.getItem().isDamageable()) {
                 return 0;
             }
             return stack.getItem() instanceof ItemArmor
@@ -99,9 +95,7 @@ public class TileAlfsteelPylon extends ManaTileEntity {
     }
 
     private static boolean isMendingRepairable(ItemStack stack) {
-        return (stack.getItem() instanceof ItemArmor
-                || stack.getItem() instanceof ItemTool
-                || stack.getItem() instanceof ItemSword)
+        return stack.getItem().isDamageable()
                 && EnchantmentHelper.getEnchantmentLevel(Enchantments.MENDING, stack) > 0;
     }
 
