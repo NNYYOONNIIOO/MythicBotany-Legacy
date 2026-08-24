@@ -9,15 +9,11 @@ import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.ItemMeshDefinition;
-import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.ColorHandlerEvent;
-import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -38,36 +34,10 @@ public final class ModelHandler {
     public static void registerModels(ModelRegistryEvent event) {
         registerSpecialFlowerModels();
         registerTileEntityRenderers();
-        registerMjoellnirStateMapper();
         for (Item item : ModItems.ALL) register(item);
         for (Block block : ModBlocks.ALL) {
             register(Item.getItemFromBlock(block));
         }
-    }
-
-    /** Keep the block-state, item, and entity renderers on the same baked model key. */
-    private static void registerMjoellnirStateMapper() {
-        ModelLoader.setCustomStateMapper(ModBlocks.mjoellnir, new StateMapperBase() {
-            @Override
-            protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
-                return new ModelResourceLocation(ModBlocks.mjoellnir.getRegistryName(), "normal");
-            }
-        });
-    }
-
-    @SubscribeEvent
-    public static void bakeMjoellnirAliases(ModelBakeEvent event) {
-        ModelResourceLocation normal =
-                new ModelResourceLocation(ModBlocks.mjoellnir.getRegistryName(), "normal");
-        IBakedModel model = event.getModelRegistry().getObject(normal);
-        if (model == null) {
-            return;
-        }
-        event.getModelRegistry().putObject(
-                new ModelResourceLocation(ModItems.mjoellnir.getRegistryName(), "inventory"), model);
-        event.getModelRegistry().putObject(
-                new ModelResourceLocation(new ResourceLocation(MythicBotany.MODID, "block/mjoellnir"),
-                        "normal"), model);
     }
 
     /** Register addon special-flower models before Botania bakes its model map. */

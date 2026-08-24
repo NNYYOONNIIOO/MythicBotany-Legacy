@@ -1,61 +1,18 @@
 package mythicbotany.client;
 
 import mythicbotany.entity.EntityMjoellnir;
-import mythicbotany.registry.ModBlocks;
-import net.minecraft.block.state.IBlockState;
+import mythicbotany.registry.ModItems;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.util.ResourceLocation;
+import vazkii.botania.client.render.entity.RenderSnowballStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-/** Renders the projectile from the baked block model used by mjoellnir.json. */
+/** Renders the projectile through the registered Mjoellnir item model. */
 @SideOnly(Side.CLIENT)
-public final class RenderMjoellnir extends Render<EntityMjoellnir> {
-    private static final ModelResourceLocation MODEL =
-            new ModelResourceLocation("mythicbotany:mjoellnir", "normal");
-
+public final class RenderMjoellnir extends RenderSnowballStack<EntityMjoellnir> {
     public RenderMjoellnir(RenderManager manager) {
-        super(manager);
-    }
-
-    @Override
-    public void doRender(EntityMjoellnir entity, double x, double y, double z,
-                         float entityYaw, float partialTicks) {
-        GlStateManager.pushMatrix();
-        bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-        GlStateManager.translate((float) x - 0.5F, (float) y - 0.5F, (float) z - 0.5F);
-        GlStateManager.scale(0.5F, 0.5F, 0.5F);
-
-        float yaw = entity.prevRotationYaw
-                + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks;
-        float pitch = entity.prevRotationPitch
-                + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks;
-        GlStateManager.rotate(yaw - 90.0F, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(pitch, 0.0F, 0.0F, 1.0F);
-        GlStateManager.rotate(90.0F, 0.0F, 0.0F, -1.0F);
-
-        BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
-        IBlockState state = ModBlocks.mjoellnir.getDefaultState();
-        IBakedModel missing = dispatcher.getBlockModelShapes().getModelManager().getMissingModel();
-        IBakedModel model = dispatcher.getBlockModelShapes().getModelForState(state);
-        if (model == missing) {
-            model = dispatcher.getBlockModelShapes().getModelManager().getModel(MODEL);
-        }
-        if (model != missing) {
-            dispatcher.getBlockModelRenderer().renderModelBrightness(model, state, 1.0F, false);
-        }
-        GlStateManager.popMatrix();
-    }
-
-    @Override
-    protected ResourceLocation getEntityTexture(EntityMjoellnir entity) {
-        return null;
+        super(manager, ModItems.mjoellnir, Minecraft.getMinecraft().getRenderItem(),
+                entity -> entity.getItem());
     }
 }
