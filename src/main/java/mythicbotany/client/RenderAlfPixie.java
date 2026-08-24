@@ -1,5 +1,6 @@
 package mythicbotany.client;
 
+import mythicbotany.MythicBotany;
 import mythicbotany.entity.EntityAlfPixie;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -8,7 +9,7 @@ import vazkii.botania.client.model.ModelPixie;
 
 public class RenderAlfPixie extends RenderLiving<EntityAlfPixie> {
     private static final ResourceLocation TEXTURE =
-            new ResourceLocation("botania", "textures/model/pixie.png");
+            new ResourceLocation(MythicBotany.MODID, "textures/model/pixie.png");
 
     public RenderAlfPixie(RenderManager manager) {
         super(manager, new ModelPixie(), 0.25F);
