@@ -65,7 +65,6 @@ public final class MythicBotany {
         logger = event.getModLog();
         NetworkHandler.init();
         ModDimensions.register();
-        ModRecipes.registerSpecialFlowerSubTiles();
         GameRegistry.registerTileEntity(TileManaInfuser.class, tileId("mana_infuser"));
         GameRegistry.registerTileEntity(TileManaCollector.class, tileId("mana_collector"));
         GameRegistry.registerTileEntity(TileYggdrasilBranch.class, tileId("yggdrasil_branch"));

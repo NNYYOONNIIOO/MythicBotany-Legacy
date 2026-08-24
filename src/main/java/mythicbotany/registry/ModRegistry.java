@@ -9,18 +9,19 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemCraftedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import mythicbotany.recipe.ModRecipes;
 
 public final class ModRegistry {
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void registerBlocks(RegistryEvent.Register<Block> event) {
+        ModRecipes.registerSpecialFlowerSubTiles();
         event.getRegistry().registerAll(ModBlocks.ALL);
     }
 
     @SubscribeEvent
     public void registerItems(RegistryEvent.Register<Item> event) {
-        ModRecipes.registerSpecialFlowerSubTiles();
         event.getRegistry().registerAll(ModItems.ALL);
         for (Block block : ModBlocks.ALL) {
             if (block == ModBlocks.mjoellnir) {
