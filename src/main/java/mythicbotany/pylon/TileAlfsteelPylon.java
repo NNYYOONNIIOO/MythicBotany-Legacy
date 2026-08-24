@@ -59,19 +59,26 @@ public class TileAlfsteelPylon extends ManaTileEntity {
 
     /** Repairs alfsteel equipment and Mending equipment dropped on the pylon. */
     private void repairTopItem() {
+        if (mana <= 0) {
+            return;
+        }
         AxisAlignedBB box = new AxisAlignedBB(pos.getX(), pos.getY() + 1.0D, pos.getZ(),
                 pos.getX() + 1.0D, pos.getY() + 2.0D, pos.getZ() + 1.0D);
         List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, box);
+        boolean repaired = false;
         for (EntityItem entity : items) {
             ItemStack stack = entity.getItem();
             int manaCost = getRepairManaPerPoint(stack);
-            if (manaCost <= 0 || mana < manaCost) {
+            if (stack.getCount() != 1 || manaCost <= 0 || mana < manaCost) {
                 continue;
             }
             stack.setItemDamage(Math.max(0, stack.getItemDamage() - 1));
+            entity.setItem(stack);
             mana -= manaCost;
+            repaired = true;
+        }
+        if (repaired) {
             markDirty();
-            return;
         }
     }
 

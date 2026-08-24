@@ -42,9 +42,9 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
                 double targetX = thrower.prevPosX + (thrower.posX - thrower.prevPosX) * partialTicks;
                 double targetY = thrower.prevPosY + (thrower.posY - thrower.prevPosY) * partialTicks + thrower.getEyeHeight() * 0.5D;
                 double targetZ = thrower.prevPosZ + (thrower.posZ - thrower.prevPosZ) * partialTicks;
-                double directionX = entityX - targetX;
-                double directionY = entityY - targetY;
-                double directionZ = entityZ - targetZ;
+                double directionX = targetX - entityX;
+                double directionY = targetY - entityY;
+                double directionZ = targetZ - entityZ;
                 double length = Math.sqrt(directionX * directionX + directionY * directionY + directionZ * directionZ);
                 if (length > 1.0E-6D) {
                     directionX /= length;
