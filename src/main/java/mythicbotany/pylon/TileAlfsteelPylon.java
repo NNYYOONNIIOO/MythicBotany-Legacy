@@ -75,7 +75,7 @@ public class TileAlfsteelPylon extends ManaTileEntity {
         }
     }
 
-    private int getRepairManaPerPoint(ItemStack stack) {
+    public static int getRepairManaPerPoint(ItemStack stack) {
         if (stack.isEmpty() || !stack.isItemDamaged()) {
             return 0;
         }
@@ -91,14 +91,14 @@ public class TileAlfsteelPylon extends ManaTileEntity {
         return isMendingRepairable(stack) ? MENDING_MANA_PER_POINT : 0;
     }
 
-    private boolean isMendingRepairable(ItemStack stack) {
+    private static boolean isMendingRepairable(ItemStack stack) {
         return (stack.getItem() instanceof ItemArmor
                 || stack.getItem() instanceof ItemTool
                 || stack.getItem() instanceof ItemSword)
                 && EnchantmentHelper.getEnchantmentLevel(Enchantments.MENDING, stack) > 0;
     }
 
-    private boolean isAlfsteel(ItemStack stack) {
+    private static boolean isAlfsteel(ItemStack stack) {
         ResourceLocation id = stack.getItem().getRegistryName();
         return id != null && "mythicbotany".equals(id.getNamespace())
                 && id.getPath().startsWith("alfsteel_");

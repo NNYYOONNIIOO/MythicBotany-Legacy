@@ -5,8 +5,13 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -37,6 +42,28 @@ public class BlockAlfsteelPylon extends BlockContainer {
     @Override
     public float getEnchantPowerBonus(World world, BlockPos pos) {
         return 15.0F;
+    }
+
+    @Override
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player,
+                                    EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+        ItemStack held = player.getHeldItem(hand);
+        if (held.isEmpty() || held.getCount() != 1
+                || TileAlfsteelPylon.getRepairManaPerPoint(held) <= 0) {
+            return false;
+        }
+        if (!worldIn.isRemote) {
+            ItemStack repairStack = held.copy();
+            player.setHeldItem(hand, ItemStack.EMPTY);
+            EntityItem entity = new EntityItem(worldIn, pos.getX() + 0.5D,
+                    pos.getY() + 1.35D, pos.getZ() + 0.5D, repairStack);
+            entity.motionX = 0.0D;
+            entity.motionY = 0.0D;
+            entity.motionZ = 0.0D;
+            entity.setPickupDelay(40);
+            worldIn.spawnEntity(entity);
+        }
+        return true;
     }
 
     @Override
