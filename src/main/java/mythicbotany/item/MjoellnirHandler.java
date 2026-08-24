@@ -82,8 +82,13 @@ public final class MjoellnirHandler {
             if (world.getBlockState(candidate).getBlock() == ModBlocks.mjoellnir) {
                 continue;
             }
-            if (!world.isAirBlock(candidate)
-                    || !ModBlocks.mjoellnir.canPlaceBlockAt(world, candidate)) {
+            if (!world.isAirBlock(candidate)) {
+                return null;
+            }
+            BlockPos below = candidate.down();
+            boolean stackedOnHammer = y > 0
+                    && world.getBlockState(below).getBlock() == ModBlocks.mjoellnir;
+            if (!stackedOnHammer && !ModBlocks.mjoellnir.canPlaceBlockAt(world, candidate)) {
                 return null;
             }
             return candidate;
