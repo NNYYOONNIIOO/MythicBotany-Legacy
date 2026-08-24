@@ -24,12 +24,16 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public final class ClientProxy extends CommonProxy {
     private static boolean itemStackRendererRegistered;
+    private static boolean entityRenderersRegistered;
+
+    @Override
+    public void preInit() {
+        registerEntityRenderers();
+    }
 
     @Override
     public void init() {
-        RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnir.class, RenderMjoellnir::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnirPlaced.class, RenderMjoellnirPlaced::new);
+        registerEntityRenderers();
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
@@ -38,6 +42,16 @@ public final class ClientProxy extends CommonProxy {
                     TileEntityItemStackRenderer.instance);
             itemStackRendererRegistered = true;
         }
+    }
+
+    private static void registerEntityRenderers() {
+        if (entityRenderersRegistered) {
+            return;
+        }
+        RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);
+        RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnir.class, RenderMjoellnir::new);
+        RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnirPlaced.class, RenderMjoellnirPlaced::new);
+        entityRenderersRegistered = true;
     }
 
     @Override

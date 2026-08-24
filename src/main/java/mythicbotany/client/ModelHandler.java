@@ -56,6 +56,11 @@ public final class ModelHandler {
         if (item == null || item.getRegistryName() == null) {
             return;
         }
+        if (item == ModItems.mjoellnir) {
+            ModelLoader.setCustomModelResourceLocation(item, 0,
+                    new ModelResourceLocation(ModBlocks.mjoellnir.getRegistryName(), "normal"));
+            return;
+        }
         if (item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {
             ModelResourceLocation location = new ModelResourceLocation(
                     item.getRegistryName(), "inventory");
