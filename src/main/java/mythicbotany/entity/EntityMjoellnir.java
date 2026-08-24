@@ -161,7 +161,10 @@ public class EntityMjoellnir extends EntityThrowable {
             } else if (player.getHeldItemOffhand().isEmpty()) {
                 player.setHeldItem(EnumHand.OFF_HAND, stack);
             } else if (!player.addItemStackToInventory(stack)) {
-                player.dropItem(stack, false);
+                EntityItem drop = player.dropItem(stack, false);
+                if (drop != null) {
+                    drop.getEntityData().setBoolean(MjoellnirHandler.RETURN_DROP_TAG, true);
+                }
             }
         }
         setItem(ItemStack.EMPTY);
