@@ -35,7 +35,9 @@ public final class ModelHandler {
         registerSpecialFlowerModels();
         registerTileEntityRenderers();
         for (Item item : ModItems.ALL) register(item);
-        for (Block block : ModBlocks.ALL) register(Item.getItemFromBlock(block));
+        for (Block block : ModBlocks.ALL) {
+            register(Item.getItemFromBlock(block));
+        }
     }
 
     /** Register addon special-flower models before Botania bakes its model map. */

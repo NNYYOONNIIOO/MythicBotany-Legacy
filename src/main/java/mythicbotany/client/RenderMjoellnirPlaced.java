@@ -3,7 +3,9 @@ package mythicbotany.client;
 import mythicbotany.entity.EntityMjoellnirPlaced;
 import mythicbotany.registry.ModBlocks;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -22,7 +24,7 @@ public final class RenderMjoellnirPlaced extends Render<EntityMjoellnirPlaced> {
                          float entityYaw, float partialTicks) {
         GlStateManager.pushMatrix();
         bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-        GlStateManager.translate((float) x, (float) y, (float) z);
+        GlStateManager.translate((float) x - 0.5F, (float) y - 0.5F, (float) z - 0.5F);
         float yaw = entity.prevRotationYaw
                 + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks;
         float pitch = entity.prevRotationPitch
@@ -30,8 +32,10 @@ public final class RenderMjoellnirPlaced extends Render<EntityMjoellnirPlaced> {
         GlStateManager.rotate(yaw - 90.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(pitch, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(90.0F, 0.0F, 0.0F, -1.0F);
-        Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlockBrightness(
-                ModBlocks.mjoellnir.getDefaultState(), 1.0F);
+        BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
+        net.minecraft.block.state.IBlockState state = ModBlocks.mjoellnir.getDefaultState();
+        IBakedModel model = dispatcher.getBlockModelShapes().getModelForState(state);
+        dispatcher.getBlockModelRenderer().renderModelBrightness(model, state, 1.0F, true);
         GlStateManager.popMatrix();
     }
 
