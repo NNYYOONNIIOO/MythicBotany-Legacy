@@ -56,13 +56,6 @@ public final class ModelHandler {
         if (item == null || item.getRegistryName() == null) {
             return;
         }
-        if (item == ModItems.mjoellnir) {
-            // Point the item stack at the block variant itself.  This avoids an
-            // inventory alias and makes RenderSnowballStack use mjoellnir.json.
-            ModelLoader.setCustomModelResourceLocation(item, 0,
-                    new ModelResourceLocation(ModBlocks.mjoellnir.getRegistryName(), "normal"));
-            return;
-        }
         if (item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {
             ModelResourceLocation location = new ModelResourceLocation(
                     item.getRegistryName(), "inventory");
