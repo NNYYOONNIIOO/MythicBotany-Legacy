@@ -42,7 +42,7 @@ public final class MjoellnirHandler {
             return;
         }
         EntityItem drop = player.dropItem(stack, false);
-        if (drop != null) {
+        if (drop != null && canHold(player)) {
             drop.getEntityData().setBoolean(RETURN_DROP_TAG, true);
         }
     }
@@ -56,11 +56,10 @@ public final class MjoellnirHandler {
         if (stack.isEmpty() || stack.getItem() != ModItems.mjoellnir) {
             return false;
         }
-        BlockPos pos = new BlockPos(MathHelper.floor(item.posX),
+        BlockPos start = new BlockPos(MathHelper.floor(item.posX),
                 MathHelper.floor(item.getEntityBoundingBox().minY), MathHelper.floor(item.posZ));
-        if (!item.world.isBlockLoaded(pos) || !item.world.isAirBlock(pos)
-                || !ModBlocks.mjoellnir.canPlaceBlockAt(item.world, pos)
-                || !item.world.setBlockState(pos, ModBlocks.mjoellnir.getDefaultState(), 3)) {
+        BlockPos pos = findPlacementPosition(item.world, start);
+        if (pos == null || !item.world.setBlockState(pos, ModBlocks.mjoellnir.getDefaultState(), 3)) {
             return false;
         }
         TileEntity tile = item.world.getTileEntity(pos);
@@ -71,6 +70,25 @@ public final class MjoellnirHandler {
         ((TileMjoellnir) tile).setItem(stack.copy());
         item.setDead();
         return true;
+    }
+
+    /** Stack automatic failed-return hammers vertically when their landing block is occupied. */
+    private static BlockPos findPlacementPosition(World world, BlockPos start) {
+        if (!world.isBlockLoaded(start)) {
+            return null;
+        }
+        for (int y = Math.max(0, start.getY()); y < world.getHeight(); y++) {
+            BlockPos candidate = new BlockPos(start.getX(), y, start.getZ());
+            if (world.getBlockState(candidate).getBlock() == ModBlocks.mjoellnir) {
+                continue;
+            }
+            if (!world.isAirBlock(candidate)
+                    || !ModBlocks.mjoellnir.canPlaceBlockAt(world, candidate)) {
+                return null;
+            }
+            return candidate;
+        }
+        return null;
     }
 
     public static void sendCannotHoldMessage(EntityPlayer player) {

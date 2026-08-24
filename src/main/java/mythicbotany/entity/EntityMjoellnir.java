@@ -177,8 +177,11 @@ public class EntityMjoellnir extends EntityThrowable {
     private void dropAndKill() {
         ItemStack stack = getItem();
         if (!isCreativeThrow() && !stack.isEmpty()) {
+            EntityLivingBase owner = getThrower();
+            boolean markForPlacement = owner instanceof EntityPlayer
+                    && MjoellnirHandler.canHold((EntityPlayer) owner);
             EntityItem drop = entityDropItem(stack, 0.1F);
-            if (drop != null) {
+            if (drop != null && markForPlacement) {
                 drop.getEntityData().setBoolean(MjoellnirHandler.RETURN_DROP_TAG, true);
             }
         }
