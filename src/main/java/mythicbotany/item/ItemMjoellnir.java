@@ -23,6 +23,12 @@ public class ItemMjoellnir extends ItemSword {
     }
 
     @Override
+    public int getMetadata(int damage) {
+        // Durability is not an item-model variant.
+        return 0;
+    }
+
+    @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         ItemStack stack = playerIn.getHeldItem(handIn);
         if (playerIn.getCooldownTracker().hasCooldown(this)) {

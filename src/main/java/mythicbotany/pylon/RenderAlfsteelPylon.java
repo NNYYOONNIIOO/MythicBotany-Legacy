@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 
 /** Client renderer for the Alfsteel pylon's ring and crystal. */
 public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelPylon> {
@@ -27,6 +28,7 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         float previousLightmapX = OpenGlHelper.lastBrightnessX;
         float previousLightmapY = OpenGlHelper.lastBrightnessY;
         GlStateManager.pushMatrix();
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         try {
             GlStateManager.enableAlpha();
             GlStateManager.enableCull();
@@ -94,6 +96,7 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     previousLightmapX, previousLightmapY);
+            GL11.glPopAttrib();
             GlStateManager.popMatrix();
         }
     }

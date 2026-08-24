@@ -1,5 +1,7 @@
 package mythicbotany.flower;
 
+import mythicbotany.item.ItemFadedNetherStar;
+
 import mythicbotany.registry.ModItems;
 import mythicbotany.rune.TileCentralRuneHolder;
 import net.minecraft.block.BlockCauldron;
@@ -106,15 +108,17 @@ public final class MythicFlowerSubTiles {
             if (stack.getItem() != ModItems.fadedNetherStar) {
                 return;
             }
-            int remaining = Math.max(0, DEFAULT_MANA_PER_STAR - stack.getItemDamage());
+            int currentCharge = ItemFadedNetherStar.getCharge(stack);
+            int remaining = ItemFadedNetherStar.MAX_DAMAGE - currentCharge;
             // The star's depletion is independent of the flower's small mana buffer.
             // One full 1,200,000-damage star therefore takes exactly 2,000 ticks.
             int transfer = Math.min(MAX_TRANSFER, remaining);
             if (transfer <= 0) {
                 return;
             }
-            stack.setItemDamage(stack.getItemDamage() + transfer);
-            if (stack.getItemDamage() >= stack.getMaxDamage()) {
+            int updatedCharge = currentCharge + transfer;
+            ItemFadedNetherStar.setCharge(stack, updatedCharge);
+            if (updatedCharge >= ItemFadedNetherStar.MAX_DAMAGE) {
                 entity.setDead();
             } else {
                 entity.setItem(stack);

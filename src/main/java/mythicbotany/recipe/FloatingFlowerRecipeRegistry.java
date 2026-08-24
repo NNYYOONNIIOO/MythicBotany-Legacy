@@ -12,8 +12,9 @@ import vazkii.botania.common.crafting.recipe.SpecialFloatingFlowerRecipe;
 @Mod.EventBusSubscriber(modid = MythicBotany.MODID)
 public final class FloatingFlowerRecipeRegistry {
     private static final String[] FLOWERS = {
-            "exoblaze", "aquapanthus", "hellebore", "feysythia",
-            "petrunia", "raindeletia", "wither_aconite"
+            "mythicbotany_exoblaze", "mythicbotany_aquapanthus", "mythicbotany_hellebore",
+            "mythicbotany_feysythia", "mythicbotany_petrunia", "mythicbotany_raindeletia",
+            "mythicbotany_wither_aconite"
     };
 
     private FloatingFlowerRecipeRegistry() {

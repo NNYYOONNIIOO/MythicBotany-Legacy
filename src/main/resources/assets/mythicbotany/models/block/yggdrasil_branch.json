@@ -1,4 +1,5 @@
 {
+	"parent": "block/block",
 	"textures": {
 		"0": "botania:blocks/root",
 		"particle": "botania:blocks/root"
