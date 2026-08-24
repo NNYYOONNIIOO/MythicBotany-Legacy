@@ -10,10 +10,12 @@ import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.ItemMeshDefinition;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.ColorHandlerEvent;
+import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -38,6 +40,23 @@ public final class ModelHandler {
         for (Block block : ModBlocks.ALL) {
             register(Item.getItemFromBlock(block));
         }
+    }
+
+    /** Force the item renderer to use the already-baked block model. */
+    @SubscribeEvent
+    public static void bakeMjoellnirItemModel(ModelBakeEvent event) {
+        ModelResourceLocation blockLocation =
+                new ModelResourceLocation(ModBlocks.mjoellnir.getRegistryName(), "normal");
+        IBakedModel blockModel = event.getModelRegistry().getObject(blockLocation);
+        if (blockModel == null) {
+            return;
+        }
+        event.getModelRegistry().putObject(
+                new ModelResourceLocation(ModItems.mjoellnir.getRegistryName(), "inventory"),
+                blockModel);
+        event.getModelRegistry().putObject(
+                new ModelResourceLocation(new ResourceLocation(MythicBotany.MODID, "mjoellnir_render"),
+                        "inventory"), blockModel);
     }
 
     /** Register addon special-flower models before Botania bakes its model map. */
