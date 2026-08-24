@@ -33,7 +33,7 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
                 + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks;
         GlStateManager.pushMatrix();
         try {
-        GlStateManager.translate(x, y + 1.0D, z);
+            GlStateManager.translate(x, y + 1.1875D, z);
             EntityLivingBase thrower = entity.getThrower();
             if (thrower != null) {
                 double entityX = entity.prevPosX + (entity.posX - entity.prevPosX) * partialTicks;

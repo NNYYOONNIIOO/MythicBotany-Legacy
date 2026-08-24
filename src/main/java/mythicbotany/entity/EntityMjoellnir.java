@@ -30,11 +30,13 @@ public class EntityMjoellnir extends EntityThrowable {
 
     public EntityMjoellnir(World world) {
         super(world);
+        setSize(1.0F, 1.0F);
         setNoGravity(true);
     }
 
     public EntityMjoellnir(World world, EntityLivingBase thrower, ItemStack stack) {
         super(world, thrower);
+        setSize(1.0F, 1.0F);
         setItem(stack);
         setNoGravity(true);
     }
