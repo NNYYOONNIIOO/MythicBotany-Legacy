@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -15,6 +16,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public final class RenderMjoellnir extends Render<EntityMjoellnir> {
+    private static final ModelResourceLocation MJOELLNIR_MODEL =
+            new ModelResourceLocation("mythicbotany:mjoellnir", "normal");
+
     public RenderMjoellnir(RenderManager manager) {
         super(manager);
     }
@@ -34,7 +38,7 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
         GlStateManager.rotate(90.0F, 0.0F, 0.0F, -1.0F);
         BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
         net.minecraft.block.state.IBlockState state = ModBlocks.mjoellnir.getDefaultState();
-        IBakedModel model = dispatcher.getBlockModelShapes().getModelForState(state);
+        IBakedModel model = dispatcher.getBlockModelShapes().getModelManager().getModel(MJOELLNIR_MODEL);
         dispatcher.getBlockModelRenderer().renderModelBrightness(model, state, 1.0F, true);
         GlStateManager.popMatrix();
     }
