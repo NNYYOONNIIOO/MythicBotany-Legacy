@@ -72,8 +72,7 @@ public final class MythicFlowerSubTiles {
         public static final int DEFAULT_MANA_PER_STAR = 1200000;
         private static final int CONSUMPTION_TICKS = 20 * 100;
         private static final int MAX_MANA = DEFAULT_MANA_PER_STAR / 500;
-        private static final int MAX_TRANSFER = (DEFAULT_MANA_PER_STAR + CONSUMPTION_TICKS - 1)
-                / CONSUMPTION_TICKS;
+        private static final int MAX_TRANSFER = DEFAULT_MANA_PER_STAR / CONSUMPTION_TICKS;
         private long lastConsumptionWorldTime = Long.MIN_VALUE;
 
         @Override
@@ -107,7 +106,7 @@ public final class MythicFlowerSubTiles {
             if (stack.getItem() != ModItems.fadedNetherStar) {
                 return;
             }
-            int remaining = Math.max(0, stack.getMaxDamage() - stack.getItemDamage());
+            int remaining = Math.max(0, DEFAULT_MANA_PER_STAR - stack.getItemDamage());
             // The star's depletion is independent of the flower's small mana buffer.
             // One full 1,200,000-damage star therefore takes exactly 2,000 ticks.
             int transfer = Math.min(MAX_TRANSFER, remaining);

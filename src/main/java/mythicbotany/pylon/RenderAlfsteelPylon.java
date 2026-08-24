@@ -4,6 +4,7 @@ import mythicbotany.registry.ModBlocks;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
@@ -23,6 +24,8 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
                        int destroyStage, float alpha) {
         boolean renderingItem = tile == ForwardingTEISR.DUMMY || tile == null || tile.getWorld() == null;
         TileAlfsteelPylon renderTile = tile == null ? ITEM_DUMMY : tile;
+        float previousLightmapX = OpenGlHelper.lastBrightnessX;
+        float previousLightmapY = OpenGlHelper.lastBrightnessY;
         GlStateManager.pushMatrix();
         try {
             GlStateManager.enableAlpha();
@@ -89,6 +92,8 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
             GlStateManager.disableBlend();
             GlStateManager.disableRescaleNormal();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                    previousLightmapX, previousLightmapY);
             GlStateManager.popMatrix();
         }
     }

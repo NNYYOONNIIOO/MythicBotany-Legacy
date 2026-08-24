@@ -13,10 +13,10 @@ import net.minecraft.util.EnumFacing;
 /** Renders a horn stored in a placed Yggdrasil branch. */
 public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdrasilBranch> {
     // Adjust these constants to move or scale the horn on a placed branch.
-    private static final double HORN_X = 0.5D;
-    private static final double HORN_Y = 0.65D;
-    private static final double HORN_Z = 0.5D;
-    private static final float HORN_SCALE = 0.45F;
+    public static final double HORN_X = 0.5D;
+    public static final double HORN_Y = 0.65D;
+    public static final double HORN_Z = 0.5D;
+    public static final float HORN_SCALE = 0.45F;
 
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z, float partialTicks,
