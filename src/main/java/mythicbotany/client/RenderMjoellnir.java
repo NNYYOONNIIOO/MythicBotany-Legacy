@@ -1,28 +1,46 @@
 package mythicbotany.client;
 
 import mythicbotany.entity.EntityMjoellnir;
-import mythicbotany.registry.ModItems;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
-import vazkii.botania.client.render.entity.RenderSnowballStack;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public final class RenderMjoellnir extends RenderSnowballStack<EntityMjoellnir> {
+public final class RenderMjoellnir extends Render<EntityMjoellnir> {
     public RenderMjoellnir(RenderManager manager) {
-        super(manager, ModItems.mjoellnir, Minecraft.getMinecraft().getRenderItem(),
-                RenderMjoellnir::getRenderStack);
+        super(manager);
     }
 
-    private static ItemStack getRenderStack(EntityMjoellnir entity) {
+    @Override
+    public void doRender(EntityMjoellnir entity, double x, double y, double z,
+                         float entityYaw, float partialTicks) {
         ItemStack stack = entity.getItem();
         if (stack.isEmpty()) {
-            return new ItemStack(ModItems.mjoellnir);
+            return;
         }
-        ItemStack renderStack = stack.copy();
-        renderStack.setItemDamage(0);
-        return renderStack;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((float) x, (float) y, (float) z);
+        float yaw = entity.prevRotationYaw
+                + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks;
+        float pitch = entity.prevRotationPitch
+                + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks;
+        GlStateManager.rotate(yaw - 90.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(pitch, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotate(90.0F, 0.0F, 0.0F, -1.0F);
+        Minecraft.getMinecraft().getRenderItem().renderItem(stack,
+                ItemCameraTransforms.TransformType.NONE);
+        GlStateManager.popMatrix();
+    }
+
+    @Override
+    protected ResourceLocation getEntityTexture(EntityMjoellnir entity) {
+        return null;
     }
 }

@@ -25,6 +25,7 @@ public class EntityMjoellnir extends EntityThrowable {
     private static final DataParameter<Boolean> CREATIVE_THROW = EntityDataManager.createKey(
             EntityMjoellnir.class, DataSerializers.BOOLEAN);
     private static final int MAX_FLIGHT_TICKS = 80;
+    private static final int MAX_RETURN_TICKS = 80;
     private static final double MAX_FLIGHT_DISTANCE_SQUARED = 64.0D * 64.0D;
 
     public EntityMjoellnir(World world) {
@@ -101,11 +102,13 @@ public class EntityMjoellnir extends EntityThrowable {
             return;
         }
 
+        if (!world.isRemote && ticksExisted > MAX_FLIGHT_TICKS + MAX_RETURN_TICKS) {
+            dropAndKill();
+            return;
+        }
+
         EntityLivingBase owner = getThrower();
         if (!(owner instanceof EntityPlayer) || !owner.isEntityAlive()) {
-            if (!world.isRemote && ticksExisted > MAX_FLIGHT_TICKS + 40) {
-                dropAndKill();
-            }
             return;
         }
 
