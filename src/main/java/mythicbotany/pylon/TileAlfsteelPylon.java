@@ -33,14 +33,9 @@ public class TileAlfsteelPylon extends ManaTileEntity {
 
     @Override
     public void recieveMana(int amount) {
-        if (amount <= 0 || isFull()) {
-            return;
-        }
-        int accepted = Math.min(amount, getMaxMana() - mana);
-        if (accepted > 0) {
-            mana += accepted;
-            markDirty();
-        }
+        // Botania mana bursts call this method directly; the base implementation
+        // clamps both positive and negative changes to this tile's 1000-mana cap.
+        super.recieveMana(amount);
     }
 
     @Override
@@ -72,13 +67,21 @@ public class TileAlfsteelPylon extends ManaTileEntity {
         for (EntityItem entity : items) {
             ItemStack stack = entity.getItem();
             int manaCost = getRepairManaPerPoint(stack);
-            if (stack.getCount() != 1 || manaCost <= 0 || mana < manaCost) {
+            int damage = stack.getItemDamage();
+            if (stack.getCount() != 1 || manaCost <= 0 || damage <= 0) {
                 continue;
             }
-            stack.setItemDamage(Math.max(0, stack.getItemDamage() - 1));
+            int repairPoints = Math.min(damage, mana / manaCost);
+            if (repairPoints <= 0) {
+                continue;
+            }
+            stack.setItemDamage(damage - repairPoints);
             entity.setItem(stack);
-            mana -= manaCost;
+            mana -= repairPoints * manaCost;
             repaired = true;
+            if (mana <= 0) {
+                break;
+            }
         }
         if (repaired) {
             markDirty();
@@ -86,7 +89,8 @@ public class TileAlfsteelPylon extends ManaTileEntity {
     }
 
     public static int getRepairManaPerPoint(ItemStack stack) {
-        if (stack.isEmpty() || !stack.getItem().isDamageable() || !stack.isItemDamaged()) {
+        if (stack.isEmpty() || stack.getCount() != 1 || !stack.getItem().isDamageable()
+                || !stack.isItemDamaged()) {
             return 0;
         }
         if (isAlfsteel(stack)) {

@@ -18,7 +18,7 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
     /** Easy-to-tune model-only yaw offset; entity flight yaw remains separate. */
     private static final float MODEL_Y_ROTATION = 90.0F;
     // 16 pixels = one block; only the returning model is lowered.
-    private static final double RETURNING_MODEL_Y_OFFSET = -16.0D / 16.0D;
+    private static final double RETURNING_MODEL_Y_OFFSET = -32.0D / 16.0D;
 
     public RenderMjoellnir(RenderManager manager) {
         super(manager);
