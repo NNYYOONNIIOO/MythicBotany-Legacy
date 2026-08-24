@@ -58,7 +58,8 @@ public final class ModelHandler {
         }
         if (item == ModItems.mjoellnir) {
             ModelLoader.setCustomModelResourceLocation(item, 0,
-                    new ModelResourceLocation(item.getRegistryName(), "inventory"));
+                    new ModelResourceLocation(
+                            new ResourceLocation(MythicBotany.MODID, "mjoellnir_render"), "inventory"));
             return;
         }
         if (item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {

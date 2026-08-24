@@ -36,20 +36,19 @@ public final class MjoellnirHandler {
                 && player.getEntityData().getLong(GOLDEN_APPLE_UNTIL_TAG) >= player.world.getTotalWorldTime();
     }
 
-    /** Marks an automatic loss of the hammer so it becomes the placed hammer on landing. */
+    /** Drops the hammer; every dropped Mjoellnir is converted to its placed form on landing. */
     public static void dropForFailedReturn(EntityPlayer player, ItemStack stack) {
         if (player == null || stack == null || stack.isEmpty()) {
             return;
         }
         EntityItem drop = player.dropItem(stack, false);
-        if (drop != null && canHold(player)) {
+        if (drop != null) {
             drop.getEntityData().setBoolean(RETURN_DROP_TAG, true);
         }
     }
 
     public static boolean convertFailedReturnDrop(EntityItem item) {
-        if (item == null || item.isDead || !item.onGround || item.world.isRemote
-                || !item.getEntityData().getBoolean(RETURN_DROP_TAG)) {
+        if (item == null || item.isDead || !item.onGround || item.world.isRemote) {
             return false;
         }
         ItemStack stack = item.getItem();
@@ -82,16 +81,16 @@ public final class MjoellnirHandler {
             if (world.getBlockState(candidate).getBlock() == ModBlocks.mjoellnir) {
                 continue;
             }
-            if (!world.isAirBlock(candidate)) {
-                return null;
+            if (!world.getBlockState(candidate).getMaterial().isReplaceable()) {
+                continue;
             }
             BlockPos below = candidate.down();
             boolean stackedOnHammer = y > 0
                     && world.getBlockState(below).getBlock() == ModBlocks.mjoellnir;
-            if (!stackedOnHammer && !ModBlocks.mjoellnir.canPlaceBlockAt(world, candidate)) {
-                return null;
+            if (stackedOnHammer || ModBlocks.mjoellnir.canPlaceBlockAt(world, candidate)
+                    || world.isAirBlock(candidate)) {
+                return candidate;
             }
-            return candidate;
         }
         return null;
     }
