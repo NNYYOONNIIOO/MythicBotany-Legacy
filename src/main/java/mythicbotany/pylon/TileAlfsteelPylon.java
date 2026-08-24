@@ -33,8 +33,13 @@ public class TileAlfsteelPylon extends ManaTileEntity {
 
     @Override
     public void recieveMana(int amount) {
-        if (amount > 0) {
-            super.recieveMana(amount);
+        if (amount <= 0 || isFull()) {
+            return;
+        }
+        int accepted = Math.min(amount, getMaxMana() - mana);
+        if (accepted > 0) {
+            mana += accepted;
+            markDirty();
         }
     }
 
