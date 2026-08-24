@@ -46,7 +46,6 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
     private static final int MANA_PER_DAMAGE = 200;
     private static final double MAX_BURST_DISTANCE = 144.0D;
     private static final UUID ATTACK_DAMAGE_UUID = UUID.fromString("1e9f8a10-5a2e-4c0a-9e01-2c5d8b1a4001");
-    private static final UUID ATTACK_SPEED_UUID = UUID.fromString("1e9f8a10-5a2e-4c0a-9e01-2c5d8b1a4002");
 
     public ItemAlfsteelSword(Item.ToolMaterial material) {
         super(material);
@@ -89,7 +88,7 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
             builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
                     new AttributeModifier(ATTACK_DAMAGE_UUID, "Weapon modifier", 12.0D, 0));
             builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
-                    new AttributeModifier(ATTACK_SPEED_UUID, "Weapon modifier", 2.4D, 0));
+                    new AttributeModifier(Item.ATTACK_SPEED_MODIFIER, "Weapon modifier", 2.4D, 0));
             return builder.build();
         }
         return super.getAttributeModifiers(slot, stack);

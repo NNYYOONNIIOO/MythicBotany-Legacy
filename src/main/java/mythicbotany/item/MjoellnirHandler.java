@@ -1,0 +1,81 @@
+package mythicbotany.item;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.World;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import mythicbotany.entity.EntityMjoellnirPlaced;
+import mythicbotany.registry.ModItems;
+import vazkii.botania.common.item.relic.ItemThorRing;
+
+/** Shared ownership rules for Mjoellnir and its failed-return drop. */
+public final class MjoellnirHandler {
+    public static final String RETURN_DROP_TAG = "mythicbotanyMjoellnirReturnDrop";
+    private static final String GOLDEN_APPLE_UNTIL_TAG = "mythicbotanyGoldenAppleUntil";
+    private static final long GOLDEN_APPLE_DURATION = 20L * 120L;
+
+    public static boolean canHold(EntityPlayer player) {
+        if (player == null || player.capabilities.isCreativeMode) {
+            return true;
+        }
+        return !ItemThorRing.getThorRing(player).isEmpty()
+                && player.getEntityData().getLong(GOLDEN_APPLE_UNTIL_TAG) >= player.world.getTotalWorldTime();
+    }
+
+    @SubscribeEvent
+    public void onGoldenAppleFinished(LivingEntityUseItemEvent.Finish event) {
+        if (!(event.getEntityLiving() instanceof EntityPlayer) || event.getEntityLiving().world.isRemote) {
+            return;
+        }
+        ItemStack consumed = event.getItem();
+        if (!consumed.isEmpty() && consumed.getItem() == Items.GOLDEN_APPLE) {
+            EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+            player.getEntityData().setLong(GOLDEN_APPLE_UNTIL_TAG,
+                    player.world.getTotalWorldTime() + GOLDEN_APPLE_DURATION);
+        }
+    }
+
+    @SubscribeEvent
+    public void onMjoellnirPickup(EntityItemPickupEvent event) {
+        EntityPlayer player = event.getEntityPlayer();
+        if (event.getItem().getItem().getItem() == ModItems.mjoellnir && !canHold(player)) {
+            event.setCanceled(true);
+            player.sendStatusMessage(new TextComponentTranslation(
+                    "message.mythicbotany.mjoellnir_heavy_pick"), true);
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldTick(TickEvent.WorldTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || event.world.isRemote) {
+            return;
+        }
+        World world = event.world;
+        List<Entity> entities = new ArrayList<>(world.loadedEntityList);
+        for (Entity entity : entities) {
+            if (!(entity instanceof EntityItem) || entity.isDead) {
+                continue;
+            }
+            EntityItem item = (EntityItem) entity;
+            ItemStack stack = item.getItem();
+            if (!item.onGround || stack.isEmpty() || stack.getItem() != ModItems.mjoellnir
+                    || !item.getEntityData().getBoolean(RETURN_DROP_TAG)) {
+                continue;
+            }
+            EntityMjoellnirPlaced placed = new EntityMjoellnirPlaced(world,
+                    item.posX, item.posY, item.posZ, stack.copy());
+            item.setDead();
+            world.spawnEntity(placed);
+        }
+    }
+}

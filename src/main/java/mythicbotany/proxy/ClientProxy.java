@@ -2,7 +2,9 @@ package mythicbotany.proxy;
 
 import mythicbotany.client.RenderAlfPixie;
 import mythicbotany.client.RenderMjoellnir;
+import mythicbotany.client.RenderMjoellnirPlaced;
 import mythicbotany.entity.EntityMjoellnir;
+import mythicbotany.entity.EntityMjoellnirPlaced;
 import mythicbotany.entity.EntityAlfPixie;
 import mythicbotany.pylon.RenderAlfsteelPylon;
 import mythicbotany.pylon.TileAlfsteelPylon;
@@ -27,6 +29,7 @@ public final class ClientProxy extends CommonProxy {
     public void init() {
         RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);
         RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnir.class, RenderMjoellnir::new);
+        RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnirPlaced.class, RenderMjoellnirPlaced::new);
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());

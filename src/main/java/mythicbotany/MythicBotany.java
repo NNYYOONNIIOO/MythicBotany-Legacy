@@ -14,12 +14,12 @@ import mythicbotany.dimension.ModDimensions;
 import mythicbotany.lexicon.MythicLexicon;
 import mythicbotany.network.NetworkHandler;
 import mythicbotany.item.AlfsteelArmorHandler;
+import mythicbotany.item.MjoellnirHandler;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.rune.RuneRitualRegistry;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -41,19 +41,6 @@ public final class MythicBotany {
             return new ItemStack(ModItems.alfsteelIngot);
         }
 
-        @Override
-        public void displayAllRelevantItems(NonNullList<ItemStack> items) {
-            super.displayAllRelevantItems(items);
-            String[] flowers = {
-                    "mythicbotany_exoblaze", "mythicbotany_wither_aconite",
-                    "mythicbotany_aquapanthus", "mythicbotany_hellebore",
-                    "mythicbotany_raindeletia", "mythicbotany_feysythia",
-                    "mythicbotany_petrunia"
-            };
-            for (String flower : flowers) {
-                items.add(vazkii.botania.common.item.block.ItemBlockSpecialFlower.ofType(flower));
-            }
-        }
     };
 
     @Mod.Instance(MODID)
@@ -69,6 +56,7 @@ public final class MythicBotany {
     public MythicBotany() {
         MinecraftForge.EVENT_BUS.register(new mythicbotany.registry.ModRegistry());
         MinecraftForge.EVENT_BUS.register(new AlfsteelArmorHandler());
+        MinecraftForge.EVENT_BUS.register(new MjoellnirHandler());
     }
 
     @Mod.EventHandler

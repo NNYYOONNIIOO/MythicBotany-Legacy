@@ -2,6 +2,7 @@ package mythicbotany.entity;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.item.ItemStack;
@@ -13,6 +14,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import mythicbotany.item.MjoellnirHandler;
 
 /** A thrown Mjoellnir which strikes living targets and then returns to its owner. */
 public class EntityMjoellnir extends EntityThrowable {
@@ -79,7 +81,7 @@ public class EntityMjoellnir extends EntityThrowable {
         if (result.entityHit instanceof EntityLivingBase && result.entityHit != getThrower()) {
             EntityLivingBase target = (EntityLivingBase) result.entityHit;
             target.attackEntityFrom(DamageSource.LIGHTNING_BOLT, 5.0F);
-            world.addWeatherEffect(new EntityLightningBolt(world, target.posX, target.posY, target.posZ, true));
+            world.addWeatherEffect(new EntityLightningBolt(world, target.posX, target.posY, target.posZ, false));
         }
         startReturning();
     }
@@ -148,6 +150,12 @@ public class EntityMjoellnir extends EntityThrowable {
         }
         ItemStack stack = getItem();
         if (!stack.isEmpty()) {
+            if (!MjoellnirHandler.canHold(player)) {
+                player.dropItem(stack, false);
+                setItem(ItemStack.EMPTY);
+                setDead();
+                return;
+            }
             if (player.getHeldItemMainhand().isEmpty()) {
                 player.setHeldItem(EnumHand.MAIN_HAND, stack);
             } else if (player.getHeldItemOffhand().isEmpty()) {
@@ -163,7 +171,10 @@ public class EntityMjoellnir extends EntityThrowable {
     private void dropAndKill() {
         ItemStack stack = getItem();
         if (!isCreativeThrow() && !stack.isEmpty()) {
-            entityDropItem(stack, 0.1F);
+            EntityItem drop = entityDropItem(stack, 0.1F);
+            if (drop != null) {
+                drop.getEntityData().setBoolean(MjoellnirHandler.RETURN_DROP_TAG, true);
+            }
         }
         setItem(ItemStack.EMPTY);
         setDead();

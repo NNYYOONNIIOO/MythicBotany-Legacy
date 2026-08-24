@@ -35,12 +35,19 @@ public final class ModRecipes {
         }
         specialFlowersRegistered = true;
         BotaniaAPI.registerSubTile("mythicbotany_exoblaze", MythicFlowerSubTiles.Exoblaze.class);
+        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_exoblaze");
         BotaniaAPI.registerSubTile("mythicbotany_wither_aconite", MythicFlowerSubTiles.WitherAconite.class);
+        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_wither_aconite");
         BotaniaAPI.registerSubTile("mythicbotany_aquapanthus", MythicFlowerSubTiles.Aquapanthus.class);
+        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_aquapanthus");
         BotaniaAPI.registerSubTile("mythicbotany_hellebore", MythicFlowerSubTiles.Hellebore.class);
+        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_hellebore");
         BotaniaAPI.registerSubTile("mythicbotany_raindeletia", MythicFlowerSubTiles.Raindeletia.class);
+        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_raindeletia");
         BotaniaAPI.registerSubTile("mythicbotany_feysythia", MythicFlowerSubTiles.Feysythia.class);
+        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_feysythia");
         BotaniaAPI.registerSubTile("mythicbotany_petrunia", MythicFlowerSubTiles.Petrunia.class);
+        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_petrunia");
     }
 
     private static void registerOreDictionary() {

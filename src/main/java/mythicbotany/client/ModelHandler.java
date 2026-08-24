@@ -54,10 +54,24 @@ public final class ModelHandler {
         if (item == null || item.getRegistryName() == null) {
             return;
         }
-        if (item == ModItems.mjoellnir
-                || item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {
-            ModelLoader.setCustomModelResourceLocation(item, 0,
-                    new ModelResourceLocation(item.getRegistryName(), "inventory"));
+        if (item == ModItems.mjoellnir) {
+            final ModelResourceLocation location = new ModelResourceLocation(
+                    item.getRegistryName(), "inventory");
+            ModelLoader.setCustomModelResourceLocation(item, 0, location);
+            ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition() {
+                @Override
+                public ModelResourceLocation getModelLocation(ItemStack stack) {
+                    return location;
+                }
+            });
+            return;
+        }
+        if (item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {
+            ModelResourceLocation location = new ModelResourceLocation(
+                    item.getRegistryName(), "inventory");
+            for (int meta = 0; meta < 4; meta++) {
+                ModelLoader.setCustomModelResourceLocation(item, meta, location);
+            }
             return;
         }
         if (item == ModItems.fadedNetherStar) {

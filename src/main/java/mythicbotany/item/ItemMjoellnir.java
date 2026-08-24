@@ -36,6 +36,14 @@ public class ItemMjoellnir extends ItemSword {
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         ItemStack stack = playerIn.getHeldItem(handIn);
+        if (!MjoellnirHandler.canHold(playerIn)) {
+            if (!worldIn.isRemote) {
+                ItemStack dropped = stack.copy();
+                stack.setCount(0);
+                playerIn.dropItem(dropped, false);
+            }
+            return new ActionResult<>(EnumActionResult.FAIL, stack);
+        }
         if (playerIn.getCooldownTracker().hasCooldown(this)) {
             return new ActionResult<>(EnumActionResult.PASS, stack);
         }
@@ -71,7 +79,14 @@ public class ItemMjoellnir extends ItemSword {
     public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         super.onUpdate(stack, world, entity, slot, selected);
         if (!world.isRemote && entity instanceof EntityPlayer) {
-            AlfsteelRepairHelper.repair(stack, (EntityPlayer) entity, world.getTotalWorldTime());
+            EntityPlayer player = (EntityPlayer) entity;
+            if (!MjoellnirHandler.canHold(player)) {
+                ItemStack dropped = stack.copy();
+                stack.setCount(0);
+                player.dropItem(dropped, false);
+                return;
+            }
+            AlfsteelRepairHelper.repair(stack, player, world.getTotalWorldTime());
         }
     }
 
