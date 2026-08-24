@@ -2,6 +2,7 @@ package mythicbotany.item;
 
 import mythicbotany.entity.EntityMjoellnir;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
@@ -40,7 +41,7 @@ public class ItemMjoellnir extends ItemSword {
             if (!worldIn.isRemote) {
                 ItemStack dropped = stack.copy();
                 stack.setCount(0);
-                MjoellnirHandler.dropForFailedReturn(playerIn, dropped);
+                playerIn.dropItem(dropped, false);
             }
             return new ActionResult<>(EnumActionResult.FAIL, stack);
         }
@@ -83,11 +84,19 @@ public class ItemMjoellnir extends ItemSword {
             if (!MjoellnirHandler.canHold(player)) {
                 ItemStack dropped = stack.copy();
                 stack.setCount(0);
-                MjoellnirHandler.dropForFailedReturn(player, dropped);
+                player.dropItem(dropped, false);
                 return;
             }
             AlfsteelRepairHelper.repair(stack, player, world.getTotalWorldTime());
         }
+    }
+
+    @Override
+    public boolean onEntityItemUpdate(EntityItem entityItem) {
+        if (!entityItem.world.isRemote && MjoellnirHandler.convertFailedReturnDrop(entityItem)) {
+            return true;
+        }
+        return false;
     }
 
     private void strike(World world, double x, double y, double z) {

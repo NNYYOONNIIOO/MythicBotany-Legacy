@@ -43,6 +43,22 @@ public final class MjoellnirHandler {
         }
     }
 
+    public static boolean convertFailedReturnDrop(EntityItem item) {
+        if (item == null || item.isDead || !item.onGround || item.world.isRemote
+                || !item.getEntityData().getBoolean(RETURN_DROP_TAG)) {
+            return false;
+        }
+        ItemStack stack = item.getItem();
+        if (stack.isEmpty() || stack.getItem() != ModItems.mjoellnir) {
+            return false;
+        }
+        EntityMjoellnirPlaced placed = new EntityMjoellnirPlaced(item.world,
+                item.posX, item.posY, item.posZ, stack.copy());
+        item.setDead();
+        item.world.spawnEntity(placed);
+        return true;
+    }
+
     @SubscribeEvent
     public void onGoldenAppleFinished(LivingEntityUseItemEvent.Finish event) {
         if (!(event.getEntityLiving() instanceof EntityPlayer) || event.getEntityLiving().world.isRemote) {
@@ -78,15 +94,7 @@ public final class MjoellnirHandler {
                 continue;
             }
             EntityItem item = (EntityItem) entity;
-            ItemStack stack = item.getItem();
-            if (!item.onGround || stack.isEmpty() || stack.getItem() != ModItems.mjoellnir
-                    || !item.getEntityData().getBoolean(RETURN_DROP_TAG)) {
-                continue;
-            }
-            EntityMjoellnirPlaced placed = new EntityMjoellnirPlaced(world,
-                    item.posX, item.posY, item.posZ, stack.copy());
-            item.setDead();
-            world.spawnEntity(placed);
+            convertFailedReturnDrop(item);
         }
     }
 }
