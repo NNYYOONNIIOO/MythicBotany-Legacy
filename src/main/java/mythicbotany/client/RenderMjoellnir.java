@@ -1,14 +1,12 @@
 package mythicbotany.client;
 
 import mythicbotany.entity.EntityMjoellnir;
-import mythicbotany.registry.ModItems;
+import mythicbotany.registry.ModBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -22,13 +20,6 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
     @Override
     public void doRender(EntityMjoellnir entity, double x, double y, double z,
                          float entityYaw, float partialTicks) {
-        ItemStack stack = entity.getItem();
-        if (stack.isEmpty()) {
-            stack = new ItemStack(ModItems.mjoellnir);
-        }
-        ItemStack renderStack = stack.copy();
-        renderStack.setItemDamage(0);
-
         GlStateManager.pushMatrix();
         bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         GlStateManager.translate((float) x, (float) y, (float) z);
@@ -39,8 +30,8 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
         GlStateManager.rotate(yaw - 90.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(pitch, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(90.0F, 0.0F, 0.0F, -1.0F);
-        Minecraft.getMinecraft().getRenderItem().renderItem(renderStack,
-                ItemCameraTransforms.TransformType.NONE);
+        Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlockBrightness(
+                ModBlocks.mjoellnir.getDefaultState(), 1.0F);
         GlStateManager.popMatrix();
     }
 
