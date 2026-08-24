@@ -23,6 +23,9 @@ public final class ModRegistry {
         ModRecipes.registerSpecialFlowerSubTiles();
         event.getRegistry().registerAll(ModItems.ALL);
         for (Block block : ModBlocks.ALL) {
+            if (block == ModBlocks.mjoellnir) {
+                continue;
+            }
             ItemBlock itemBlock = new ItemBlock(block);
             itemBlock.setRegistryName(block.getRegistryName());
             event.getRegistry().register(itemBlock);

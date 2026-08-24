@@ -69,9 +69,9 @@ public class ItemAlfsteelAxe extends ItemAxe implements ISequentialBreaker {
         if (slot == EntityEquipmentSlot.MAINHAND) {
             ImmutableMultimap.Builder<String, AttributeModifier> builder = ImmutableMultimap.builder();
             builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
-                    new AttributeModifier(Item.ATTACK_SPEED_MODIFIER, "Weapon modifier", -2.8D, 0));
+                    new AttributeModifier(Item.ATTACK_SPEED_MODIFIER, "Weapon modifier", -3.0D, 0));
             builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
-                    new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 5.0D, 0));
+                    new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 9.0D, 0));
             return builder.build();
         }
         return super.getAttributeModifiers(slot, stack);

@@ -301,3 +301,10 @@ jei.mythicbotany.mana=魔力：%s
 
 
 entity.alf_pixie.name=精灵皮克希
+tile.botania:specialflower.mythicbotany_exoblaze.reference=烈焰花为附近的酿造台提供燃料。
+tile.botania:specialflower.mythicbotany_wither_aconite.reference=它需要吞噬下界之星。
+tile.botania:specialflower.mythicbotany_aquapanthus.reference=在干燥时尝试。
+tile.botania:specialflower.mythicbotany_hellebore.reference=它仿佛来自海尔冥府。
+tile.botania:specialflower.mythicbotany_raindeletia.reference=雨水并不是一种痛苦。
+tile.botania:specialflower.mythicbotany_feysythia.reference=精灵的童话。
+tile.botania:specialflower.mythicbotany_petrunia.reference=从女贞路的花园中获得。

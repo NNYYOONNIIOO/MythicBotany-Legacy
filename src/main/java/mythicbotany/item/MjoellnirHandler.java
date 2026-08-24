@@ -14,8 +14,12 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import mythicbotany.entity.EntityMjoellnirPlaced;
+import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
+import mythicbotany.tile.TileMjoellnir;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import vazkii.botania.common.item.relic.ItemThorRing;
 
 /** Shared ownership rules for Mjoellnir and its failed-return drop. */
@@ -52,11 +56,26 @@ public final class MjoellnirHandler {
         if (stack.isEmpty() || stack.getItem() != ModItems.mjoellnir) {
             return false;
         }
-        EntityMjoellnirPlaced placed = new EntityMjoellnirPlaced(item.world,
-                item.posX, item.posY, item.posZ, stack.copy());
+        BlockPos pos = new BlockPos(MathHelper.floor(item.posX),
+                MathHelper.floor(item.getEntityBoundingBox().minY), MathHelper.floor(item.posZ));
+        if (!item.world.isBlockLoaded(pos) || !item.world.isAirBlock(pos)
+                || !ModBlocks.mjoellnir.canPlaceBlockAt(item.world, pos)
+                || !item.world.setBlockState(pos, ModBlocks.mjoellnir.getDefaultState(), 3)) {
+            return false;
+        }
+        TileEntity tile = item.world.getTileEntity(pos);
+        if (!(tile instanceof TileMjoellnir)) {
+            item.world.setBlockToAir(pos);
+            return false;
+        }
+        ((TileMjoellnir) tile).setItem(stack.copy());
         item.setDead();
-        item.world.spawnEntity(placed);
         return true;
+    }
+
+    public static void sendCannotHoldMessage(EntityPlayer player) {
+        player.sendStatusMessage(new TextComponentTranslation(
+                "message.mythicbotany.mjoellnir_heavy_pick"), true);
     }
 
     @SubscribeEvent
@@ -77,8 +96,7 @@ public final class MjoellnirHandler {
         EntityPlayer player = event.getEntityPlayer();
         if (event.getItem().getItem().getItem() == ModItems.mjoellnir && !canHold(player)) {
             event.setCanceled(true);
-            player.sendStatusMessage(new TextComponentTranslation(
-                    "message.mythicbotany.mjoellnir_heavy_pick"), true);
+            sendCannotHoldMessage(player);
         }
     }
 

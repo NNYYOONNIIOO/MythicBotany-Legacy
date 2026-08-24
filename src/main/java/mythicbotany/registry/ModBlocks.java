@@ -9,6 +9,7 @@ import mythicbotany.block.BlockYggdrasilBranch;
 import mythicbotany.block.BlockAlfsteelPylon;
 import mythicbotany.block.BlockDreamwoodLeaves;
 import mythicbotany.block.BlockDragonstoneOre;
+import mythicbotany.block.BlockMjoellnir;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
@@ -26,11 +27,12 @@ public final class ModBlocks {
     public static final Block elementiumOre = named(rockBlock(4.0F, 5.0F, SoundType.STONE), "elementium_ore");
     public static final Block dragonstoneOre = named(new BlockDragonstoneOre(), "dragonstone_ore");
     public static final Block goldOre = named(rockBlock(3.0F, 5.0F, SoundType.STONE), "gold_ore");
+    public static final Block mjoellnir = named(new BlockMjoellnir(), "mjoellnir");
 
     public static final Block[] ALL = {
             manaInfuser, manaCollector, alfsteelBlock, alfsteelPylon,
             yggdrasilBranch, runeHolder, centralRuneHolder, dreamwoodLeaves,
-            elementiumOre, dragonstoneOre, goldOre
+            elementiumOre, dragonstoneOre, goldOre, mjoellnir
     };
 
     private ModBlocks() {

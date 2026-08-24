@@ -1,11 +1,16 @@
 package mythicbotany.item;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import mythicbotany.entity.EntityMjoellnir;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
@@ -32,6 +37,20 @@ public class ItemMjoellnir extends ItemSword {
     @Override
     public int getMetadata(ItemStack stack) {
         return 0;
+    }
+
+    @Override
+    public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot,
+                                                                      ItemStack stack) {
+        if (slot == EntityEquipmentSlot.MAINHAND) {
+            ImmutableMultimap.Builder<String, AttributeModifier> builder = ImmutableMultimap.builder();
+            builder.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
+                    new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 24.0D, 0));
+            builder.put(SharedMonsterAttributes.ATTACK_SPEED.getName(),
+                    new AttributeModifier(Item.ATTACK_SPEED_MODIFIER, "Weapon modifier", -3.5D, 0));
+            return builder.build();
+        }
+        return super.getAttributeModifiers(slot, stack);
     }
 
     @Override

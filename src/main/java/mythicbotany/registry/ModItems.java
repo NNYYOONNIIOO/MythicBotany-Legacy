@@ -67,7 +67,7 @@ public final class ModItems {
     public static final Item alfsteelSword = named(new ItemAlfsteelSword(ALFSTEEL_TOOLS), "alfsteel_sword");
     public static final Item mjoellnir = named(new ItemMjoellnir(ALFSTEEL_TOOLS), "mjoellnir");
     public static final Item alfsteelPick = named(new ItemAlfsteelPick(ALFSTEEL_PICK_TOOLS), "alfsteel_pick");
-    public static final Item alfsteelAxe = named(new ItemAlfsteelAxe(ALFSTEEL_TOOLS, 5.0F, -2.8F), "alfsteel_axe");
+    public static final Item alfsteelAxe = named(new ItemAlfsteelAxe(ALFSTEEL_TOOLS, 9.0F, -3.0F), "alfsteel_axe");
     public static final Item alfsteelHelmet = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
     public static final Item alfsteelChestplate = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
     public static final Item alfsteelLeggings = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.LEGS), "alfsteel_leggings");
