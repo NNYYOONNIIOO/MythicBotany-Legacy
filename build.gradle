@@ -133,6 +133,7 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2859'
     implementation fg.deobf("curse.maven:botania-225643:3330934")
     implementation fg.deobf("curse.maven:jei-238222:8676712")
+    implementation fg.deobf("curse.maven:unseens-nether-backport-1109447:7694245")
     implementation files('libs/Baubles-1.12-1.5.2.jar')
 
     def mixinBooter = 'zone.rong:mixinbooter:11.13'
@@ -140,6 +141,10 @@ dependencies {
         transitive = false
     }
     annotationProcessor mixinBooter
+    def modUtilsExtension = project.extensions.findByName('modUtils')
+    if (modUtilsExtension != null) {
+        modUtilsExtension.enableMixins(mixinBooter)
+    }
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
@@ -172,6 +177,7 @@ jar {
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
             "Implementation-Vendor" :"examplemodsareus",
+            "MixinConfigs": "mixins.mythicbotany.json",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }

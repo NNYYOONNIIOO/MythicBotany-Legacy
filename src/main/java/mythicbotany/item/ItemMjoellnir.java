@@ -32,6 +32,7 @@ public class ItemMjoellnir extends ItemSword {
             ItemStack thrownStack = stack.copy();
             ToolCommons.damageItem(thrownStack, 4, playerIn, AlfsteelRepairHelper.MANA_PER_DURABILITY);
             EntityMjoellnir thrown = new EntityMjoellnir(worldIn, playerIn, thrownStack);
+            thrown.setCreativeThrow(playerIn.capabilities.isCreativeMode);
             thrown.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
             worldIn.spawnEntity(thrown);
             worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ,
@@ -39,7 +40,9 @@ public class ItemMjoellnir extends ItemSword {
         }
         // The server and client both remove the held stack while the projectile is in flight.
         // The projectile returns that exact stack to the owner when it reaches them.
-        stack.shrink(1);
+        if (!playerIn.capabilities.isCreativeMode) {
+            stack.shrink(1);
+        }
         playerIn.getCooldownTracker().setCooldown(this, 20);
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
     }

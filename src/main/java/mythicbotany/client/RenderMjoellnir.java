@@ -35,7 +35,7 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
         GlStateManager.rotate(pitch, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(90.0F, 0.0F, 0.0F, -1.0F);
         Minecraft.getMinecraft().getRenderItem().renderItem(stack,
-                ItemCameraTransforms.TransformType.NONE);
+                ItemCameraTransforms.TransformType.GROUND);
         GlStateManager.popMatrix();
     }
 

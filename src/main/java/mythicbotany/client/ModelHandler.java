@@ -54,6 +54,8 @@ public final class ModelHandler {
         }
         ResourceLocation model = item == Item.getItemFromBlock(ModBlocks.alfsteelPylon)
                 ? new ResourceLocation(MythicBotany.MODID, "itemblock/alfsteel_pylon")
+                : item == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)
+                ? new ResourceLocation(MythicBotany.MODID, "block/yggdrasil_branch")
                 : item.getRegistryName();
         ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(model, "inventory"));
     }

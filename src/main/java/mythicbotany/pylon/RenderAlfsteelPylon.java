@@ -25,6 +25,12 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         TileAlfsteelPylon renderTile = tile == null ? ITEM_DUMMY : tile;
         GlStateManager.pushMatrix();
         try {
+            GlStateManager.enableAlpha();
+            GlStateManager.enableCull();
+            GlStateManager.enableDepth();
+            GlStateManager.depthMask(true);
+            GlStateManager.enableLighting();
+            GlStateManager.enableTexture2D();
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(770, 771);
@@ -77,9 +83,11 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
             GlStateManager.enableAlpha();
             GlStateManager.enableCull();
             GlStateManager.enableDepth();
+            GlStateManager.depthMask(true);
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
             GlStateManager.disableBlend();
+            GlStateManager.disableRescaleNormal();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.popMatrix();
         }

@@ -108,7 +108,9 @@ public final class MythicFlowerSubTiles {
                 return;
             }
             int remaining = Math.max(0, stack.getMaxDamage() - stack.getItemDamage());
-            int transfer = Math.min(MAX_TRANSFER, Math.min(MAX_MANA - mana, remaining));
+            // The star's depletion is independent of the flower's small mana buffer.
+            // One full 1,200,000-damage star therefore takes exactly 2,000 ticks.
+            int transfer = Math.min(MAX_TRANSFER, remaining);
             if (transfer <= 0) {
                 return;
             }
@@ -259,8 +261,109 @@ public final class MythicFlowerSubTiles {
         @Override public int getColor() { return 0x4444FF; }
     }
 
-    /** Piglins/Hoglins have no 1.12.2 equivalent time-in-overworld state. */
+    /** Heals zombie villagers and prevents optional Nether Backport mobs from zombifying. */
     public static class Hellebore extends SubTileFunctional {
+        private static final int RANGE = 6;
+        private static final int CONVERSION_TICKS = 3600;
+
+        @Override
+        public void onUpdate() {
+            super.onUpdate();
+            if (getWorld().isRemote || getWorld().getTotalWorldTime() % 20L != 0L) {
+                return;
+            }
+
+            AxisAlignedBB area = new AxisAlignedBB(getPos()).grow(RANGE);
+            List<net.minecraft.entity.monster.EntityZombieVillager> villagers =
+                    getWorld().getEntitiesWithinAABB(
+                            net.minecraft.entity.monster.EntityZombieVillager.class, area);
+            for (net.minecraft.entity.monster.EntityZombieVillager villager : villagers) {
+                if (villager.isConverting()) {
+                    continue;
+                }
+                villager.addPotionEffect(new net.minecraft.potion.PotionEffect(
+                        net.minecraft.init.MobEffects.WEAKNESS, 40, 0, true, false));
+                if (startConverting(villager)) {
+                    getWorld().setEntityState(villager, (byte) 16);
+                }
+            }
+            resetNetherBackportZombification(area);
+        }
+
+        private static boolean startConverting(
+                net.minecraft.entity.monster.EntityZombieVillager villager) {
+            int duration = CONVERSION_TICKS + villager.world.rand.nextInt(2401);
+            for (Class<?> type = villager.getClass(); type != null; type = type.getSuperclass()) {
+                for (String name : new String[] {"startConverting", "func_191991_a"}) {
+                    try {
+                        java.lang.reflect.Method method = type.getDeclaredMethod(
+                                name, java.util.UUID.class, int.class);
+                        method.setAccessible(true);
+                        method.invoke(villager, new Object[] {null, Integer.valueOf(duration)});
+                        return true;
+                    } catch (NoSuchMethodException ignored) {
+                        // Try the MCP and SRG names on the next class/name combination.
+                    } catch (Exception ignored) {
+                        return false;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private void resetNetherBackportZombification(AxisAlignedBB area) {
+            List<net.minecraft.entity.Entity> entities = getWorld().getEntitiesWithinAABB(
+                    net.minecraft.entity.Entity.class, area);
+            for (net.minecraft.entity.Entity entity : entities) {
+                String name = entity.getClass().getName();
+                if (!name.endsWith("EntityPiglin") && !name.endsWith("EntityHoglin")) {
+                    continue;
+                }
+                try {
+                    java.lang.reflect.Field countdown = findField(entity.getClass(),
+                            "countDownToZombie");
+                    java.lang.reflect.Field converting = findField(entity.getClass(),
+                            "convertTooZombie");
+                    if (countdown != null) {
+                        countdown.setInt(entity, zombificationTicks());
+                    }
+                    if (converting != null) {
+                        converting.setBoolean(entity, false);
+                    }
+                } catch (Exception ignored) {
+                    // Nether Backport is optional and may change its internal fields.
+                }
+            }
+        }
+
+        private static java.lang.reflect.Field findField(Class<?> type, String name) {
+            for (Class<?> current = type; current != null; current = current.getSuperclass()) {
+                try {
+                    java.lang.reflect.Field field = current.getDeclaredField(name);
+                    field.setAccessible(true);
+                    return field;
+                } catch (NoSuchFieldException ignored) {
+                    // Search the superclass.
+                }
+            }
+            return null;
+        }
+
+        private static int zombificationTicks() {
+            try {
+                Class<?> config = Class.forName("com.unseen.nb.config.NBEntitiesConfig");
+                java.lang.reflect.Field field = config.getDeclaredField("zombification_time");
+                field.setAccessible(true);
+                Object value = field.get(null);
+                if (value instanceof Number) {
+                    return Math.max(20, ((Number) value).intValue() * 20);
+                }
+            } catch (Exception ignored) {
+                // Use a safe fallback if the optional config is unavailable.
+            }
+            return 6000;
+        }
+
         @Override public int getMaxMana() { return 300; }
         @Override public int getColor() { return 0xCD3EBB; }
     }

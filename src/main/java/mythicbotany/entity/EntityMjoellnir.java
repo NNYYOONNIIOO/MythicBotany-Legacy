@@ -9,6 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
@@ -18,6 +19,8 @@ public class EntityMjoellnir extends EntityThrowable {
     private static final DataParameter<ItemStack> ITEM = EntityDataManager.createKey(
             EntityMjoellnir.class, DataSerializers.ITEM_STACK);
     private static final DataParameter<Boolean> RETURNING = EntityDataManager.createKey(
+            EntityMjoellnir.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Boolean> CREATIVE_THROW = EntityDataManager.createKey(
             EntityMjoellnir.class, DataSerializers.BOOLEAN);
     private static final int MAX_FLIGHT_TICKS = 80;
     private static final double MAX_FLIGHT_DISTANCE_SQUARED = 64.0D * 64.0D;
@@ -37,6 +40,7 @@ public class EntityMjoellnir extends EntityThrowable {
     protected void entityInit() {
         dataManager.register(ITEM, ItemStack.EMPTY);
         dataManager.register(RETURNING, false);
+        dataManager.register(CREATIVE_THROW, false);
     }
 
     public ItemStack getItem() {
@@ -45,6 +49,14 @@ public class EntityMjoellnir extends EntityThrowable {
 
     public void setItem(ItemStack stack) {
         dataManager.set(ITEM, stack == null ? ItemStack.EMPTY : stack.copy());
+    }
+
+    public void setCreativeThrow(boolean creative) {
+        dataManager.set(CREATIVE_THROW, creative);
+    }
+
+    private boolean isCreativeThrow() {
+        return dataManager.get(CREATIVE_THROW);
     }
 
     private boolean isReturning() {
@@ -66,6 +78,7 @@ public class EntityMjoellnir extends EntityThrowable {
         }
         if (result.entityHit instanceof EntityLivingBase && result.entityHit != getThrower()) {
             EntityLivingBase target = (EntityLivingBase) result.entityHit;
+            target.attackEntityFrom(DamageSource.LIGHTNING_BOLT, 5.0F);
             world.addWeatherEffect(new EntityLightningBolt(world, target.posX, target.posY, target.posZ, true));
         }
         startReturning();
@@ -128,6 +141,11 @@ public class EntityMjoellnir extends EntityThrowable {
     }
 
     private void returnToOwner(EntityPlayer player) {
+        if (isCreativeThrow()) {
+            setItem(ItemStack.EMPTY);
+            setDead();
+            return;
+        }
         ItemStack stack = getItem();
         if (!stack.isEmpty()) {
             if (player.getHeldItemMainhand().isEmpty()) {
@@ -144,7 +162,7 @@ public class EntityMjoellnir extends EntityThrowable {
 
     private void dropAndKill() {
         ItemStack stack = getItem();
-        if (!stack.isEmpty()) {
+        if (!isCreativeThrow() && !stack.isEmpty()) {
             entityDropItem(stack, 0.1F);
         }
         setItem(ItemStack.EMPTY);
@@ -159,6 +177,7 @@ public class EntityMjoellnir extends EntityThrowable {
             compound.setTag("Item", stack.writeToNBT(new NBTTagCompound()));
         }
         compound.setBoolean("Returning", isReturning());
+        compound.setBoolean("CreativeThrow", isCreativeThrow());
     }
 
     @Override
@@ -167,5 +186,6 @@ public class EntityMjoellnir extends EntityThrowable {
         setItem(compound.hasKey("Item", 10)
                 ? new ItemStack(compound.getCompoundTag("Item")) : ItemStack.EMPTY);
         dataManager.set(RETURNING, compound.getBoolean("Returning"));
+        dataManager.set(CREATIVE_THROW, compound.getBoolean("CreativeThrow"));
     }
 }
