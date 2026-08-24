@@ -38,8 +38,11 @@ public final class RenderMjoellnirPlaced extends Render<EntityMjoellnirPlaced> {
         GlStateManager.rotate(90.0F, 0.0F, 0.0F, -1.0F);
         BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
         net.minecraft.block.state.IBlockState state = ModBlocks.mjoellnir.getDefaultState();
-        IBakedModel model = dispatcher.getBlockModelShapes().getModelManager().getModel(MJOELLNIR_MODEL);
-        dispatcher.getBlockModelRenderer().renderModelBrightness(model, state, 1.0F, true);
+        IBakedModel model = dispatcher.getBlockModelShapes().getModelForState(state);
+        if (model == dispatcher.getBlockModelShapes().getModelManager().getMissingModel()) {
+            model = dispatcher.getBlockModelShapes().getModelManager().getModel(MJOELLNIR_MODEL);
+        }
+        dispatcher.getBlockModelRenderer().renderModelBrightness(model, state, 1.0F, false);
         GlStateManager.popMatrix();
     }
 

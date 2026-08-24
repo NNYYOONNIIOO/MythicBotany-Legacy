@@ -38,37 +38,37 @@ public final class ModRecipes {
         BotaniaAPI.registerSubTile("mythicbotany_exoblaze", MythicFlowerSubTiles.Exoblaze.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Exoblaze.class,
                 new MythicFlowerSignature("mythicbotany_exoblaze",
-                        "tile.botania:flower.mythicbotany_exoblaze.reference"));
+                        "tooltip.mythicbotany.flower.exoblaze"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_exoblaze");
         BotaniaAPI.registerSubTile("mythicbotany_wither_aconite", MythicFlowerSubTiles.WitherAconite.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.WitherAconite.class,
                 new MythicFlowerSignature("mythicbotany_wither_aconite",
-                        "tile.botania:flower.mythicbotany_wither_aconite.reference"));
+                        "tooltip.mythicbotany.flower.wither_aconite"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_wither_aconite");
         BotaniaAPI.registerSubTile("mythicbotany_aquapanthus", MythicFlowerSubTiles.Aquapanthus.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Aquapanthus.class,
                 new MythicFlowerSignature("mythicbotany_aquapanthus",
-                        "tile.botania:flower.mythicbotany_aquapanthus.reference"));
+                        "tooltip.mythicbotany.flower.aquapanthus"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_aquapanthus");
         BotaniaAPI.registerSubTile("mythicbotany_hellebore", MythicFlowerSubTiles.Hellebore.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Hellebore.class,
                 new MythicFlowerSignature("mythicbotany_hellebore",
-                        "tile.botania:flower.mythicbotany_hellebore.reference"));
+                        "tooltip.mythicbotany.flower.hellebore"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_hellebore");
         BotaniaAPI.registerSubTile("mythicbotany_raindeletia", MythicFlowerSubTiles.Raindeletia.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Raindeletia.class,
                 new MythicFlowerSignature("mythicbotany_raindeletia",
-                        "tile.botania:flower.mythicbotany_raindeletia.reference"));
+                        "tooltip.mythicbotany.flower.raindeletia"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_raindeletia");
         BotaniaAPI.registerSubTile("mythicbotany_feysythia", MythicFlowerSubTiles.Feysythia.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Feysythia.class,
                 new MythicFlowerSignature("mythicbotany_feysythia",
-                        "tile.botania:flower.mythicbotany_feysythia.reference"));
+                        "tooltip.mythicbotany.flower.feysythia"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_feysythia");
         BotaniaAPI.registerSubTile("mythicbotany_petrunia", MythicFlowerSubTiles.Petrunia.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Petrunia.class,
                 new MythicFlowerSignature("mythicbotany_petrunia",
-                        "tile.botania:flower.mythicbotany_petrunia.reference"));
+                        "tooltip.mythicbotany.flower.petrunia"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_petrunia");
     }
 

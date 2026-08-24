@@ -1,16 +1,12 @@
 package mythicbotany.client;
 
-import mythicbotany.MythicBotany;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import vazkii.botania.common.block.ModBlocks;
 import vazkii.botania.common.item.block.ItemBlockSpecialFlower;
 
 import java.util.HashMap;
@@ -19,34 +15,33 @@ import java.util.Map;
 
 /** Ensures MythicBotany flower descriptions appear below Botania's flower type line. */
 @SideOnly(Side.CLIENT)
-@Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class MythicFlowerTooltipHandler {
     private static final Map<String, String> DESCRIPTION_KEYS = new HashMap<>();
 
     static {
         DESCRIPTION_KEYS.put("mythicbotany_exoblaze",
-                "tile.botania:flower.mythicbotany_exoblaze.reference");
+                "tooltip.mythicbotany.flower.exoblaze");
         DESCRIPTION_KEYS.put("mythicbotany_wither_aconite",
-                "tile.botania:flower.mythicbotany_wither_aconite.reference");
+                "tooltip.mythicbotany.flower.wither_aconite");
         DESCRIPTION_KEYS.put("mythicbotany_aquapanthus",
-                "tile.botania:flower.mythicbotany_aquapanthus.reference");
+                "tooltip.mythicbotany.flower.aquapanthus");
         DESCRIPTION_KEYS.put("mythicbotany_hellebore",
-                "tile.botania:flower.mythicbotany_hellebore.reference");
+                "tooltip.mythicbotany.flower.hellebore");
         DESCRIPTION_KEYS.put("mythicbotany_raindeletia",
-                "tile.botania:flower.mythicbotany_raindeletia.reference");
+                "tooltip.mythicbotany.flower.raindeletia");
         DESCRIPTION_KEYS.put("mythicbotany_feysythia",
-                "tile.botania:flower.mythicbotany_feysythia.reference");
+                "tooltip.mythicbotany.flower.feysythia");
         DESCRIPTION_KEYS.put("mythicbotany_petrunia",
-                "tile.botania:flower.mythicbotany_petrunia.reference");
+                "tooltip.mythicbotany.flower.petrunia");
     }
 
-    private MythicFlowerTooltipHandler() {
+    public MythicFlowerTooltipHandler() {
     }
 
     @SubscribeEvent
-    public static void addDescription(ItemTooltipEvent event) {
+    public void addDescription(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
-        if (stack.isEmpty() || stack.getItem() != Item.getItemFromBlock(ModBlocks.specialFlower)) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof ItemBlockSpecialFlower)) {
             return;
         }
         String type = ItemBlockSpecialFlower.getType(stack);

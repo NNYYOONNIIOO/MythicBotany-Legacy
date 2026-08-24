@@ -3,6 +3,7 @@ package mythicbotany.proxy;
 import mythicbotany.client.RenderAlfPixie;
 import mythicbotany.client.RenderMjoellnir;
 import mythicbotany.client.RenderMjoellnirPlaced;
+import mythicbotany.client.MythicFlowerTooltipHandler;
 import mythicbotany.entity.EntityMjoellnir;
 import mythicbotany.entity.EntityMjoellnirPlaced;
 import mythicbotany.entity.EntityAlfPixie;
@@ -18,6 +19,7 @@ import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -27,6 +29,7 @@ public final class ClientProxy extends CommonProxy {
 
     @Override
     public void init() {
+        MinecraftForge.EVENT_BUS.register(new MythicFlowerTooltipHandler());
         RenderingRegistry.registerEntityRenderingHandler(EntityAlfPixie.class, RenderAlfPixie::new);
         RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnir.class, RenderMjoellnir::new);
         RenderingRegistry.registerEntityRenderingHandler(EntityMjoellnirPlaced.class, RenderMjoellnirPlaced::new);
