@@ -9,8 +9,10 @@ import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
@@ -50,6 +52,17 @@ public final class ModelHandler {
     }
     private static void register(Item item) {
         if (item == null || item.getRegistryName() == null) {
+            return;
+        }
+        if (item == ModItems.mjoellnir || item == ModItems.fadedNetherStar) {
+            final ModelResourceLocation location = new ModelResourceLocation(
+                    item.getRegistryName(), "inventory");
+            ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition() {
+                @Override
+                public ModelResourceLocation getModelLocation(ItemStack stack) {
+                    return location;
+                }
+            });
             return;
         }
         ResourceLocation model = item == Item.getItemFromBlock(ModBlocks.alfsteelPylon)
