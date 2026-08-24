@@ -81,13 +81,10 @@ public class TileAlfsteelPylon extends ManaTileEntity {
     }
 
     public static int getRepairManaPerPoint(ItemStack stack) {
-        if (stack.isEmpty() || !stack.isItemDamaged()) {
+        if (stack.isEmpty() || !stack.getItem().isDamageable() || !stack.isItemDamaged()) {
             return 0;
         }
         if (isAlfsteel(stack)) {
-            if (!stack.getItem().isDamageable()) {
-                return 0;
-            }
             return stack.getItem() instanceof ItemArmor
                     ? ALFSTEEL_ARMOR_MANA_PER_POINT : ALFSTEEL_TOOL_MANA_PER_POINT;
         }

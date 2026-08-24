@@ -17,6 +17,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public final class RenderMjoellnir extends Render<EntityMjoellnir> {
     /** Easy-to-tune model-only yaw offset; entity flight yaw remains separate. */
     private static final float MODEL_Y_ROTATION = 90.0F;
+    private static final double RETURNING_MODEL_Y_OFFSET = -1.0D;
 
     public RenderMjoellnir(RenderManager manager) {
         super(manager);
@@ -34,6 +35,9 @@ public final class RenderMjoellnir extends Render<EntityMjoellnir> {
         GlStateManager.pushMatrix();
         try {
             GlStateManager.translate(x, y + 1.5D, z);
+            if (entity.isReturning()) {
+                GlStateManager.translate(0.0D, RETURNING_MODEL_Y_OFFSET, 0.0D);
+            }
             EntityLivingBase thrower = entity.getThrower();
             if (thrower != null) {
                 double entityX = entity.prevPosX + (entity.posX - entity.prevPosX) * partialTicks;
