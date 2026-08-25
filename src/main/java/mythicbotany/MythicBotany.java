@@ -56,6 +56,7 @@ public final class MythicBotany {
 
     public MythicBotany() {
         MinecraftForge.EVENT_BUS.register(new mythicbotany.registry.ModRegistry());
+        MinecraftForge.EVENT_BUS.register(new mythicbotany.registry.PylonWandBindingHandler());
         MinecraftForge.EVENT_BUS.register(new AlfsteelArmorHandler());
         MinecraftForge.EVENT_BUS.register(new MjoellnirHandler());
     }

@@ -119,7 +119,7 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
 
     @Override
     public boolean canSelect(EntityPlayer player, ItemStack wand, BlockPos pos, EnumFacing side) {
-        return true;
+        return world != null && !isInvalid();
     }
 
     @Override
@@ -128,14 +128,14 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
             return false;
         }
         TileEntity clickedTile = world.getTileEntity(clickedPos);
-        if (!(clickedTile instanceof TileSpreader)) {
-            return false;
+        if (clickedTile instanceof TileSpreader) {
+            // The spreader stores the receiver position and is responsible for
+            // creating the mana burst target.  Delegate on the server, while
+            // acknowledging the client-side wand action immediately.
+            return world.isRemote || ((TileSpreader) clickedTile)
+                    .bindTo(player, wand, getPos(), side);
         }
-        // The spreader stores the receiver position and is responsible for
-        // creating the mana burst target.  Delegate on the server, while
-        // acknowledging the client-side wand action immediately.
-        return world.isRemote || ((TileSpreader) clickedTile)
-                .bindTo(player, wand, getPos(), side);
+        return false;
     }
 
     @Override
