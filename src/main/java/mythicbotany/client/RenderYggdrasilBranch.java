@@ -31,6 +31,20 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
     // Native pose plus the requested 90-degree front-view adjustment.
     public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
+    // Direction-specific intrinsic poses. These preserve the current visible
+    // pose while allowing each branch facing to be tuned independently.
+    public static final float MANA_RESOURCE_NORTH_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_NORTH_ROTATION_Y = MANA_RESOURCE_ROTATION_Y + 180.0F;
+    public static final float MANA_RESOURCE_NORTH_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
+    public static final float MANA_RESOURCE_EAST_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_EAST_ROTATION_Y = MANA_RESOURCE_ROTATION_Y;
+    public static final float MANA_RESOURCE_EAST_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
+    public static final float MANA_RESOURCE_SOUTH_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_SOUTH_ROTATION_Y = MANA_RESOURCE_ROTATION_Y + 180.0F;
+    public static final float MANA_RESOURCE_SOUTH_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
+    public static final float MANA_RESOURCE_WEST_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_WEST_ROTATION_Y = MANA_RESOURCE_ROTATION_Y;
+    public static final float MANA_RESOURCE_WEST_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
 
     public static final float HORN_SCALE = 1.0F;
     // North/south item-center turn; east/west use their independent Z turn.
@@ -73,19 +87,53 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing,
                 MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
-                MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
-                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z,
+                MANA_RESOURCE_SCALE, getManaResourceRotationX(facing),
+                getManaResourceRotationY(facing), getManaResourceRotationZ(facing),
                 packedLight, true);
     }
 
-    private static float getManaResourceRotationY(EnumFacing facing) {
-        // North and south are the two requested top-down 180-degree turns.
+    private static float getManaResourceRotationX(EnumFacing facing) {
         switch (facing) {
             case NORTH:
+                return MANA_RESOURCE_NORTH_ROTATION_X;
+            case EAST:
+                return MANA_RESOURCE_EAST_ROTATION_X;
             case SOUTH:
-                return MANA_RESOURCE_ROTATION_Y + 180.0F;
+                return MANA_RESOURCE_SOUTH_ROTATION_X;
+            case WEST:
+                return MANA_RESOURCE_WEST_ROTATION_X;
             default:
-                return MANA_RESOURCE_ROTATION_Y;
+                return MANA_RESOURCE_NORTH_ROTATION_X;
+        }
+    }
+
+    private static float getManaResourceRotationY(EnumFacing facing) {
+        switch (facing) {
+            case NORTH:
+                return MANA_RESOURCE_NORTH_ROTATION_Y;
+            case EAST:
+                return MANA_RESOURCE_EAST_ROTATION_Y;
+            case SOUTH:
+                return MANA_RESOURCE_SOUTH_ROTATION_Y;
+            case WEST:
+                return MANA_RESOURCE_WEST_ROTATION_Y;
+            default:
+                return MANA_RESOURCE_NORTH_ROTATION_Y;
+        }
+    }
+
+    private static float getManaResourceRotationZ(EnumFacing facing) {
+        switch (facing) {
+            case NORTH:
+                return MANA_RESOURCE_NORTH_ROTATION_Z;
+            case EAST:
+                return MANA_RESOURCE_EAST_ROTATION_Z;
+            case SOUTH:
+                return MANA_RESOURCE_SOUTH_ROTATION_Z;
+            case WEST:
+                return MANA_RESOURCE_WEST_ROTATION_Z;
+            default:
+                return MANA_RESOURCE_NORTH_ROTATION_Z;
         }
     }
 
