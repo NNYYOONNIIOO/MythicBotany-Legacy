@@ -7,7 +7,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -62,7 +61,7 @@ public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWa
         if (tile instanceof TileAlfsteelPylon) {
             TileAlfsteelPylon pylon = (TileAlfsteelPylon) tile;
             HUDHandler.drawSimpleManaHUD(0xFFAA00, pylon.getCurrentMana(),
-                    pylon.getMaxMana(), I18n.format("tile.mythicbotany:alfsteel_pylon.name"), res);
+                    pylon.getMaxMana(), new ItemStack(this).getDisplayName(), res);
         }
     }
 
