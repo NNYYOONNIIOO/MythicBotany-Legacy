@@ -143,7 +143,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         try {
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
-            GlStateManager.enableLighting();
+            if (fullbright) {
+                GL11.glDisable(GL11.GL_LIGHTING);
+                GlStateManager.disableLighting();
+            } else {
+                GL11.glEnable(GL11.GL_LIGHTING);
+                GlStateManager.enableLighting();
+            }
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -154,6 +160,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             setLightmap(fullbright ? 0xF000F0 : packedLight);
             GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
             GlStateManager.enableTexture2D();
             // RenderItem binds the block atlas itself. Avoid manually binding
             // it here, which is what caused stale texture-cache black planes.
@@ -229,6 +236,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     private static void synchronizeTextureUnit(int textureUnit) {
         GL13.glActiveTexture(textureUnit);
         int texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
         GlStateManager.setActiveTexture(textureUnit);
         GlStateManager.bindTexture(texture);
     }
