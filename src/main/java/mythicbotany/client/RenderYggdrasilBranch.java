@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -61,7 +60,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing, getHornX(facing), HORN_Y, HORN_Z,
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
-                    packedLight);
+                    packedLight, false);
         } finally {
             glState.pop();
         }
@@ -72,7 +71,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
-                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight);
+                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight, true);
     }
 
     private static float getManaResourceRotationY(EnumFacing facing) {
@@ -121,10 +120,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     private static void renderStack(ItemStack stack, double x, double y, double z,
                                      EnumFacing facing, double localX, double localY,
                                      double localZ, float scale, float rotationX,
-                                     float rotationY, float rotationZ, int packedLight) {
+                                     float rotationY, float rotationZ, int packedLight,
+                                     boolean fullbright) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
+        boolean lightingWasEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING);
+        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
         float oldLightmapX = OpenGlHelper.lastBrightnessX;
         float oldLightmapY = OpenGlHelper.lastBrightnessY;
         GlStateManager.pushMatrix();
@@ -143,6 +145,17 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             int blockLight = packedLight & 65535;
             int skyLight = packedLight >>> 16;
+            if (fullbright) {
+                // The attached livingwood item is a flat generated model. Do
+                // not let the face normal/light state left by a nearby item
+                // turn it into a black quad.
+                GL11.glDisable(GL11.GL_LIGHTING);
+                GlStateManager.disableLighting();
+                GL11.glDisable(GL11.GL_CULL_FACE);
+                GlStateManager.disableCull();
+                blockLight = 240;
+                skyLight = 240;
+            }
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     blockLight, skyLight);
             // RenderItem expects the block atlas and standard item lights. A
@@ -152,7 +165,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
             Minecraft.getMinecraft().getTextureManager()
                     .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            RenderHelper.enableStandardItemLighting();
+            if (!fullbright) {
+                RenderHelper.enableStandardItemLighting();
+            }
             GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
             Minecraft.getMinecraft().getTextureManager()
@@ -167,9 +182,25 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            RenderHelper.disableStandardItemLighting();
+            if (!fullbright) {
+                RenderHelper.disableStandardItemLighting();
+            }
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     oldLightmapX, oldLightmapY);
+            if (lightingWasEnabled) {
+                GL11.glEnable(GL11.GL_LIGHTING);
+                GlStateManager.enableLighting();
+            } else {
+                GL11.glDisable(GL11.GL_LIGHTING);
+                GlStateManager.disableLighting();
+            }
+            if (cullWasEnabled) {
+                GL11.glEnable(GL11.GL_CULL_FACE);
+                GlStateManager.enableCull();
+            } else {
+                GL11.glDisable(GL11.GL_CULL_FACE);
+                GlStateManager.disableCull();
+            }
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
@@ -233,7 +264,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             Minecraft.getMinecraft().getBlockRendererDispatcher()
                     .renderBlockBrightness(state, 1.0F);
-            renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0);
+            renderStack(new ItemStack(ModItems.manaResource, 1, 3),
+                    0.0D, 0.0D, 0.0D, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y,
+                    MANA_RESOURCE_Z, MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
+                    getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z,
+                    0xF000F0, true);
         } finally {
             glState.pop();
         }
