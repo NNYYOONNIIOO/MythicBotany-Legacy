@@ -124,7 +124,7 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
 
     @Override
     public boolean bindTo(EntityPlayer player, ItemStack wand, BlockPos clickedPos, EnumFacing side) {
-        if (world == null || clickedPos == null) {
+        if (world == null || player == null || clickedPos == null) {
             return false;
         }
         TileEntity clickedTile = world.getTileEntity(clickedPos);
@@ -135,7 +135,9 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
             TileSpreader spreader = (TileSpreader) clickedTile;
             boolean bound = spreader.bindTo(player, wand, getPos(), side);
             if (bound && !world.isRemote) {
+                spreader.markDirty();
                 VanillaPacketDispatcher.dispatchTEToNearbyPlayers(spreader);
+                VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
             }
             return bound;
         }
@@ -144,6 +146,14 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
 
     @Override
     public BlockPos getBinding() {
+        if (world == null) {
+            return null;
+        }
+        for (TileEntity tile : world.loadedTileEntityList) {
+            if (tile instanceof TileSpreader && getPos().equals(((TileSpreader) tile).getBinding())) {
+                return tile.getPos();
+            }
+        }
         return null;
     }
 
@@ -215,6 +225,7 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
         }
         if (repaired) {
             markDirty();
+            VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
         }
     }
 
