@@ -25,12 +25,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final double FRONT_OFFSET = 3.0D / 16.0D;
     public static final float MANA_RESOURCE_SCALE = 0.45F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
-    public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
-    public static final float MANA_RESOURCE_ROTATION_Z = 0.0F;
+    public static final float MANA_RESOURCE_ROTATION_Y = 0.0F;
+    public static final float MANA_RESOURCE_ROTATION_Z = 90.0F;
     public static final float HORN_SCALE = 0.45F;
     public static final float HORN_ROTATION_X = 0.0F;
-    public static final float HORN_ROTATION_Y = 180.0F;
-    public static final float HORN_ROTATION_Z = 0.0F;
+    public static final float HORN_ROTATION_Y = 0.0F;
+    public static final float HORN_ROTATION_Z = 180.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.5D / 16.0D + HORN_SCALE / 2.0D;
     public static final double HORN_Z = 0.5D;
