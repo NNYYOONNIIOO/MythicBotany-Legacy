@@ -164,6 +164,10 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     private static void setLightmap(int packedLight) {
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                 packedLight & 65535, packedLight >>> 16);
+        // RenderItem expects the default item-texture unit after lightmap
+        // coordinates are written.
+        GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
@@ -225,6 +229,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         private final float colorG;
         private final float colorB;
         private final float colorA;
+        private final boolean texture;
+        private final boolean alpha;
+        private final boolean blend;
+        private final boolean lighting;
+        private final boolean cull;
+        private final boolean depth;
+        private final boolean rescale;
 
         private RenderState() {
             matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
@@ -242,6 +253,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             colorG = color.get(1);
             colorB = color.get(2);
             colorA = color.get(3);
+            texture = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+            alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
+            blend = GL11.glIsEnabled(GL11.GL_BLEND);
+            lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
+            cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+            depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+            rescale = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
         }
 
         private static RenderState capture() {
@@ -274,6 +292,20 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.setActiveTexture(activeTexture);
             GL13.glClientActiveTexture(clientActiveTexture);
             GL11.glMatrixMode(matrixMode);
+            restoreCapability(GL11.GL_TEXTURE_2D, texture,
+                    GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
+            restoreCapability(GL11.GL_ALPHA_TEST, alpha,
+                    GlStateManager::enableAlpha, GlStateManager::disableAlpha);
+            restoreCapability(GL11.GL_BLEND, blend,
+                    GlStateManager::enableBlend, GlStateManager::disableBlend);
+            restoreCapability(GL11.GL_LIGHTING, lighting,
+                    GlStateManager::enableLighting, GlStateManager::disableLighting);
+            restoreCapability(GL11.GL_CULL_FACE, cull,
+                    GlStateManager::enableCull, GlStateManager::disableCull);
+            restoreCapability(GL11.GL_DEPTH_TEST, depth,
+                    GlStateManager::enableDepth, GlStateManager::disableDepth);
+            restoreCapability(GL12.GL_RESCALE_NORMAL, rescale,
+                    GlStateManager::enableRescaleNormal, GlStateManager::disableRescaleNormal);
             forceColor(colorR, colorG, colorB, colorA);
         }
     }
@@ -283,5 +315,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
         GlStateManager.setActiveTexture(textureUnit);
         GlStateManager.bindTexture(texture);
+    }
+
+    private static void restoreCapability(int capability, boolean enabled,
+                                          Runnable enable, Runnable disable) {
+        // glPopAttrib restores OpenGL itself, but GlStateManager also caches
+        // capability state. Toggle both paths so the next EntityItem cannot
+        // skip a needed GL call and render the attached model black.
+        if (enabled) {
+            GL11.glEnable(capability);
+            disable.run();
+            enable.run();
+        } else {
+            GL11.glDisable(capability);
+            enable.run();
+            disable.run();
+        }
     }
 }
