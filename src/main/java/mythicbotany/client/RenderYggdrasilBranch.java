@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -112,6 +111,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     private static void setLightmap(int packedLight) {
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                 packedLight & 65535, packedLight >>> 16);
+        // RenderItem expects the default texture unit after a lightmap update.
+        GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
     private static void renderStack(ItemStack stack, double x, double y, double z,
@@ -123,38 +125,31 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             return;
         }
 
-        synchronizeRenderStateCache();
-        int matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
-        int activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
-        GlStateManager.pushMatrix();
+        RenderState state = RenderState.capture();
+        state.push();
         try {
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
-            GlStateManager.enableLighting();
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-            setLightmap(fullbright ? 0xF000F0 : packedLight);
-            // setLightmap uses the lightmap coordinate; RenderItem must start
-            // on the default unit or its model texture is drawn black.
-            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
-            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-            GlStateManager.enableTexture2D();
-            Minecraft.getMinecraft().getTextureManager()
-                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             if (fullbright) {
-                GL11.glDisable(GL11.GL_LIGHTING);
+                // The attached mana-resource model is a flat generated quad.
+                // Fullbright, unlit, double-sided rendering prevents the black
+                // planes shown when it follows an EntityItem render.
                 GlStateManager.disableLighting();
+                GlStateManager.disableCull();
+                setLightmap(0xF000F0);
+            } else {
+                GlStateManager.enableLighting();
+                GlStateManager.disableCull();
+                setLightmap(packedLight);
             }
-            GL11.glDisable(GL11.GL_CULL_FACE);
-            GlStateManager.disableCull();
 
-            // Match the blockstate rotation first; all following transforms
-            // are local to the branch and therefore rotate with it.
+            // Apply the same horizontal rotation as the blockstate model before
+            // applying local position and model rotations.
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
@@ -165,59 +160,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            GL11.glMatrixMode(matrixMode);
-            GlStateManager.popMatrix();
-            GL13.glActiveTexture(activeTexture);
-            GlStateManager.setActiveTexture(activeTexture);
-            synchronizeRenderStateCache();
-        }
-    }
-
-    private static void synchronizeRenderStateCache() {
-        synchronizeTextureCache();
-        synchronizeCapability(GL11.GL_TEXTURE_2D, GL11.glIsEnabled(GL11.GL_TEXTURE_2D),
-                GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
-        synchronizeCapability(GL11.GL_ALPHA_TEST, GL11.glIsEnabled(GL11.GL_ALPHA_TEST),
-                GlStateManager::enableAlpha, GlStateManager::disableAlpha);
-        synchronizeCapability(GL11.GL_BLEND, GL11.glIsEnabled(GL11.GL_BLEND),
-                GlStateManager::enableBlend, GlStateManager::disableBlend);
-        synchronizeCapability(GL11.GL_LIGHTING, GL11.glIsEnabled(GL11.GL_LIGHTING),
-                GlStateManager::enableLighting, GlStateManager::disableLighting);
-        synchronizeCapability(GL11.GL_CULL_FACE, GL11.glIsEnabled(GL11.GL_CULL_FACE),
-                GlStateManager::enableCull, GlStateManager::disableCull);
-        synchronizeCapability(GL12.GL_RESCALE_NORMAL, GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL),
-                GlStateManager::enableRescaleNormal, GlStateManager::disableRescaleNormal);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-    }
-
-    private static void synchronizeTextureCache() {
-        int activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
-        synchronizeTextureUnit(OpenGlHelper.defaultTexUnit);
-        synchronizeTextureUnit(OpenGlHelper.lightmapTexUnit);
-        GL13.glActiveTexture(activeTexture);
-        GlStateManager.setActiveTexture(activeTexture);
-    }
-
-    private static void synchronizeTextureUnit(int textureUnit) {
-        GL13.glActiveTexture(textureUnit);
-        int texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
-        GlStateManager.setActiveTexture(textureUnit);
-        GlStateManager.bindTexture(texture);
-    }
-
-    private static void synchronizeCapability(int capability, boolean enabled,
-                                              Runnable enable, Runnable disable) {
-        if (enabled) {
-            GL11.glEnable(capability);
-            disable.run();
-            enable.run();
-        } else {
-            GL11.glDisable(capability);
-            enable.run();
-            disable.run();
+            state.pop();
         }
     }
 
@@ -231,19 +174,89 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                     .withProperty(BlockYggdrasilBranch.FACING, facing);
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
-            setLightmap(0xF000F0);
-            GlStateManager.translate(0.5D, 0.5D, 0.5D);
-            GlStateManager.scale(0.5F, 0.5F, 0.5F);
-            GlStateManager.translate(-0.5D, -0.5D, -0.5D);
-            Minecraft.getMinecraft().getBlockRendererDispatcher()
-                    .renderBlockBrightness(state, 1.0F);
+            renderBlockItem(state);
             renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0);
         } finally {
             glState.pop();
         }
     }
 
-    /** Captures and restores the fixed-function state used by this TESR. */
+    private static void renderBlockItem(IBlockState state) {
+        GlStateManager.translate(0.5D, 0.5D, 0.5D);
+        GlStateManager.scale(0.5F, 0.5F, 0.5F);
+        GlStateManager.translate(-0.5D, -0.5D, -0.5D);
+        Minecraft.getMinecraft().getBlockRendererDispatcher()
+                .renderBlockBrightness(state, 1.0F);
+    }
+
+    /** Saves and restores state around each nested RenderItem call. */
+    private static final class RenderState {
+        private final int matrixMode;
+        private final int activeTexture;
+        private final int clientActiveTexture;
+        private final float lightmapX;
+        private final float lightmapY;
+        private final boolean texture;
+        private final boolean alpha;
+        private final boolean blend;
+        private final boolean lighting;
+        private final boolean cull;
+        private final boolean rescale;
+
+        private RenderState() {
+            matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+            activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+            clientActiveTexture = GL11.glGetInteger(GL13.GL_CLIENT_ACTIVE_TEXTURE);
+            lightmapX = OpenGlHelper.lastBrightnessX;
+            lightmapY = OpenGlHelper.lastBrightnessY;
+            texture = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+            alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
+            blend = GL11.glIsEnabled(GL11.GL_BLEND);
+            lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
+            cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+            rescale = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
+        }
+
+        private static RenderState capture() {
+            return new RenderState();
+        }
+
+        private void push() {
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GL11.glPushClientAttrib(GL11.GL_CLIENT_PIXEL_STORE_BIT
+                    | GL11.GL_CLIENT_VERTEX_ARRAY_BIT);
+            GL11.glMatrixMode(matrixMode);
+            GlStateManager.pushMatrix();
+        }
+
+        private void pop() {
+            GL11.glMatrixMode(matrixMode);
+            GlStateManager.popMatrix();
+            GL11.glPopClientAttrib();
+            GL11.glPopAttrib();
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                    lightmapX, lightmapY);
+            GL13.glActiveTexture(activeTexture);
+            GlStateManager.setActiveTexture(activeTexture);
+            GL13.glClientActiveTexture(clientActiveTexture);
+            GL11.glMatrixMode(matrixMode);
+            restoreCapability(GL11.GL_TEXTURE_2D, texture,
+                    GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
+            restoreCapability(GL11.GL_ALPHA_TEST, alpha,
+                    GlStateManager::enableAlpha, GlStateManager::disableAlpha);
+            restoreCapability(GL11.GL_BLEND, blend,
+                    GlStateManager::enableBlend, GlStateManager::disableBlend);
+            restoreCapability(GL11.GL_LIGHTING, lighting,
+                    GlStateManager::enableLighting, GlStateManager::disableLighting);
+            restoreCapability(GL11.GL_CULL_FACE, cull,
+                    GlStateManager::enableCull, GlStateManager::disableCull);
+            restoreCapability(GL12.GL_RESCALE_NORMAL, rescale,
+                    GlStateManager::enableRescaleNormal, GlStateManager::disableRescaleNormal);
+            forceColor(1.0F, 1.0F, 1.0F, 1.0F);
+        }
+    }
+
+    /** Saves and restores the outer TESR state, including texture units. */
     private static final class OpenGLState {
         private final int matrixMode;
         private final int activeTexture;
@@ -305,17 +318,39 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.setActiveTexture(activeTexture);
             GL13.glClientActiveTexture(clientActiveTexture);
             GL11.glMatrixMode(matrixMode);
-            synchronizeRenderStateCache();
-            GL11.glColor4f(colorR, colorG, colorB, colorA);
-            GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
-            GlStateManager.color(colorR, colorG, colorB, colorA);
+            forceColor(colorR, colorG, colorB, colorA);
         }
+    }
 
-        private static void restoreTexture(int textureUnit, int texture) {
-            GL13.glActiveTexture(textureUnit);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
-            GlStateManager.setActiveTexture(textureUnit);
-            GlStateManager.bindTexture(texture);
+    private static int captureTexture(int textureUnit) {
+        GL13.glActiveTexture(textureUnit);
+        return GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+    }
+
+    private static void restoreTexture(int textureUnit, int texture) {
+        GL13.glActiveTexture(textureUnit);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+        GlStateManager.setActiveTexture(textureUnit);
+        GlStateManager.bindTexture(texture);
+    }
+
+    private static void restoreCapability(int capability, boolean enabled,
+                                          Runnable enable, Runnable disable) {
+        if (enabled) {
+            GL11.glEnable(capability);
+            disable.run();
+            enable.run();
+        } else {
+            GL11.glDisable(capability);
+            enable.run();
+            disable.run();
         }
+    }
+
+    private static void forceColor(float red, float green, float blue, float alpha) {
+        GL11.glColor4f(red, green, blue, alpha);
+        GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
+        GlStateManager.color(red, green, blue, alpha);
+        GL11.glColor4f(red, green, blue, alpha);
     }
 }
