@@ -33,7 +33,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
 
     public static final float HORN_SCALE = 1.0F;
-    // The requested 180-degree left-to-right turn for every branch facing.
+    // North/south item-center turn; east/west use their independent Z turn.
     public static final float HORN_ROTATION_X = 180.0F;
     public static final float HORN_ROTATION_Y = 90.0F;
     public static final float HORN_ROTATION_Z = 0.0F;
@@ -58,7 +58,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing,
                     getHornX(facing), HORN_Y, getHornZ(facing),
-                    HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y,
+                    HORN_SCALE, getHornRotationX(facing), HORN_ROTATION_Y,
                     getHornRotationZ(facing), packedLight, false);
         } finally {
             state.pop();
@@ -107,6 +107,16 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                 return HORN_Z + HORN_FORWARD_OFFSET;
             default:
                 return HORN_Z;
+        }
+    }
+
+    private static float getHornRotationX(EnumFacing facing) {
+        switch (facing) {
+            case NORTH:
+            case SOUTH:
+                return HORN_ROTATION_X;
+            default:
+                return 0.0F;
         }
     }
 
