@@ -23,6 +23,7 @@ biome.mythicbotany.dreamwood_forest=Dreamwood Forest
 biome.mythicbotany.golden_fields=Golden Fields
 block.mythicbotany.alfsteel_block=Block of Alfsteel
 block.mythicbotany.alfsteel_pylon=Alfsteel Pylon
+tile.mythicbotany.alfsteel_pylon.name=Alfsteel Pylon
 block.mythicbotany.aquapanthus=Aquapanthus
 block.mythicbotany.aquapanthus.description=Try it when it's dry.
 block.mythicbotany.aquapanthus_floating=Floating Aquapanthus

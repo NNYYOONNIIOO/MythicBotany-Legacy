@@ -23,6 +23,7 @@ biome.mythicbotany.dreamwood_forest=梦之木森林
 biome.mythicbotany.golden_fields=黄金田野
 block.mythicbotany.alfsteel_block=精灵钢块
 block.mythicbotany.alfsteel_pylon=精灵水晶
+tile.mythicbotany.alfsteel_pylon.name=精灵水晶
 block.mythicbotany.aquapanthus=百水莲
 block.mythicbotany.aquapanthus.description=在干燥时尝试
 block.mythicbotany.aquapanthus_floating=悬浮百水莲

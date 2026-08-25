@@ -164,6 +164,7 @@ message.mythicbotany.ritual_wrong_shape=Этот ритуал покажется
 tile.mythicbotany:alfsteel_block.name=Блок Альфстали
 tile.mythicbotany:alfsteel_pylon.name=Пилон Альфстали
 block.mythicbotany.alfsteel_pylon=Пилон Альфстали
+tile.mythicbotany.alfsteel_pylon.name=Пилон Альфстали
 tile.mythicbotany.alfsteel_pylon=Пилон Альфстали
 tile.mythicbotany:aquapanthus_floating.name=Парящий Аквапантус
 tile.mythicbotany:aquapanthus.description=Попробуй, когда высохнет.
