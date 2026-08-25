@@ -7,10 +7,8 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -150,12 +148,10 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.enableTexture2D();
-            Minecraft.getMinecraft().getTextureManager()
-                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            // RenderItem needs the normal item-light setup. Fullbright uses a
-            // maximum lightmap but keeps lighting enabled, avoiding black
-            // quads when the branch is rendered beside EntityItems.
-            RenderHelper.enableStandardItemLighting();
+            // RenderItem binds the block atlas and configures its own item
+            // model state. Do not bind the atlas or replace the world lights
+            // here: doing so leaves the next EntityItem with a stale texture
+            // or lighting cache and renders attached quads as black planes.
             GL11.glDisable(GL11.GL_CULL_FACE);
             GlStateManager.disableCull();
 
@@ -171,7 +167,6 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            RenderHelper.disableStandardItemLighting();
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     oldLightmapX, oldLightmapY);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
