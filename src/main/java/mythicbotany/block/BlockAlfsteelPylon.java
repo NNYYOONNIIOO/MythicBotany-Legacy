@@ -27,7 +27,7 @@ import vazkii.botania.client.core.handler.HUDHandler;
 
 public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWandHUD {
     private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(
-            0.125D, 0.0D, 0.125D, 0.875D, 21.0D / 16.0D, 0.875D);
+            0.0D, 0.0D, 0.0D, 1.0D, 21.0D / 16.0D, 1.0D);
 
     public BlockAlfsteelPylon() {
         super(Material.IRON);
@@ -62,13 +62,8 @@ public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWa
         if (tile instanceof TileAlfsteelPylon) {
             TileAlfsteelPylon pylon = (TileAlfsteelPylon) tile;
             HUDHandler.drawSimpleManaHUD(0xFFAA00, pylon.getCurrentMana(),
-                    pylon.getMaxMana(), getHudName(), res);
+                    pylon.getMaxMana(), I18n.format("block.mythicbotany.alfsteel_pylon"), res);
         }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private String getHudName() {
-        return I18n.format("tile.mythicbotany:alfsteel_pylon.name");
     }
 
     @Override

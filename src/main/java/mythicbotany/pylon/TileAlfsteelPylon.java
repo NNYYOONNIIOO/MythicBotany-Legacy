@@ -134,6 +134,7 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
             // spreader's updated rotation and receiver state as usual.
             TileSpreader spreader = (TileSpreader) clickedTile;
             boolean bound = spreader.bindTo(player, wand, getPos(), side);
+            spreader.checkForReceiver();
             if (bound && !world.isRemote) {
                 spreader.markDirty();
                 VanillaPacketDispatcher.dispatchTEToNearbyPlayers(spreader);
