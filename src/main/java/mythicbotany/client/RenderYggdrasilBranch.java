@@ -124,7 +124,15 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     }
 
     private static void prepareItemRenderState(int packedLight) {
+        synchronizeCurrentTextureBindings();
+        // RenderItem binds item textures on the default unit. A previous
+        // EntityItem/TESR may leave the lightmap unit active even though the
+        // GlStateManager cache says otherwise.
+        GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         setLightmap(packedLight);
+        GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_LIGHTING);
@@ -132,6 +140,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GlStateManager.enableLighting();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static void synchronizeCurrentTextureBindings() {
+        int activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+        synchronizeCurrentTextureUnit(OpenGlHelper.defaultTexUnit);
+        synchronizeCurrentTextureUnit(OpenGlHelper.lightmapTexUnit);
+        GL13.glActiveTexture(activeTexture);
+        GlStateManager.setActiveTexture(activeTexture);
+    }
+
+    private static void synchronizeCurrentTextureUnit(int textureUnit) {
+        GL13.glActiveTexture(textureUnit);
+        int texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GlStateManager.setActiveTexture(textureUnit);
+        GlStateManager.bindTexture(texture);
     }
 
     /** Renders the complete branch item, including its permanent mana resource. */
