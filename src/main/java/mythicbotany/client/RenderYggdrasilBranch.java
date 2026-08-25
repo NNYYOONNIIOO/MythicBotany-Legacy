@@ -299,8 +299,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             Minecraft.getMinecraft().getBlockRendererDispatcher()
                     .renderBlockBrightness(blockState, 1.0F);
-            // World-only attachments intentionally do not participate in item
-            // GUI, first-person, or third-person transforms.
+            renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0);
         } finally {
             state.pop();
         }
