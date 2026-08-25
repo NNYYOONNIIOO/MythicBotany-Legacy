@@ -7,10 +7,8 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -133,17 +131,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             // Restore the actual GL state as well as GlStateManager's cache;
             // setting only GlStateManager.color can be a no-op when its cache
             // already says white while OpenGL is still black.
-            prepareItemRenderState(packedLight, unlit);
-            if (!unlit) {
-                RenderHelper.enableStandardItemLighting();
-            }
-            // RenderItem normally binds this itself. Binding it here as well
-            // prevents a preceding dropped-item renderer from leaving the
-            // block atlas/cache out of sync for an attached model.
-            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
-            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-            Minecraft.getMinecraft().getTextureManager()
-                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            prepareItemRenderState(packedLight);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
@@ -159,42 +147,31 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            if (!unlit) {
-                RenderHelper.disableStandardItemLighting();
-            }
-            if (unlit) {
-                GlStateManager.enableLighting();
-            }
             GlStateManager.disableBlend();
             GlStateManager.disableAlpha();
-            GlStateManager.resetColor();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.disableRescaleNormal();
             GlStateManager.popMatrix();
         }
     }
 
-    private static void prepareItemRenderState(int packedLight, boolean unlit) {
+    private static void prepareItemRenderState(int packedLight) {
         synchronizeCurrentTextureBindings();
         // RenderItem binds item textures on the default unit. A previous
         // EntityItem/TESR may leave the lightmap unit active even though the
         // GlStateManager cache says otherwise.
         GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        setLightmap(unlit ? 0xF000F0 : packedLight);
+        setLightmap(packedLight);
         GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GlStateManager.enableTexture2D();
         GlStateManager.enableAlpha();
-        if (unlit) {
-            GL11.glDisable(GL11.GL_LIGHTING);
-            GlStateManager.disableLighting();
-        } else {
-            GL11.glEnable(GL11.GL_LIGHTING);
-            GlStateManager.enableLighting();
-        }
+        GL11.glEnable(GL11.GL_LIGHTING);
+        GlStateManager.enableLighting();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
