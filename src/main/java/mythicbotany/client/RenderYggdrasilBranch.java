@@ -137,15 +137,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
+            GL11.glEnable(GL11.GL_BLEND);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-            // EntityItem rendering can leave the lightmap unit active or its
-            // GlStateManager cache stale. Restore both texture units before
-            // rendering the attached model.
             GL13.glActiveTexture(OpenGlHelper.lightmapTexUnit);
             GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GlStateManager.enableTexture2D();
             int blockLight = fullbright ? 240 : packedLight & 65535;
             int skyLight = fullbright ? 240 : packedLight >>> 16;
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
@@ -157,25 +155,16 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.enableTexture2D();
             Minecraft.getMinecraft().getTextureManager()
                     .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-
-            if (fullbright) {
-                // The attached mana resource is a generated flat model. Keep
-                // it visible from both sides and independent of nearby item
-                // normals/light state.
-                GL11.glDisable(GL11.GL_LIGHTING);
-                GL11.glDisable(GL11.GL_CULL_FACE);
-                GlStateManager.disableLighting();
-                GlStateManager.disableCull();
-            } else {
-                GL11.glEnable(GL11.GL_LIGHTING);
-                GlStateManager.enableLighting();
-                RenderHelper.enableStandardItemLighting();
-            }
+            // RenderItem needs the normal item-light setup even for fullbright
+            // attachments. Disabling lighting here is what produced black
+            // planes when the branch was rendered beside EntityItems.
+            RenderHelper.enableStandardItemLighting();
+            GL11.glDisable(GL11.GL_CULL_FACE);
+            GlStateManager.disableCull();
 
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
-            // This is exactly the rotation used by blockstates/yggdrasil_branch.json.
-            // The local position and local model rotations therefore follow the
-            // branch instead of remaining in world axes.
+            // This matches blockstates/yggdrasil_branch.json, so the local
+            // attachment pose follows all four branch orientations.
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
             GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
@@ -185,9 +174,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            if (!fullbright) {
-                RenderHelper.disableStandardItemLighting();
-            }
+            RenderHelper.disableStandardItemLighting();
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     oldLightmapX, oldLightmapY);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
