@@ -24,8 +24,14 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     // Local block coordinates: X = left/right, Y = up/down, Z = front/back.
     // The blockstate rotation is applied to this complete local pose.
     public static final double MANA_RESOURCE_X = 0.5D;
-    public static final double MANA_RESOURCE_Y = 0.9D;
+    public static final double MANA_RESOURCE_Y = 0.8D;
     public static final double MANA_RESOURCE_Z = 0.5D;
+    // Keep the manually tuned common Y value as the default, while allowing
+    // north/south to be corrected independently from east/west.
+    public static final double MANA_RESOURCE_NORTH_Y = MANA_RESOURCE_Y;
+    public static final double MANA_RESOURCE_EAST_Y = MANA_RESOURCE_Y;
+    public static final double MANA_RESOURCE_SOUTH_Y = MANA_RESOURCE_Y;
+    public static final double MANA_RESOURCE_WEST_Y = MANA_RESOURCE_Y;
     public static final float MANA_RESOURCE_SCALE = 0.8F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
     public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
@@ -33,16 +39,16 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
     // Direction-specific intrinsic poses. These preserve the current visible
     // pose while allowing each branch facing to be tuned independently.
-    public static final float MANA_RESOURCE_NORTH_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_NORTH_ROTATION_X = 25.0F;
     public static final float MANA_RESOURCE_NORTH_ROTATION_Y = MANA_RESOURCE_ROTATION_Y + 180.0F;
     public static final float MANA_RESOURCE_NORTH_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
-    public static final float MANA_RESOURCE_EAST_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_EAST_ROTATION_X = 25.0F;
     public static final float MANA_RESOURCE_EAST_ROTATION_Y = MANA_RESOURCE_ROTATION_Y;
     public static final float MANA_RESOURCE_EAST_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
-    public static final float MANA_RESOURCE_SOUTH_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_SOUTH_ROTATION_X = 25.0F;
     public static final float MANA_RESOURCE_SOUTH_ROTATION_Y = MANA_RESOURCE_ROTATION_Y + 180.0F;
     public static final float MANA_RESOURCE_SOUTH_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
-    public static final float MANA_RESOURCE_WEST_ROTATION_X = MANA_RESOURCE_ROTATION_X;
+    public static final float MANA_RESOURCE_WEST_ROTATION_X = 25.0F;
     public static final float MANA_RESOURCE_WEST_ROTATION_Y = MANA_RESOURCE_ROTATION_Y;
     public static final float MANA_RESOURCE_WEST_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
 
@@ -86,10 +92,25 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                                            EnumFacing facing, int packedLight) {
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing,
-                MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
+                MANA_RESOURCE_X, getManaResourceY(facing), MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, getManaResourceRotationX(facing),
                 getManaResourceRotationY(facing), getManaResourceRotationZ(facing),
                 packedLight, true);
+    }
+
+    private static double getManaResourceY(EnumFacing facing) {
+        switch (facing) {
+            case NORTH:
+                return MANA_RESOURCE_NORTH_Y;
+            case EAST:
+                return MANA_RESOURCE_EAST_Y;
+            case SOUTH:
+                return MANA_RESOURCE_SOUTH_Y;
+            case WEST:
+                return MANA_RESOURCE_WEST_Y;
+            default:
+                return MANA_RESOURCE_NORTH_Y;
+        }
     }
 
     private static float getManaResourceRotationX(EnumFacing facing) {
