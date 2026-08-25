@@ -71,7 +71,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
-                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight, false);
+                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight, true);
     }
 
     private static float getManaResourceRotationY(EnumFacing facing) {
@@ -271,6 +271,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             defaultTexture = getTextureBinding(OpenGlHelper.defaultTexUnit);
             lightmapTexture = getTextureBinding(OpenGlHelper.lightmapTexUnit);
             GL13.glActiveTexture(activeTexture);
+            GlStateManager.setActiveTexture(activeTexture);
         }
 
         private static OpenGLState capture() {
