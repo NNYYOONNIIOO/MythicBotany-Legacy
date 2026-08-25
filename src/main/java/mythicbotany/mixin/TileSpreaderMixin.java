@@ -19,13 +19,13 @@ import vazkii.botania.common.block.tile.mana.TileSpreader;
 /** Keeps an Alfsteel pylon as a real spreader receiver after burst tracing. */
 @Mixin(TileSpreader.class)
 public abstract class TileSpreaderMixin {
-    @Shadow
+    @Shadow(remap = false)
     private IManaReceiver receiver;
 
     @Unique
     private BlockPos mythicbotany$forcedReceiver;
 
-    @Inject(method = "bindTo", at = @At("TAIL"))
+    @Inject(method = "bindTo", at = @At("TAIL"), remap = false)
     private void mythicbotany$bindPylon(EntityPlayer player, ItemStack wand,
                                          BlockPos target, EnumFacing side,
                                          CallbackInfoReturnable<Boolean> cir) {
@@ -42,7 +42,7 @@ public abstract class TileSpreaderMixin {
         }
     }
 
-    @Inject(method = "checkForReceiver", at = @At("TAIL"))
+    @Inject(method = "checkForReceiver", at = @At("TAIL"), remap = false)
     private void mythicbotany$restorePylon(CallbackInfo ci) {
         if (mythicbotany$forcedReceiver == null) {
             return;
