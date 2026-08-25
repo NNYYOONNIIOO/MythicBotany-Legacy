@@ -11,8 +11,11 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL13;
+import java.nio.FloatBuffer;
 import vazkii.botania.common.item.ModItems;
 
 /** Renders a horn stored in a placed Yggdrasil branch. */
@@ -164,6 +167,10 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         private final int clientActiveTexture;
         private final float lightmapX;
         private final float lightmapY;
+        private final float colorR;
+        private final float colorG;
+        private final float colorB;
+        private final float colorA;
 
         private OpenGLState() {
             matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
@@ -171,6 +178,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             clientActiveTexture = GL11.glGetInteger(GL13.GL_CLIENT_ACTIVE_TEXTURE);
             lightmapX = OpenGlHelper.lastBrightnessX;
             lightmapY = OpenGlHelper.lastBrightnessY;
+            FloatBuffer color = BufferUtils.createFloatBuffer(4);
+            GL11.glGetFloat(GL11.GL_CURRENT_COLOR, color);
+            colorR = color.get(0);
+            colorG = color.get(1);
+            colorB = color.get(2);
+            colorA = color.get(3);
         }
 
         private static OpenGLState capture() {
@@ -198,6 +211,48 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GL13.glActiveTexture(activeTexture);
             GL13.glClientActiveTexture(clientActiveTexture);
             GL11.glMatrixMode(matrixMode);
+            synchronizeCachedState();
+        }
+
+        /**
+         * glPushAttrib restores OpenGL itself, but not GlStateManager's cached
+         * state. Synchronize both after nested RenderItem calls; otherwise a
+         * later EntityItem can skip enabling lighting/textures and render the
+         * attached model as a black quad.
+         */
+        private void synchronizeCachedState() {
+            synchronizeCapability(GL11.GL_TEXTURE_2D, GL11.glIsEnabled(GL11.GL_TEXTURE_2D),
+                    GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
+            synchronizeCapability(GL11.GL_ALPHA_TEST, GL11.glIsEnabled(GL11.GL_ALPHA_TEST),
+                    GlStateManager::enableAlpha, GlStateManager::disableAlpha);
+            synchronizeCapability(GL11.GL_BLEND, GL11.glIsEnabled(GL11.GL_BLEND),
+                    GlStateManager::enableBlend, GlStateManager::disableBlend);
+            synchronizeCapability(GL11.GL_CULL_FACE, GL11.glIsEnabled(GL11.GL_CULL_FACE),
+                    GlStateManager::enableCull, GlStateManager::disableCull);
+            synchronizeCapability(GL11.GL_DEPTH_TEST, GL11.glIsEnabled(GL11.GL_DEPTH_TEST),
+                    GlStateManager::enableDepth, GlStateManager::disableDepth);
+            synchronizeCapability(GL11.GL_LIGHTING, GL11.glIsEnabled(GL11.GL_LIGHTING),
+                    GlStateManager::enableLighting, GlStateManager::disableLighting);
+            synchronizeCapability(GL12.GL_RESCALE_NORMAL, GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL),
+                    GlStateManager::enableRescaleNormal, GlStateManager::disableRescaleNormal);
+
+            GL11.glColor4f(colorR, colorG, colorB, colorA);
+            GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
+            GlStateManager.color(colorR, colorG, colorB, colorA);
+            GL11.glColor4f(colorR, colorG, colorB, colorA);
+        }
+
+        private static void synchronizeCapability(int capability, boolean enabled,
+                                                   Runnable enable, Runnable disable) {
+            if (enabled) {
+                GL11.glEnable(capability);
+                disable.run();
+                enable.run();
+            } else {
+                GL11.glDisable(capability);
+                enable.run();
+                disable.run();
+            }
         }
     }
 }
