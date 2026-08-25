@@ -40,9 +40,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.1D;
     public static final double HORN_Z = 0.25D;
-    /** Sixteen pixels in local block coordinates. */
+    /** The east/west left offset is 16 pixels; the forward offset is 7 pixels. */
     public static final double HORN_LEFT_OFFSET = 1.0D;
-    public static final double HORN_FORWARD_OFFSET = 1.0D;
+    public static final double HORN_FORWARD_OFFSET = 7.0D / 16.0D;
 
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z,
