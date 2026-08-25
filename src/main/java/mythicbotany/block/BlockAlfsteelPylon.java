@@ -68,11 +68,20 @@ public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWa
 
     @SideOnly(Side.CLIENT)
     private String getHudName() {
-        String key = "tile.mythicbotany.alfsteel_pylon.name";
+        ItemStack stack = new ItemStack(this);
+        String key = stack.getTranslationKey() + ".name";
         String localized = I18n.format(key);
-        return localized.equals(key)
-                ? I18n.format("block.mythicbotany.alfsteel_pylon")
-                : localized;
+        if (!localized.equals(key)) {
+            return localized;
+        }
+
+        key = "tile.mythicbotany.alfsteel_pylon.name";
+        localized = I18n.format(key);
+        if (!localized.equals(key)) {
+            return localized;
+        }
+
+        return I18n.format("block.mythicbotany.alfsteel_pylon");
     }
 
     @Override
