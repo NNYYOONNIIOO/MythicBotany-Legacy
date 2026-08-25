@@ -7,10 +7,8 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -57,9 +55,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
             renderManaResource(x, y, z, facing, packedLight);
-            renderStack(tile.getHorn(), x, y, z, facing, getHornX(facing), HORN_Y, HORN_Z,
+            renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, getHornZ(facing),
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
-                    packedLight);
+                    packedLight, false);
         } finally {
             glState.pop();
         }
@@ -70,7 +68,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
-                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight);
+                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight, true);
     }
 
     private static float getManaResourceRotationY(EnumFacing facing) {
@@ -83,13 +81,15 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    private static double getHornX(EnumFacing facing) {
+    private static double getHornZ(EnumFacing facing) {
         switch (facing) {
             case EAST:
             case WEST:
-                return HORN_X + HORN_SIDE_OFFSET;
+                // The side-facing branch is viewed along its local X axis;
+                // the observer's right is local Z, not local X.
+                return HORN_Z + HORN_SIDE_OFFSET;
             default:
-                return HORN_X;
+                return HORN_Z;
         }
     }
 
@@ -117,7 +117,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     private static void renderStack(ItemStack stack, double x, double y, double z,
                                      EnumFacing facing, double localX, double localY,
                                      double localZ, float scale, float rotationX,
-                                     float rotationY, float rotationZ, int packedLight) {
+                                     float rotationY, float rotationZ, int packedLight,
+                                     boolean unlit) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
@@ -128,13 +129,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             // Restore the actual GL state as well as GlStateManager's cache;
             // setting only GlStateManager.color can be a no-op when its cache
             // already says white while OpenGL is still black.
-            prepareItemRenderState(packedLight);
-            RenderHelper.enableStandardItemLighting();
-            // Every vanilla item model is rendered from the block atlas. Bind
-            // it explicitly because a preceding EntityItem may have left a
-            // different atlas active while GlStateManager's cache is stale.
-            Minecraft.getMinecraft().getTextureManager()
-                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            prepareItemRenderState(packedLight, unlit);
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
@@ -148,7 +143,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            RenderHelper.disableStandardItemLighting();
+            if (unlit) {
+                GlStateManager.enableLighting();
+            }
             GlStateManager.disableBlend();
             GlStateManager.disableAlpha();
             GlStateManager.resetColor();
@@ -158,21 +155,26 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    private static void prepareItemRenderState(int packedLight) {
+    private static void prepareItemRenderState(int packedLight, boolean unlit) {
         synchronizeCurrentTextureBindings();
         // RenderItem binds item textures on the default unit. A previous
         // EntityItem/TESR may leave the lightmap unit active even though the
         // GlStateManager cache says otherwise.
         GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        setLightmap(packedLight);
+        setLightmap(unlit ? 0xF000F0 : packedLight);
         GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
-        GL11.glEnable(GL11.GL_LIGHTING);
         GlStateManager.enableTexture2D();
-        GlStateManager.enableLighting();
+        if (unlit) {
+            GL11.glDisable(GL11.GL_LIGHTING);
+            GlStateManager.disableLighting();
+        } else {
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GlStateManager.enableLighting();
+        }
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
