@@ -45,11 +45,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z,
                        float partialTicks, int destroyStage, float alpha) {
-        OpenGLState glState = OpenGLState.capture();
-        glState.push();
+        RenderState state = RenderState.capture();
+        state.push();
         try {
-            IBlockState state = tile.getWorld().getBlockState(tile.getPos());
-            EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
+            IBlockState blockState = tile.getWorld().getBlockState(tile.getPos());
+            EnumFacing facing = blockState.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
             renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing,
@@ -57,7 +57,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y,
                     HORN_ROTATION_Z, packedLight, false);
         } finally {
-            glState.pop();
+            state.pop();
         }
     }
 
@@ -108,11 +108,6 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    private static void setLightmap(int packedLight) {
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
-                packedLight & 65535, packedLight >>> 16);
-    }
-
     private static void renderStack(ItemStack stack, double x, double y, double z,
                                     EnumFacing facing, double localX, double localY,
                                     double localZ, float scale, float rotationX,
@@ -122,12 +117,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             return;
         }
 
-        OpenGLState state = OpenGLState.capture();
+        RenderState state = RenderState.capture();
         state.push();
         try {
-            // RenderItem expects the normal item lighting/texture context.
-            // The permanent resource uses a maximum lightmap, but lighting is
-            // intentionally kept enabled so its baked quad cannot turn black.
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
             GlStateManager.enableLighting();
@@ -135,16 +127,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             forceColor(1.0F, 1.0F, 1.0F, 1.0F);
-            setLightmap(fullbright ? 0xF000F0 : packedLight);
 
-            // Item/generated models are flat quads; do not hide their reverse
-            // side when the branch is viewed from another horizontal facing.
+            // setLightmap switches to the lightmap unit internally. Restore
+            // the default unit before RenderItem binds the item atlas/model.
+            setLightmap(fullbright ? 0xF000F0 : packedLight);
+            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            GlStateManager.enableTexture2D();
+
+            // Generated item models are flat quads. Culling is disabled only
+            // inside this scope and is restored before the next EntityItem.
             GL11.glDisable(GL11.GL_CULL_FACE);
             GlStateManager.disableCull();
 
-            // Match blockstates/yggdrasil_branch.json before applying all local
-            // position and rotation values. This makes attached models follow
-            // north/east/south/west branch rotations instead of world axes.
+            // Match blockstates/yggdrasil_branch.json before applying local
+            // position and model rotations, so all attachments follow facing.
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
@@ -159,13 +156,18 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
+    private static void setLightmap(int packedLight) {
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                packedLight & 65535, packedLight >>> 16);
+    }
+
     /** Renders the branch block and its permanent resource as an item. */
     public static void renderItem(ItemStack stack, float partialTicks) {
-        OpenGLState glState = OpenGLState.capture();
-        glState.push();
+        RenderState state = RenderState.capture();
+        state.push();
         try {
             EnumFacing facing = EnumFacing.byHorizontalIndex(stack.getMetadata() & 3);
-            IBlockState state = ModBlocks.yggdrasilBranch.getDefaultState()
+            IBlockState blockState = ModBlocks.yggdrasilBranch.getDefaultState()
                     .withProperty(BlockYggdrasilBranch.FACING, facing);
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
@@ -174,15 +176,15 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.scale(0.5F, 0.5F, 0.5F);
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             Minecraft.getMinecraft().getBlockRendererDispatcher()
-                    .renderBlockBrightness(state, 1.0F);
+                    .renderBlockBrightness(blockState, 1.0F);
             renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0);
         } finally {
-            glState.pop();
+            state.pop();
         }
     }
 
-    /** Captures and restores all fixed-function state touched by this renderer. */
-    private static final class OpenGLState {
+    /** Captures and restores the complete fixed-function state of one render. */
+    private static final class RenderState {
         private final int matrixMode;
         private final int activeTexture;
         private final int clientActiveTexture;
@@ -201,7 +203,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         private final boolean cull;
         private final boolean rescale;
 
-        private OpenGLState() {
+        private RenderState() {
             matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
             activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
             clientActiveTexture = GL11.glGetInteger(GL13.GL_CLIENT_ACTIVE_TEXTURE);
@@ -225,8 +227,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             rescale = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
         }
 
-        private static OpenGLState capture() {
-            return new OpenGLState();
+        private static RenderState capture() {
+            return new RenderState();
         }
 
         private static int captureTexture(int textureUnit) {
