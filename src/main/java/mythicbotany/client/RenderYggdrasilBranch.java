@@ -23,9 +23,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     // Counterclockwise in the branch's front view.
     public static final float MANA_RESOURCE_ROTATION_Z = 90.0F;
     public static final float HORN_SCALE = 0.45F;
-    // Front-view counterclockwise quarter turn, then clockwise from the left side.
+    // Front-view counterclockwise quarter turn, then clockwise into the left-side view.
     public static final float HORN_ROTATION_Z = 90.0F;
-    public static final float HORN_ROTATION_X = 90.0F;
+    public static final float HORN_ROTATION_Y = 90.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.5D / 16.0D + HORN_SCALE / 2.0D;
     public static final double HORN_Z = 0.5D;
@@ -38,7 +38,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderManaResource(x, y, z, facing);
         renderStack(tile.getHorn(), x + HORN_X + facing.getXOffset() * FRONT_OFFSET,
                 y + HORN_Y, z + HORN_Z + facing.getZOffset() * FRONT_OFFSET,
-                facing, HORN_SCALE, HORN_ROTATION_Z, HORN_ROTATION_X);
+                facing, HORN_SCALE, HORN_ROTATION_Z, HORN_ROTATION_Y);
     }
 
     private static void renderManaResource(double x, double y, double z, EnumFacing facing) {
@@ -51,7 +51,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
 
     private static void renderStack(ItemStack stack, double x, double y, double z,
                                      EnumFacing facing, float scale,
-                                     float rotationZ, float rotationX) {
+                                     float rotationZ, float rotationY) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
@@ -59,9 +59,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GlStateManager.enableRescaleNormal();
         GlStateManager.translate(x, y, z);
         GlStateManager.rotate(facing.getHorizontalAngle(), 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
+        // Base orientation used by the branch-held item model.
         GlStateManager.rotate(90.0F, 1.0F, 0.0F, 0.0F);
-        GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
+        // Apply the requested front-view roll, then the horn's left-side turn.
+        GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
         GlStateManager.scale(scale, scale, scale);
         Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
         GlStateManager.disableRescaleNormal();
