@@ -47,34 +47,21 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
-        registerToManaNetwork();
-    }
-
-    @Override
     public void invalidate() {
-        removeFromManaNetwork();
+        ManaNetworkEvent.removePool(this);
         super.invalidate();
     }
 
     @Override
     public void onChunkUnload() {
-        removeFromManaNetwork();
+        ManaNetworkEvent.removePool(this);
         super.onChunkUnload();
     }
 
     private void registerToManaNetwork() {
-        if (world != null && !world.isRemote && !isInvalid()
+        if (world != null && !isInvalid()
                 && !ManaNetworkHandler.instance.isPoolIn(this)) {
             ManaNetworkEvent.addPool(this);
-        }
-    }
-
-    private void removeFromManaNetwork() {
-        if (world != null && !world.isRemote
-                && ManaNetworkHandler.instance.isPoolIn(this)) {
-            ManaNetworkEvent.removePool(this);
         }
     }
 
@@ -84,13 +71,13 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
         super.recieveMana(amount);
         if (oldMana != mana && world != null && !world.isRemote) {
             markDirty();
-           VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
+            VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
         }
     }
 
     @Override
     public boolean canRecieveManaFromBursts() {
-        return world != null && !isInvalid() && !isFull();
+        return !isFull();
     }
 
     @Override
@@ -135,7 +122,6 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
             // spreader's updated rotation and receiver state as usual.
             TileSpreader spreader = (TileSpreader) clickedTile;
             boolean bound = spreader.bindTo(player, wand, getPos(), side);
-            spreader.checkForReceiver();
             if (bound && !world.isRemote) {
                 spreader.markDirty();
                 VanillaPacketDispatcher.dispatchTEToNearbyPlayers(spreader);
@@ -148,14 +134,6 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
 
     @Override
     public BlockPos getBinding() {
-        if (world == null) {
-            return null;
-        }
-        for (TileEntity tile : world.loadedTileEntityList) {
-            if (tile instanceof TileSpreader && getPos().equals(((TileSpreader) tile).getBinding())) {
-                return tile.getPos();
-            }
-        }
         return null;
     }
 
@@ -190,10 +168,10 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
         if (world == null) {
             return;
         }
+        registerToManaNetwork();
         if (world.isRemote) {
             return;
         }
-        registerToManaNetwork();
         repairTopItem();
     }
 
