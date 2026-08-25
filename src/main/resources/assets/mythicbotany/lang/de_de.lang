@@ -166,6 +166,7 @@ message.mythicbotany.ritual_wrong_items=Das Ritual ist dir bekannt und du bist m
 message.mythicbotany.ritual_wrong_shape=Das Ritual kommt dir falsch vor obwohl du die Runen im Detail studiert hast.
 tile.mythicbotany:alfsteel_block.name=Alfstahl-Block
 tile.mythicbotany:alfsteel_pylon.name=Alfstahl-Pylon
+block.mythicbotany.alfsteel_pylon=Alfstahl-Pylon
 tile.mythicbotany.alfsteel_pylon=Alfstahl-Pylon
 tile.mythicbotany:aquapanthus_floating.name=Schwebender Aquapanthus
 tile.mythicbotany:aquapanthus.description=Wässrig!.
