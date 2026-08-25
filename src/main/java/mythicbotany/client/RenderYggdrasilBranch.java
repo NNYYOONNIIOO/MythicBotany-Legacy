@@ -41,7 +41,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final double HORN_Y = 0.1D;
     public static final double HORN_Z = 0.25D;
     /** Sixteen pixels in local block coordinates. */
-    public static final double HORN_SIDE_OFFSET = 1.0D;
+    public static final double HORN_LEFT_OFFSET = 1.0D;
+    public static final double HORN_FORWARD_OFFSET = 1.0D;
 
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z,
@@ -54,7 +55,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
             renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing,
-                    getHornX(facing), HORN_Y, HORN_Z,
+                    getHornX(facing), HORN_Y, getHornZ(facing),
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y,
                     HORN_ROTATION_Z, packedLight, false);
         } finally {
@@ -89,9 +90,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         switch (facing) {
             case EAST:
             case WEST:
-                return HORN_X + HORN_SIDE_OFFSET;
+                return HORN_X + HORN_LEFT_OFFSET;
             default:
                 return HORN_X;
+        }
+    }
+
+    private static double getHornZ(EnumFacing facing) {
+        // For east/west branches the requested front-to-back view moves the
+        // horn one block unit forward in addition to the leftward offset.
+        switch (facing) {
+            case EAST:
+            case WEST:
+                return HORN_Z + HORN_FORWARD_OFFSET;
+            default:
+                return HORN_Z;
         }
     }
 
