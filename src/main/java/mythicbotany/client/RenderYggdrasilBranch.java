@@ -171,6 +171,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         private final float colorG;
         private final float colorB;
         private final float colorA;
+        private final int defaultTexture;
+        private final int lightmapTexture;
 
         private OpenGLState() {
             matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
@@ -184,6 +186,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             colorG = color.get(1);
             colorB = color.get(2);
             colorA = color.get(3);
+            defaultTexture = getTextureBinding(OpenGlHelper.defaultTexUnit);
+            lightmapTexture = getTextureBinding(OpenGlHelper.lightmapTexUnit);
+            GL13.glActiveTexture(activeTexture);
         }
 
         private static OpenGLState capture() {
@@ -214,6 +219,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             synchronizeCachedState();
         }
 
+        private static int getTextureBinding(int textureUnit) {
+            GL13.glActiveTexture(textureUnit);
+            return GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        }
+
         /**
          * glPushAttrib restores OpenGL itself, but not GlStateManager's cached
          * state. Synchronize both after nested RenderItem calls; otherwise a
@@ -221,6 +231,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
          * attached model as a black quad.
          */
         private void synchronizeCachedState() {
+            // glPopAttrib restores the real texture bindings, but not the
+            // bindings cached by GlStateManager. If the cache is left stale,
+            // the next dropped item can skip its bind call and become black.
+            synchronizeTextureUnit(OpenGlHelper.defaultTexUnit, defaultTexture);
+            synchronizeTextureUnit(OpenGlHelper.lightmapTexUnit, lightmapTexture);
+            GlStateManager.setActiveTexture(activeTexture);
+
             synchronizeCapability(GL11.GL_TEXTURE_2D, GL11.glIsEnabled(GL11.GL_TEXTURE_2D),
                     GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
             synchronizeCapability(GL11.GL_ALPHA_TEST, GL11.glIsEnabled(GL11.GL_ALPHA_TEST),
@@ -240,6 +257,20 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
             GlStateManager.color(colorR, colorG, colorB, colorA);
             GL11.glColor4f(colorR, colorG, colorB, colorA);
+        }
+
+        private static void synchronizeTextureUnit(int textureUnit, int texture) {
+            GL13.glActiveTexture(textureUnit);
+            boolean enabled = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+            GlStateManager.setActiveTexture(textureUnit);
+            GlStateManager.bindTexture(texture);
+            if (enabled) {
+                GlStateManager.disableTexture2D();
+                GlStateManager.enableTexture2D();
+            } else {
+                GlStateManager.enableTexture2D();
+                GlStateManager.disableTexture2D();
+            }
         }
 
         private static void synchronizeCapability(int capability, boolean enabled,
