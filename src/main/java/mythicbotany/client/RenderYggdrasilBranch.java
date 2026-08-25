@@ -125,55 +125,57 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         if (stack == null || stack.isEmpty()) {
             return;
         }
-        boolean lightingWasEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING);
-        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
         float oldLightmapX = OpenGlHelper.lastBrightnessX;
         float oldLightmapY = OpenGlHelper.lastBrightnessY;
+        int oldActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
         GlStateManager.pushMatrix();
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         try {
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
-            GlStateManager.enableLighting();
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glEnable(GL11.GL_ALPHA_TEST);
-            GL11.glEnable(GL11.GL_LIGHTING);
-            GL11.glEnable(GL11.GL_BLEND);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            int blockLight = packedLight & 65535;
-            int skyLight = packedLight >>> 16;
-            if (fullbright) {
-                // The attached livingwood item is a flat generated model. Do
-                // not let the face normal/light state left by a nearby item
-                // turn it into a black quad.
-                GL11.glDisable(GL11.GL_LIGHTING);
-                GlStateManager.disableLighting();
-                GL11.glDisable(GL11.GL_CULL_FACE);
-                GlStateManager.disableCull();
-                blockLight = 240;
-                skyLight = 240;
-            }
+
+            // EntityItem rendering can leave the lightmap unit active or its
+            // GlStateManager cache stale. Restore both texture units before
+            // rendering the attached model.
+            GL13.glActiveTexture(OpenGlHelper.lightmapTexUnit);
+            GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GlStateManager.enableTexture2D();
+            int blockLight = fullbright ? 240 : packedLight & 65535;
+            int skyLight = fullbright ? 240 : packedLight >>> 16;
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     blockLight, skyLight);
-            // RenderItem expects the block atlas and standard item lights. A
-            // preceding EntityItem can leave either state stale, which turns
-            // the attached quads into black planes.
+
             GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GlStateManager.enableTexture2D();
             Minecraft.getMinecraft().getTextureManager()
                     .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            if (!fullbright) {
+
+            if (fullbright) {
+                // The attached mana resource is a generated flat model. Keep
+                // it visible from both sides and independent of nearby item
+                // normals/light state.
+                GL11.glDisable(GL11.GL_LIGHTING);
+                GL11.glDisable(GL11.GL_CULL_FACE);
+                GlStateManager.disableLighting();
+                GlStateManager.disableCull();
+            } else {
+                GL11.glEnable(GL11.GL_LIGHTING);
+                GlStateManager.enableLighting();
                 RenderHelper.enableStandardItemLighting();
             }
-            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
-            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-            Minecraft.getMinecraft().getTextureManager()
-                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
+            // This is exactly the rotation used by blockstates/yggdrasil_branch.json.
+            // The local position and local model rotations therefore follow the
+            // branch instead of remaining in world axes.
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
             GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
@@ -188,31 +190,15 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             }
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     oldLightmapX, oldLightmapY);
-            if (lightingWasEnabled) {
-                GL11.glEnable(GL11.GL_LIGHTING);
-                GlStateManager.enableLighting();
-            } else {
-                GL11.glDisable(GL11.GL_LIGHTING);
-                GlStateManager.disableLighting();
-            }
-            if (cullWasEnabled) {
-                GL11.glEnable(GL11.GL_CULL_FACE);
-                GlStateManager.enableCull();
-            } else {
-                GL11.glDisable(GL11.GL_CULL_FACE);
-                GlStateManager.disableCull();
-            }
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.enableLighting();
-            GlStateManager.enableTexture2D();
-            GlStateManager.disableBlend();
-            GlStateManager.disableRescaleNormal();
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.popMatrix();
             GL11.glPopAttrib();
+            GL13.glActiveTexture(oldActiveTexture);
+            GlStateManager.setActiveTexture(oldActiveTexture);
             synchronizeRenderStateCache();
         }
     }
-
     private static void prepareItemRenderState(int packedLight) {
         synchronizeCurrentTextureBindings();
         // RenderItem binds item textures on the default unit. A previous
