@@ -37,12 +37,14 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final float HORN_ROTATION_X = 180.0F;
     public static final float HORN_ROTATION_Y = 90.0F;
     public static final float HORN_ROTATION_Z = 0.0F;
+    /** Extra in-screen flip used only by east/west-facing branches. */
+    public static final float HORN_EAST_WEST_ROTATION_Z = 180.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.1D;
     public static final double HORN_Z = 0.25D;
-    /** The east/west left offset is 16 pixels; the forward offset is 7 pixels. */
-    public static final double HORN_LEFT_OFFSET = 1.0D;
-    public static final double HORN_FORWARD_OFFSET = 7.0D / 16.0D;
+
+    public static final double HORN_LEFT_OFFSET = 0.0D;
+    public static final double HORN_FORWARD_OFFSET = 8.0D / 16.0D;
 
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z,
@@ -57,7 +59,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             renderStack(tile.getHorn(), x, y, z, facing,
                     getHornX(facing), HORN_Y, getHornZ(facing),
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y,
-                    HORN_ROTATION_Z, packedLight, false);
+                    getHornRotationZ(facing), packedLight, false);
         } finally {
             state.pop();
         }
@@ -105,6 +107,16 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                 return HORN_Z + HORN_FORWARD_OFFSET;
             default:
                 return HORN_Z;
+        }
+    }
+
+    private static float getHornRotationZ(EnumFacing facing) {
+        switch (facing) {
+            case EAST:
+            case WEST:
+                return HORN_EAST_WEST_ROTATION_Z;
+            default:
+                return HORN_ROTATION_Z;
         }
     }
 
