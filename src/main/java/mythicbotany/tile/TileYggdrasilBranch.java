@@ -27,7 +27,7 @@ public class TileYggdrasilBranch extends ManaTileEntity {
     private static final int TICKS_TO_FILL = 600;
     private static final int DRIP_INTERVAL_TICKS = 3;
     private static final double RESOURCE_PARTICLE_X = 0.5D;
-    private static final double RESOURCE_PARTICLE_Y = 0.9D + 0.8D;
+    private static final double RESOURCE_PARTICLE_Y = 0.9D + 0.8D - 1.0D;
     private static final double RESOURCE_PARTICLE_Z = 0.5D;
     private ItemStack horn = ItemStack.EMPTY;
     private int progress;
