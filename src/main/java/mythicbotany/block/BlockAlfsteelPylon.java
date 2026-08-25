@@ -68,14 +68,6 @@ public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWa
 
     @SideOnly(Side.CLIENT)
     private String getHudName() {
-        // Botania's 1.12 HUD passes the legacy dotted tile key.  Keep this
-        // key as the primary lookup so the HUD never displays the raw key.
-        String key = "tile.mythicbotany.alfsteel_pylon";
-        String localized = I18n.format(key);
-        if (!localized.equals(key)) {
-            return localized;
-        }
-
         return I18n.format("tile.mythicbotany:alfsteel_pylon.name");
     }
 
