@@ -28,7 +28,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final float HORN_SCALE = 0.45F;
     // Front-view counterclockwise quarter turn, then clockwise into the left-side view.
     public static final float HORN_ROTATION_Z = 90.0F;
-    public static final float HORN_ROTATION_X = 90.0F;
+    public static final float HORN_ROTATION_X = 180.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.5D / 16.0D + HORN_SCALE / 2.0D;
     public static final double HORN_Z = 0.5D;
@@ -51,11 +51,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     }
 
     private static void renderManaResource(double x, double y, double z, EnumFacing facing) {
-        renderStack(new ItemStack(ModItems.manaResource, 1, 3),
+        ItemStack stack = new ItemStack(ModItems.manaResource, 1, 3);
+        GlStateManager.pushMatrix();
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.translate(
                 x + MANA_RESOURCE_X + facing.getXOffset() * FRONT_OFFSET,
                 y + MANA_RESOURCE_Y,
-                z + MANA_RESOURCE_Z + facing.getZOffset() * FRONT_OFFSET,
-                facing, MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_Z, 0.0F);
+                z + MANA_RESOURCE_Z + facing.getZOffset() * FRONT_OFFSET);
+        GlStateManager.rotate(facing.getHorizontalAngle(), 0.0F, 1.0F, 0.0F);
+        // The generated item model is rendered directly on the branch front;
+        // this is the requested counterclockwise 90-degree front rotation.
+        GlStateManager.rotate(MANA_RESOURCE_ROTATION_Z, 0.0F, 0.0F, 1.0F);
+        GlStateManager.scale(MANA_RESOURCE_SCALE, MANA_RESOURCE_SCALE, MANA_RESOURCE_SCALE);
+        Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.popMatrix();
     }
 
     private static void renderStack(ItemStack stack, double x, double y, double z,
