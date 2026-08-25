@@ -7,8 +7,10 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -57,7 +59,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
             renderManaResource(x, y, z, facing, packedLight);
-            renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, getHornZ(facing),
+            renderStack(tile.getHorn(), x, y, z, facing, getHornX(facing), HORN_Y, HORN_Z,
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
                     packedLight);
         } finally {
@@ -83,16 +85,15 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    private static double getHornZ(EnumFacing facing) {
+    private static double getHornX(EnumFacing facing) {
         switch (facing) {
             case EAST:
             case WEST:
-                // In the east/west side view, local Z is the observer's
-                // horizontal screen axis. The branch rotation carries this
-                // offset to the correct world direction for both facings.
-                return HORN_Z + HORN_SIDE_OFFSET;
+                // The model's own right is local X. The branch rotation then
+                // carries this 16-pixel offset to the correct world side.
+                return HORN_X + HORN_SIDE_OFFSET;
             default:
-                return HORN_Z;
+                return HORN_X;
         }
     }
 
@@ -131,6 +132,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
             GlStateManager.enableLighting();
+            GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -143,6 +145,14 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             int skyLight = packedLight >>> 16;
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     blockLight, skyLight);
+            // RenderItem expects the block atlas and standard item lights. A
+            // preceding EntityItem can leave either state stale, which turns
+            // the attached quads into black planes.
+            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            Minecraft.getMinecraft().getTextureManager()
+                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            RenderHelper.enableStandardItemLighting();
             GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
             Minecraft.getMinecraft().getTextureManager()
@@ -157,6 +167,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
+            RenderHelper.disableStandardItemLighting();
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
                     oldLightmapX, oldLightmapY);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
