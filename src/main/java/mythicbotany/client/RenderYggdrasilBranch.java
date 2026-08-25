@@ -82,7 +82,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             renderStack(tile.getHorn(), x, y, z, facing,
                     getHornX(facing), HORN_Y, getHornZ(facing),
                     HORN_SCALE, getHornRotationX(facing), getHornRotationY(facing),
-                    getHornRotationZ(facing), packedLight, false);
+                    getHornRotationZ(facing), packedLight, false,
+                    ItemCameraTransforms.TransformType.GROUND);
         } finally {
             state.pop();
         }
@@ -95,7 +96,18 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                 MANA_RESOURCE_X, getManaResourceY(facing), MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, getManaResourceRotationX(facing),
                 getManaResourceRotationY(facing), getManaResourceRotationZ(facing),
-                packedLight, true);
+                packedLight, true, ItemCameraTransforms.TransformType.GROUND);
+    }
+
+    private static void renderManaResource(double x, double y, double z,
+                                           EnumFacing facing, int packedLight,
+                                           ItemCameraTransforms.TransformType transformType) {
+        renderStack(new ItemStack(ModItems.manaResource, 1, 3),
+                x, y, z, facing,
+                MANA_RESOURCE_X, getManaResourceY(facing), MANA_RESOURCE_Z,
+                MANA_RESOURCE_SCALE, getManaResourceRotationX(facing),
+                getManaResourceRotationY(facing), getManaResourceRotationZ(facing),
+                packedLight, true, transformType);
     }
 
     private static double getManaResourceY(EnumFacing facing) {
@@ -230,7 +242,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                                     EnumFacing facing, double localX, double localY,
                                     double localZ, float scale, float rotationX,
                                     float rotationY, float rotationZ, int packedLight,
-                                    boolean fullbright) {
+                                    boolean fullbright,
+                                    ItemCameraTransforms.TransformType transformType) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
@@ -270,7 +283,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
             GlStateManager.scale(scale, scale, scale);
             Minecraft.getMinecraft().getRenderItem()
-                    .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+                    .renderItem(stack, transformType);
         } finally {
             state.pop();
         }
@@ -294,12 +307,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
             setLightmap(0xF000F0);
-            GlStateManager.translate(0.5D, 0.5D, 0.5D);
-            GlStateManager.scale(0.5F, 0.5F, 0.5F);
-            GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             Minecraft.getMinecraft().getBlockRendererDispatcher()
                     .renderBlockBrightness(blockState, 1.0F);
-            renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0);
+            // Render the attached resource without its own camera/display
+            // transform. The branch item's display transform is applied once
+            // by RenderItem before this TEISR is entered.
+            renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0,
+                    ItemCameraTransforms.TransformType.NONE);
         } finally {
             state.pop();
         }
