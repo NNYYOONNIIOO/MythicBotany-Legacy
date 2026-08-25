@@ -132,7 +132,12 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
             // Let Botania's spreader perform the normal binding and receiver
             // scan on both logical sides.  The Forest Wand then dispatches the
             // spreader's updated rotation and receiver state as usual.
-            return ((TileSpreader) clickedTile).bindTo(player, wand, getPos(), side);
+            TileSpreader spreader = (TileSpreader) clickedTile;
+            boolean bound = spreader.bindTo(player, wand, getPos(), side);
+            if (bound && !world.isRemote) {
+                VanillaPacketDispatcher.dispatchTEToNearbyPlayers(spreader);
+            }
+            return bound;
         }
         return false;
     }
