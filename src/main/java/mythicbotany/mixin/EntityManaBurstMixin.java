@@ -24,9 +24,6 @@ public abstract class EntityManaBurstMixin {
             remap = false)
     private RayTraceResult mythicbotany$rayTraceAlfsteelPylon(World world, Vec3d start, Vec3d end) {
         RayTraceResult normalHit = world.rayTraceBlocks(start, end);
-        if (normalHit != null) {
-            return normalHit;
-        }
 
         int minX = MathHelper.floor(Math.min(start.x, end.x)) - 1;
         int minY = MathHelper.floor(Math.min(start.y, end.y)) - 1;
@@ -46,7 +43,10 @@ public abstract class EntityManaBurstMixin {
                         continue;
                     }
 
-                    AxisAlignedBB localBox = state.getBoundingBox(world, pos);
+                    AxisAlignedBB localBox = state.getBlock().getCollisionBoundingBox(state, world, pos);
+                    if (localBox == null) {
+                        continue;
+                    }
                     AxisAlignedBB box = new AxisAlignedBB(
                             pos.getX() + localBox.minX,
                             pos.getY() + localBox.minY,
@@ -68,6 +68,13 @@ public abstract class EntityManaBurstMixin {
                 }
             }
         }
-        return closest;
+        if (closest == null) {
+            return normalHit;
+        }
+        if (normalHit == null) {
+            return closest;
+        }
+        return start.squareDistanceTo(closest.hitVec) < start.squareDistanceTo(normalHit.hitVec)
+                ? closest : normalHit;
     }
 }

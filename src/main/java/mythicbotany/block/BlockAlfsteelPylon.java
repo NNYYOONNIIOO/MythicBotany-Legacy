@@ -27,6 +27,8 @@ import vazkii.botania.client.core.handler.HUDHandler;
 public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWandHUD {
     private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(
             0.0D, 0.0D, 0.0D, 1.0D, 21.0D / 16.0D, 1.0D);
+    private static final AxisAlignedBB MANA_COLLISION_BOX = new AxisAlignedBB(
+            0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
 
     public BlockAlfsteelPylon() {
         super(Material.IRON);
@@ -103,13 +105,18 @@ public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWa
     }
 
     @Override
+    public boolean canCollideCheck(IBlockState state, boolean hitIfLiquid) {
+        return true;
+    }
+
+    @Override
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
         return BOUNDING_BOX;
     }
 
     @Override
     public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-        return BOUNDING_BOX;
+        return MANA_COLLISION_BOX;
     }
 
     @Override
