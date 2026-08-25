@@ -47,7 +47,10 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         try {
             IBlockState state = tile.getWorld().getBlockState(tile.getPos());
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
+            int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
+            setLightmap(packedLight);
             renderManaResource(x, y, z, facing);
+            setLightmap(packedLight);
             renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, HORN_Z,
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z);
         } finally {
@@ -62,6 +65,27 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                 MANA_RESOURCE_ROTATION_Y, MANA_RESOURCE_ROTATION_Z);
     }
 
+    private static void setLightmap(int packedLight) {
+        int blockLight = packedLight % 65536;
+        int skyLight = packedLight / 65536;
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                blockLight, skyLight);
+    }
+
+    /** Matches the y rotations declared by blockstates/yggdrasil_branch.json. */
+    private static float getBranchRotation(EnumFacing facing) {
+        switch (facing) {
+            case EAST:
+                return 90.0F;
+            case SOUTH:
+                return 180.0F;
+            case WEST:
+                return 270.0F;
+            default:
+                return 0.0F;
+        }
+    }
+
     private static void renderStack(ItemStack stack, double x, double y, double z,
                                      EnumFacing facing, double localX, double localY,
                                      double localZ, float scale, float rotationX,
@@ -71,8 +95,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
         GlStateManager.pushMatrix();
         GlStateManager.enableRescaleNormal();
+        // EntityItem rendering can leave a non-white current color behind.
+        // Set it directly because GlStateManager may still cache the old value.
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.translate(x + 0.5D, y, z + 0.5D);
-        GlStateManager.rotate(facing.getHorizontalAngle(), 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
         GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
         // GROUND is the same item context used by the current MythicBotany
         // renderer; rotation values therefore correspond directly to the
@@ -96,6 +123,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                     .withProperty(BlockYggdrasilBranch.FACING, facing);
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
+            setLightmap(0xF000F0);
             GlStateManager.translate(0.5D, 0.5D, 0.5D);
             GlStateManager.scale(0.5F, 0.5F, 0.5F);
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
