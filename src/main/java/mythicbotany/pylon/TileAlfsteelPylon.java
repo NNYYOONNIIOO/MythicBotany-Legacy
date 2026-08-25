@@ -14,6 +14,7 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemTool;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -25,6 +26,7 @@ import vazkii.botania.api.mana.spark.ISparkAttachable;
 import vazkii.botania.api.mana.spark.ISparkEntity;
 import vazkii.botania.api.wand.IWandBindable;
 import vazkii.botania.common.block.tile.mana.TileSpreader;
+import vazkii.botania.common.core.handler.ManaNetworkHandler;
 
 /**
  * Alfsteel pylon for the Botania 1.12 mana API.
@@ -38,7 +40,6 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
     private static final int ALFSTEEL_ARMOR_MANA_PER_POINT = 70;
     private static final int MENDING_MANA_PER_POINT = 200;
     private static final int MAX_PYLON_MANA = 1000;
-    private boolean networkRegistered;
 
     @Override
     public int getMaxMana() {
@@ -64,16 +65,16 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
     }
 
     private void registerToManaNetwork() {
-        if (world != null && !world.isRemote && !isInvalid() && !networkRegistered) {
+        if (world != null && !world.isRemote && !isInvalid()
+                && !ManaNetworkHandler.instance.isPoolIn(this)) {
             ManaNetworkEvent.addPool(this);
-            networkRegistered = true;
         }
     }
 
     private void removeFromManaNetwork() {
-        if (networkRegistered) {
+        if (world != null && !world.isRemote
+                && ManaNetworkHandler.instance.isPoolIn(this)) {
             ManaNetworkEvent.removePool(this);
-            networkRegistered = false;
         }
     }
 
@@ -123,16 +124,18 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
 
     @Override
     public boolean bindTo(EntityPlayer player, ItemStack wand, BlockPos clickedPos, EnumFacing side) {
-        if (world == null || player == null) {
+        if (world == null || clickedPos == null) {
             return false;
         }
-        if (world.getTileEntity(clickedPos) instanceof TileSpreader) {
-            // When the pylon is selected first, the spreader clicked second
-            // owns the receiver simulation and completes the binding here.
-            return ((TileSpreader) world.getTileEntity(clickedPos))
-                    .bindTo(player, wand, getPos(), side);
+        TileEntity clickedTile = world.getTileEntity(clickedPos);
+        if (!(clickedTile instanceof TileSpreader)) {
+            return false;
         }
-        return false;
+        // The spreader stores the receiver position and is responsible for
+        // creating the mana burst target.  Delegate on the server, while
+        // acknowledging the client-side wand action immediately.
+        return world.isRemote || ((TileSpreader) clickedTile)
+                .bindTo(player, wand, getPos(), side);
     }
 
     @Override
