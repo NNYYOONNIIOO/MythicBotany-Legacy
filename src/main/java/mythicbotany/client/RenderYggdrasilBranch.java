@@ -34,10 +34,10 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
 
     public static final float HORN_SCALE = 1.0F;
     // North/south item-center turn; east/west use their independent Z turn.
-    public static final float HORN_ROTATION_X = 180.0F;
+    public static final float HORN_ROTATION_X = 0.0F;
     public static final float HORN_ROTATION_Y = 270.0F;
     /** Independent top-down facing angles; initialized to the current pose. */
-    public static final float HORN_NORTH_SOUTH_ROTATION_Y = HORN_ROTATION_Y;
+    public static final float HORN_NORTH_SOUTH_ROTATION_Y = 90.0F;
     public static final float HORN_EAST_WEST_ROTATION_Y = HORN_ROTATION_Y;
     public static final float HORN_ROTATION_Z = 0.0F;
     /** Extra in-screen flip used only by east/west-facing branches. */
