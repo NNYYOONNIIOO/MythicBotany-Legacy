@@ -17,10 +17,11 @@ import vazkii.botania.common.entity.EntityManaBurst;
 @Mixin(EntityManaBurst.class)
 public abstract class EntityManaBurstMixin {
     @Redirect(
-            method = "onUpdate",
+            method = "superUpdate",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/World;rayTraceBlocks(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/RayTraceResult;"),
+                    target = "Lnet/minecraft/world/World;rayTraceBlocks(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/RayTraceResult;",
+                    remap = true),
             remap = false)
     private RayTraceResult mythicbotany$rayTraceAlfsteelPylon(World world, Vec3d start, Vec3d end) {
         RayTraceResult normalHit = world.rayTraceBlocks(start, end);

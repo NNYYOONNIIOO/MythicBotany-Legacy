@@ -49,6 +49,16 @@ public abstract class TileSpreaderMixin {
 
     @Inject(method = "checkForReceiver", at = @At("TAIL"), remap = false)
     private void mythicbotany$restorePylon(CallbackInfo ci) {
+        mythicbotany$restorePylonReceiver();
+    }
+
+    @Inject(method = "update", at = @At("HEAD"), remap = false)
+    private void mythicbotany$restorePylonAfterLoad(CallbackInfo ci) {
+        mythicbotany$restorePylonReceiver();
+    }
+
+    @Unique
+    private void mythicbotany$restorePylonReceiver() {
         if (mythicbotany$forcedReceiver == null) {
             return;
         }
