@@ -130,6 +130,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         float oldLightmapX = OpenGlHelper.lastBrightnessX;
         float oldLightmapY = OpenGlHelper.lastBrightnessY;
         GlStateManager.pushMatrix();
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         try {
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
@@ -207,6 +208,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.disableBlend();
             GlStateManager.disableRescaleNormal();
             GlStateManager.popMatrix();
+            GL11.glPopAttrib();
+            synchronizeRenderStateCache();
         }
     }
 
@@ -247,7 +250,31 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GlStateManager.bindTexture(texture);
     }
 
-    /** Renders the complete branch item, including its permanent mana resource. */
+   /** Renders the complete branch item, including its permanent mana resource. */
+    /** Synchronizes GlStateManager after a nested RenderItem call. */
+    private static void synchronizeRenderStateCache() {
+        synchronizeCurrentTextureBindings();
+        OpenGLState.synchronizeCapability(GL11.GL_TEXTURE_2D,
+                GL11.glIsEnabled(GL11.GL_TEXTURE_2D),
+                GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
+        OpenGLState.synchronizeCapability(GL11.GL_ALPHA_TEST,
+                GL11.glIsEnabled(GL11.GL_ALPHA_TEST),
+                GlStateManager::enableAlpha, GlStateManager::disableAlpha);
+        OpenGLState.synchronizeCapability(GL11.GL_BLEND,
+                GL11.glIsEnabled(GL11.GL_BLEND),
+                GlStateManager::enableBlend, GlStateManager::disableBlend);
+        OpenGLState.synchronizeCapability(GL11.GL_LIGHTING,
+                GL11.glIsEnabled(GL11.GL_LIGHTING),
+                GlStateManager::enableLighting, GlStateManager::disableLighting);
+        OpenGLState.synchronizeCapability(GL11.GL_CULL_FACE,
+                GL11.glIsEnabled(GL11.GL_CULL_FACE),
+                GlStateManager::enableCull, GlStateManager::disableCull);
+        OpenGLState.synchronizeCapability(GL12.GL_RESCALE_NORMAL,
+                GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL),
+                GlStateManager::enableRescaleNormal, GlStateManager::disableRescaleNormal);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+    }
     public static void renderItem(ItemStack stack, float partialTicks) {
         OpenGLState glState = OpenGLState.capture();
         glState.push();
