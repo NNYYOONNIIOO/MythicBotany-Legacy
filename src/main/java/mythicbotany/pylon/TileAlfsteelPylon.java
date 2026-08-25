@@ -83,13 +83,14 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
         int oldMana = mana;
         super.recieveMana(amount);
         if (oldMana != mana && world != null && !world.isRemote) {
-            VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
+            markDirty();
+           VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
         }
     }
 
     @Override
     public boolean canRecieveManaFromBursts() {
-        return !isFull();
+        return world != null && !isInvalid() && !isFull();
     }
 
     @Override
