@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -58,7 +59,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, getHornZ(facing),
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
-                    packedLight, false);
+                    packedLight);
         } finally {
             glState.pop();
         }
@@ -69,7 +70,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
-                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight, false);
+                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight);
     }
 
     private static float getManaResourceRotationY(EnumFacing facing) {
@@ -119,27 +120,36 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     private static void renderStack(ItemStack stack, double x, double y, double z,
                                      EnumFacing facing, double localX, double localY,
                                      double localZ, float scale, float rotationX,
-                                     float rotationY, float rotationZ, int packedLight,
-                                     boolean unlit) {
+                                     float rotationY, float rotationZ, int packedLight) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
+        float oldLightmapX = OpenGlHelper.lastBrightnessX;
+        float oldLightmapY = OpenGlHelper.lastBrightnessY;
         GlStateManager.pushMatrix();
-        GlStateManager.enableRescaleNormal();
         try {
-            // RenderItem may be called immediately after another EntityItem.
-            // Restore the actual GL state as well as GlStateManager's cache;
-            // setting only GlStateManager.color can be a no-op when its cache
-            // already says white while OpenGL is still black.
-            prepareItemRenderState(packedLight);
+            GlStateManager.enableRescaleNormal();
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableLighting();
+            GlStateManager.enableBlend();
+            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_BLEND);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            int blockLight = packedLight & 65535;
+            int skyLight = packedLight >>> 16;
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                    blockLight, skyLight);
+            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            Minecraft.getMinecraft().getTextureManager()
+                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
-            // GROUND is the same item context used by the current MythicBotany
-            // renderer; rotation values therefore correspond directly to the
-            // local X/Y/Z axes above instead of the GUI/FIXED transform.
             GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
             GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
             GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
@@ -147,10 +157,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            GlStateManager.disableBlend();
-            GlStateManager.disableAlpha();
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                    oldLightmapX, oldLightmapY);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.enableLighting();
+            GlStateManager.enableTexture2D();
+            GlStateManager.disableBlend();
             GlStateManager.disableRescaleNormal();
             GlStateManager.popMatrix();
         }
@@ -203,7 +215,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                     .withProperty(BlockYggdrasilBranch.FACING, facing);
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
-            setLightmap(0xF000F0);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                    240.0F, 240.0F);
             GlStateManager.translate(0.5D, 0.5D, 0.5D);
             GlStateManager.scale(0.5F, 0.5F, 0.5F);
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
