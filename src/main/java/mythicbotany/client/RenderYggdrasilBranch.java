@@ -7,6 +7,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -24,8 +25,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     // Local coordinates are measured from the branch block: X = left/right,
     // Y = up/down, Z = front/back. The complete local pose is rotated with
     // the block, so all four branch directions use the same settings.
-    // The front-view plane is the local X/Y plane; rotationZ is therefore
-    // the visible counter-clockwise/clockwise adjustment.
+    // After branch alignment, X/Y/Z are the model's left/right, up/down and
+    // front/back axes. A top-down turn uses rotationY; a left-to-right view
+    // turn uses rotationX.
     public static final double MANA_RESOURCE_X = 0.5D;
     public static final double MANA_RESOURCE_Y = 0.9D;
     public static final double MANA_RESOURCE_Z = 0.5D;
@@ -56,7 +58,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
             renderManaResource(x, y, z, facing, packedLight);
-            renderStack(tile.getHorn(), x, y, z, facing, getHornX(facing), HORN_Y, HORN_Z,
+            renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, getHornZ(facing),
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
                     packedLight, false);
         } finally {
@@ -82,16 +84,16 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    private static double getHornX(EnumFacing facing) {
+    private static double getHornZ(EnumFacing facing) {
         switch (facing) {
             case EAST:
             case WEST:
-                // The requested displacement is to the observer's right in
-                // the model's own view. X is the model's local left/right
-                // axis; the whole local pose is rotated with the branch.
-                return HORN_X + HORN_SIDE_OFFSET;
+                // In the east/west side view, local Z is the observer's
+                // horizontal screen axis. The branch rotation carries this
+                // offset to the correct world direction for both facings.
+                return HORN_Z + HORN_SIDE_OFFSET;
             default:
-                return HORN_X;
+                return HORN_Z;
         }
     }
 
@@ -132,6 +134,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             // setting only GlStateManager.color can be a no-op when its cache
             // already says white while OpenGL is still black.
             prepareItemRenderState(packedLight, unlit);
+            if (!unlit) {
+                RenderHelper.enableStandardItemLighting();
+            }
             // RenderItem normally binds this itself. Binding it here as well
             // prevents a preceding dropped-item renderer from leaving the
             // block atlas/cache out of sync for an attached model.
@@ -152,6 +157,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
+            if (!unlit) {
+                RenderHelper.disableStandardItemLighting();
+            }
             if (unlit) {
                 GlStateManager.enableLighting();
             }
@@ -177,6 +185,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GlStateManager.enableTexture2D();
+        GlStateManager.enableAlpha();
         if (unlit) {
             GL11.glDisable(GL11.GL_LIGHTING);
             GlStateManager.disableLighting();
