@@ -1,6 +1,7 @@
 package mythicbotany.pylon;
 
 import mythicbotany.registry.ModBlocks;
+import mythicbotany.client.RenderYggdrasilBranch;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -135,6 +136,8 @@ public class RenderAlfsteelPylon extends TileEntitySpecialRenderer<TileAlfsteelP
         public void renderByItem(ItemStack stack, float partialTicks) {
             if (stack.getItem() == Item.getItemFromBlock(ModBlocks.alfsteelPylon)) {
                 TileEntityRendererDispatcher.instance.render(DUMMY, 0, 0, 0, partialTicks);
+            } else if (stack.getItem() == Item.getItemFromBlock(ModBlocks.yggdrasilBranch)) {
+                RenderYggdrasilBranch.renderItem(stack, partialTicks);
             } else {
                 compose.renderByItem(stack, partialTicks);
             }
