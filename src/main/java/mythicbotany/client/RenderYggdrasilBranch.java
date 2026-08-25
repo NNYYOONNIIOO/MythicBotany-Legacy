@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -55,7 +56,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
             renderManaResource(x, y, z, facing, packedLight);
-            renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, getHornZ(facing),
+            renderStack(tile.getHorn(), x, y, z, facing, getHornX(facing), HORN_Y, HORN_Z,
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
                     packedLight, false);
         } finally {
@@ -81,15 +82,16 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    private static double getHornZ(EnumFacing facing) {
+    private static double getHornX(EnumFacing facing) {
         switch (facing) {
             case EAST:
             case WEST:
-                // The side-facing branch is viewed along its local X axis;
-                // the observer's right is local Z, not local X.
-                return HORN_Z + HORN_SIDE_OFFSET;
+                // The requested displacement is to the observer's right in
+                // the model's own view. X is the model's local left/right
+                // axis; the whole local pose is rotated with the branch.
+                return HORN_X + HORN_SIDE_OFFSET;
             default:
-                return HORN_Z;
+                return HORN_X;
         }
     }
 
@@ -130,6 +132,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             // setting only GlStateManager.color can be a no-op when its cache
             // already says white while OpenGL is still black.
             prepareItemRenderState(packedLight, unlit);
+            // RenderItem normally binds this itself. Binding it here as well
+            // prevents a preceding dropped-item renderer from leaving the
+            // block atlas/cache out of sync for an attached model.
+            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            Minecraft.getMinecraft().getTextureManager()
+                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
