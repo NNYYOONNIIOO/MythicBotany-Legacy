@@ -1,11 +1,15 @@
 package mythicbotany.tile;
 
+import mythicbotany.block.BlockYggdrasilBranch;
 import mythicbotany.registry.ModItems;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -21,12 +25,21 @@ public class TileYggdrasilBranch extends ManaTileEntity {
     private static final int MAX_MANA = 10000;
     private static final int MANA_PER_TICK = 10;
     private static final int TICKS_TO_FILL = 600;
+    private static final int DRIP_INTERVAL_TICKS = 3;
+    private static final double RESOURCE_PARTICLE_X = 0.5D;
+    private static final double RESOURCE_PARTICLE_Y = 0.9D + 0.8D;
+    private static final double RESOURCE_PARTICLE_Z = 0.5D;
     private ItemStack horn = ItemStack.EMPTY;
     private int progress;
+    private int dripTicks;
 
     @Override
     public void update() {
-        if (world == null || world.isRemote) {
+        if (world == null) {
+            return;
+        }
+        if (world.isRemote) {
+            updateWaterDrips();
             return;
         }
         if (!horn.isEmpty() && horn.getItem() == ModItems.gjallarHornEmpty
@@ -44,6 +57,56 @@ public class TileYggdrasilBranch extends ManaTileEntity {
             progress = 0;
             sync();
         }
+    }
+
+    private void updateWaterDrips() {
+        if (!isFilling()) {
+            dripTicks = 0;
+            return;
+        }
+        if (++dripTicks < DRIP_INTERVAL_TICKS) {
+            return;
+        }
+        dripTicks = 0;
+
+        IBlockState state = world.getBlockState(pos);
+        EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
+        double localX = RESOURCE_PARTICLE_X - 0.5D;
+        double localZ = RESOURCE_PARTICLE_Z - 0.5D;
+        double rotatedX;
+        double rotatedZ;
+        switch (facing) {
+            case EAST:
+                rotatedX = -localZ;
+                rotatedZ = localX;
+                break;
+            case SOUTH:
+                rotatedX = -localX;
+                rotatedZ = -localZ;
+                break;
+            case WEST:
+                rotatedX = localZ;
+                rotatedZ = -localX;
+                break;
+            default:
+                rotatedX = localX;
+                rotatedZ = localZ;
+                break;
+        }
+
+        world.spawnParticle(EnumParticleTypes.DRIP_WATER,
+                pos.getX() + 0.5D + rotatedX,
+                pos.getY() + RESOURCE_PARTICLE_Y,
+                pos.getZ() + 0.5D + rotatedZ,
+                0.0D, -0.02D, 0.0D);
+    }
+
+    private boolean isFilling() {
+        return !horn.isEmpty()
+                && horn.getItem() == ModItems.gjallarHornEmpty
+                && horn.getCount() == 1
+                && progress < TICKS_TO_FILL
+                && mana >= MANA_PER_TICK;
     }
 
     @Override
