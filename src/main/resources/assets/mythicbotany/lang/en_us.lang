@@ -330,5 +330,6 @@ message.mythicbotany.insert_ritual_focus=Insert a ritual focus
 jei.mythicbotany.infuser=Mana Infusion
 jei.mythicbotany.ritual=Rune Ritual
 jei.mythicbotany.mana=Mana: %s
+jei.mythicbotany.yggdrasil_branch=Yggdrasil Branch
 
 entity.alf_pixie.name=Alf Pixie

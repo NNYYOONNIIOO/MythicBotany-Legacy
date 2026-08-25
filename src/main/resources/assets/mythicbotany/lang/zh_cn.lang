@@ -301,6 +301,7 @@ message.mythicbotany.insert_ritual_focus=请放入仪式核心
 jei.mythicbotany.infuser=魔力凝聚
 jei.mythicbotany.ritual=符文仪式
 jei.mythicbotany.mana=魔力：%s
+jei.mythicbotany.yggdrasil_branch=世界树的枝干
 
 
 entity.alf_pixie.name=精灵皮克希

@@ -27,8 +27,8 @@ public class TileYggdrasilBranch extends ManaTileEntity {
     private static final int TICKS_TO_FILL = 600;
     private static final int DRIP_INTERVAL_TICKS = 3;
     private static final double RESOURCE_PARTICLE_X = 0.5D;
-    private static final double RESOURCE_PARTICLE_Y = 1.2D;
-    private static final double RESOURCE_PARTICLE_Z = 0.0D;
+    private static final double RESOURCE_PARTICLE_Y = 14.0D / 16.0D;
+    private static final double RESOURCE_PARTICLE_Z = 7.0D / 16.0D;
     private ItemStack horn = ItemStack.EMPTY;
     private int progress;
     private int dripTicks;
@@ -148,6 +148,10 @@ public class TileYggdrasilBranch extends ManaTileEntity {
 
     public int getProgressRequired() {
         return TICKS_TO_FILL;
+    }
+
+    public static int getManaRequired() {
+        return MANA_PER_TICK * TICKS_TO_FILL;
     }
 
     @SideOnly(Side.CLIENT)

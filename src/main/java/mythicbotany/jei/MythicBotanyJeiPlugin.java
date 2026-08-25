@@ -14,8 +14,10 @@ import mezz.jei.api.recipe.IRecipeWrapper;
 import mythicbotany.MythicBotany;
 import mythicbotany.recipe.InfuserRecipe;
 import mythicbotany.registry.ModBlocks;
+import mythicbotany.registry.ModItems;
 import mythicbotany.rune.RuneRitualRecipe;
 import mythicbotany.rune.RuneRitualRegistry;
+import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
@@ -40,7 +42,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         IGuiHelper guiHelper = registry.getJeiHelpers().getGuiHelper();
         InfuserCategory infuserCategory = new InfuserCategory(guiHelper);
         RitualCategory ritualCategory = new RitualCategory(guiHelper);
-        registry.addRecipeCategories(infuserCategory, ritualCategory);
+        YggdrasilBranchCategory yggdrasilBranchCategory = new YggdrasilBranchCategory(guiHelper);
+        registry.addRecipeCategories(infuserCategory, ritualCategory, yggdrasilBranchCategory);
 
         List<InfuserWrapper> infuserRecipes = new ArrayList<>();
         for (InfuserRecipe recipe : InfuserRecipe.getRecipes()) {
@@ -53,10 +56,14 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             ritualRecipes.add(new RitualWrapper(recipe));
         }
         registry.addRecipes(ritualRecipes, RitualCategory.UID);
+        registry.addRecipes(Collections.singletonList(new YggdrasilBranchWrapper()),
+                YggdrasilBranchCategory.UID);
 
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.manaInfuser), InfuserCategory.UID);
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.centralRuneHolder), RitualCategory.UID);
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.runeHolder), RitualCategory.UID);
+        registry.addRecipeCatalyst(new ItemStack(ModBlocks.yggdrasilBranch),
+                YggdrasilBranchCategory.UID);
     }
 
     private static final class InfuserCategory implements IRecipeCategory<InfuserWrapper> {
@@ -159,6 +166,49 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         }
     }
 
+    /** JEI view for filling an empty Gjallar Horn on a Yggdrasil branch. */
+    private static final class YggdrasilBranchCategory
+            implements IRecipeCategory<YggdrasilBranchWrapper> {
+        private static final String UID = MythicBotany.MODID + ":yggdrasil_branch";
+        private final IDrawable background;
+        private final IDrawable overlay;
+        private final IDrawable icon;
+
+        private YggdrasilBranchCategory(IGuiHelper helper) {
+            background = helper.createBlankDrawable(142, 55);
+            overlay = helper.createDrawable(new ResourceLocation("botania",
+                    "textures/gui/pureDaisyOverlay.png"), 0, 0, 64, 46);
+            icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.yggdrasilBranch));
+        }
+
+        @Override public String getUid() { return UID; }
+        @Override public String getTitle() { return I18n.format("jei.mythicbotany.yggdrasil_branch"); }
+        @Override public String getModName() { return MythicBotany.NAME; }
+        @Override public IDrawable getBackground() { return background; }
+        @Override public IDrawable getIcon() { return icon; }
+
+        @Override
+        public void drawExtras(Minecraft minecraft) {
+            GlStateManager.enableAlpha();
+            GlStateManager.enableBlend();
+            overlay.draw(minecraft, 40, 0);
+            GlStateManager.disableBlend();
+            GlStateManager.disableAlpha();
+        }
+
+        @Override
+        public void setRecipe(IRecipeLayout layout, YggdrasilBranchWrapper wrapper,
+                              IIngredients ingredients) {
+            IGuiItemStackGroup stacks = layout.getItemStacks();
+            stacks.init(0, true, 32, 12);
+            stacks.set(0, wrapper.input);
+            stacks.init(1, true, 62, 12);
+            stacks.set(1, new ItemStack(ModBlocks.yggdrasilBranch));
+            stacks.init(2, false, 93, 12);
+            stacks.set(2, wrapper.output);
+        }
+    }
+
     private static final class InfuserWrapper implements IRecipeWrapper {
         private final InfuserRecipe recipe;
 
@@ -206,6 +256,24 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 HUDHandler.renderManaBar(17, height - 7, 0x0000FF, 0.75F,
                         recipe.getMana(), 1000000);
             }
+        }
+    }
+
+    private static final class YggdrasilBranchWrapper implements IRecipeWrapper {
+        private final ItemStack input = new ItemStack(ModItems.gjallarHornEmpty);
+        private final ItemStack output = new ItemStack(ModItems.gjallarHornFull);
+
+        @Override
+        public void getIngredients(IIngredients ingredients) {
+            ingredients.setInput(ItemStack.class, input);
+            ingredients.setOutput(ItemStack.class, output);
+        }
+
+        @Override
+        public void drawInfo(Minecraft minecraft, int width, int height,
+                             int mouseX, int mouseY) {
+            HUDHandler.renderManaBar(20, 50, 0x0000FF, 0.75F,
+                    TileYggdrasilBranch.getManaRequired(), TilePool.MAX_MANA / 10);
         }
     }
 }

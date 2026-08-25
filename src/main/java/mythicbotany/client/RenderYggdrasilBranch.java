@@ -28,9 +28,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final double MANA_RESOURCE_Z = 0.5D;
     // Keep the manually tuned common Y value as the default, while allowing
     // north/south to be corrected independently from east/west.
-    public static final double MANA_RESOURCE_NORTH_Y = MANA_RESOURCE_Y;
+    public static final double MANA_RESOURCE_NORTH_Y = 0.8D;
     public static final double MANA_RESOURCE_EAST_Y = MANA_RESOURCE_Y;
-    public static final double MANA_RESOURCE_SOUTH_Y = MANA_RESOURCE_Y;
+    public static final double MANA_RESOURCE_SOUTH_Y = 0.8D;
     public static final double MANA_RESOURCE_WEST_Y = MANA_RESOURCE_Y;
     public static final float MANA_RESOURCE_SCALE = 0.8F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
@@ -39,13 +39,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
     // Direction-specific intrinsic poses. These preserve the current visible
     // pose while allowing each branch facing to be tuned independently.
-    public static final float MANA_RESOURCE_NORTH_ROTATION_X = 25.0F;
+    public static final float MANA_RESOURCE_NORTH_ROTATION_X = -25.0F;
     public static final float MANA_RESOURCE_NORTH_ROTATION_Y = MANA_RESOURCE_ROTATION_Y + 180.0F;
     public static final float MANA_RESOURCE_NORTH_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
     public static final float MANA_RESOURCE_EAST_ROTATION_X = 25.0F;
     public static final float MANA_RESOURCE_EAST_ROTATION_Y = MANA_RESOURCE_ROTATION_Y;
     public static final float MANA_RESOURCE_EAST_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
-    public static final float MANA_RESOURCE_SOUTH_ROTATION_X = 25.0F;
+    public static final float MANA_RESOURCE_SOUTH_ROTATION_X = -25.0F;
     public static final float MANA_RESOURCE_SOUTH_ROTATION_Y = MANA_RESOURCE_ROTATION_Y + 180.0F;
     public static final float MANA_RESOURCE_SOUTH_ROTATION_Z = MANA_RESOURCE_ROTATION_Z;
     public static final float MANA_RESOURCE_WEST_ROTATION_X = 25.0F;
@@ -283,7 +283,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
-    /** Renders the branch block and its permanent resource as an item. */
+    /** Renders only the branch block as an item; attachments are world-only. */
     public static void renderItem(ItemStack stack, float partialTicks) {
         OpenGLState state = OpenGLState.capture();
         state.push();
@@ -299,7 +299,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             Minecraft.getMinecraft().getBlockRendererDispatcher()
                     .renderBlockBrightness(blockState, 1.0F);
-            renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0);
+            // World-only attachments intentionally do not participate in item
+            // GUI, first-person, or third-person transforms.
         } finally {
             state.pop();
         }
