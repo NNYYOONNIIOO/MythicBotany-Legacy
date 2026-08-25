@@ -6,7 +6,6 @@ import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
@@ -21,7 +20,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final double MANA_RESOURCE_Z = 0.5D;
     public static final double FRONT_OFFSET = 3.0D / 16.0D;
     public static final float MANA_RESOURCE_SCALE = 0.45F;
+    // Rotation around the top-facing axis, viewed from the front.
+    public static final float MANA_RESOURCE_ROTATION_Y = -90.0F;
     public static final float HORN_SCALE = 0.45F;
+    // The horn needs the front-view quarter turn and the left-side quarter turn.
+    public static final float HORN_ROTATION_Y = -90.0F;
+    public static final float HORN_ROTATION_X = -90.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.5D / 16.0D + HORN_SCALE / 2.0D;
     public static final double HORN_Z = 0.5D;
@@ -34,7 +38,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderManaResource(x, y, z, facing);
         renderStack(tile.getHorn(), x + HORN_X + facing.getXOffset() * FRONT_OFFSET,
                 y + HORN_Y, z + HORN_Z + facing.getZOffset() * FRONT_OFFSET,
-                facing, HORN_SCALE);
+                facing, HORN_SCALE, HORN_ROTATION_Y, HORN_ROTATION_X);
     }
 
     private static void renderManaResource(double x, double y, double z, EnumFacing facing) {
@@ -42,11 +46,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                 x + MANA_RESOURCE_X + facing.getXOffset() * FRONT_OFFSET,
                 y + MANA_RESOURCE_Y,
                 z + MANA_RESOURCE_Z + facing.getZOffset() * FRONT_OFFSET,
-                facing, MANA_RESOURCE_SCALE);
+                facing, MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_Y, 0.0F);
     }
 
     private static void renderStack(ItemStack stack, double x, double y, double z,
-                                     EnumFacing facing, float scale) {
+                                     EnumFacing facing, float scale,
+                                     float rotationY, float rotationX) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
@@ -54,7 +59,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GlStateManager.enableRescaleNormal();
         GlStateManager.translate(x, y, z);
         GlStateManager.rotate(facing.getHorizontalAngle(), 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(90.0F, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
         GlStateManager.scale(scale, scale, scale);
         Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
         GlStateManager.disableRescaleNormal();
