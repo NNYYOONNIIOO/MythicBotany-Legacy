@@ -20,17 +20,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     // Local coordinates are measured from the branch block: X = left/right,
     // Y = up/down, Z = front/back. The complete local pose is rotated with
     // the block, so all four branch directions use the same settings.
+    // The front-view plane is the local X/Y plane; rotationZ is therefore
+    // the visible counter-clockwise/clockwise adjustment.
     public static final double MANA_RESOURCE_X = 0.5D;
     public static final double MANA_RESOURCE_Y = 0.9D;
     public static final double MANA_RESOURCE_Z = 0.5D;
     public static final float MANA_RESOURCE_SCALE = 0.8F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
+    // Base pose Y=90, Z=160; add the requested 90-degree front-view turn.
     public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
-    public static final float MANA_RESOURCE_ROTATION_Z = 0.0F;
+    public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
     public static final float HORN_SCALE = 1.0F;
     public static final float HORN_ROTATION_X = 0.0F;
-    public static final float HORN_ROTATION_Y = 180.0F;
-    public static final float HORN_ROTATION_Z = 0.0F;
+    // Base pose Y=90; turn the horn 180 degrees in the front-view plane.
+    public static final float HORN_ROTATION_Y = 90.0F;
+    public static final float HORN_ROTATION_Z = 180.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.1D;
     public static final double HORN_Z = 0.25D;
