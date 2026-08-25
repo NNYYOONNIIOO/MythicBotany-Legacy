@@ -5,11 +5,14 @@ import mythicbotany.registry.ModBlocks;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import vazkii.botania.common.item.ModItems;
 
 /** Renders a horn stored in a placed Yggdrasil branch. */
@@ -33,12 +36,18 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z, float partialTicks,
                        int destroyStage, float alpha) {
-        IBlockState state = tile.getWorld().getBlockState(tile.getPos());
-        EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
-        renderManaResource(x, y, z, facing);
-        renderStack(tile.getHorn(), x + HORN_X + facing.getXOffset() * FRONT_OFFSET,
-                y + HORN_Y, z + HORN_Z + facing.getZOffset() * FRONT_OFFSET,
-                facing, HORN_SCALE, HORN_ROTATION_Z, HORN_ROTATION_X);
+        OpenGLState glState = OpenGLState.capture();
+        glState.push();
+        try {
+            IBlockState state = tile.getWorld().getBlockState(tile.getPos());
+            EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
+            renderManaResource(x, y, z, facing);
+            renderStack(tile.getHorn(), x + HORN_X + facing.getXOffset() * FRONT_OFFSET,
+                    y + HORN_Y, z + HORN_Z + facing.getZOffset() * FRONT_OFFSET,
+                    facing, HORN_SCALE, HORN_ROTATION_Z, HORN_ROTATION_X);
+        } finally {
+            glState.pop();
+        }
     }
 
     private static void renderManaResource(double x, double y, double z, EnumFacing facing) {
@@ -72,12 +81,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
 
     /** Renders the complete branch item, including its permanent mana resource. */
     public static void renderItem(ItemStack stack, float partialTicks) {
-        EnumFacing facing = EnumFacing.byHorizontalIndex(stack.getMetadata() & 3);
-        IBlockState state = ModBlocks.yggdrasilBranch.getDefaultState()
-                .withProperty(BlockYggdrasilBranch.FACING, facing);
-
-        GlStateManager.pushMatrix();
+        OpenGLState glState = OpenGLState.capture();
+        glState.push();
         try {
+            EnumFacing facing = EnumFacing.byHorizontalIndex(stack.getMetadata() & 3);
+            IBlockState state = ModBlocks.yggdrasilBranch.getDefaultState()
+                    .withProperty(BlockYggdrasilBranch.FACING, facing);
             GlStateManager.enableLighting();
             GlStateManager.enableTexture2D();
             GlStateManager.translate(0.5D, 0.5D, 0.5D);
@@ -87,8 +96,55 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                     .renderBlockBrightness(state, 1.0F);
             renderManaResource(0.0D, 0.0D, 0.0D, facing);
         } finally {
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            glState.pop();
+        }
+    }
+
+    /**
+     * Item rendering in a TESR runs inside the inventory renderer, so every
+     * server and client OpenGL attribute touched by the branch renderer must
+     * be restored, not just the model matrix.
+     */
+    private static final class OpenGLState {
+        private final int matrixMode;
+        private final int activeTexture;
+        private final int clientActiveTexture;
+        private final float lightmapX;
+        private final float lightmapY;
+
+        private OpenGLState() {
+            matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+            activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+            clientActiveTexture = GL11.glGetInteger(GL13.GL_CLIENT_ACTIVE_TEXTURE);
+            lightmapX = OpenGlHelper.lastBrightnessX;
+            lightmapY = OpenGlHelper.lastBrightnessY;
+        }
+
+        private static OpenGLState capture() {
+            return new OpenGLState();
+        }
+
+        private void push() {
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+            GL11.glPushClientAttrib(GL11.GL_CLIENT_PIXEL_STORE_BIT
+                    | GL11.GL_CLIENT_VERTEX_ARRAY_BIT);
+            GL11.glMatrixMode(matrixMode);
+            GlStateManager.pushMatrix();
+        }
+
+        private void pop() {
+            // A nested item renderer may leave another matrix mode selected.
+            // Select the original stack before balancing our pushMatrix().
+            GL11.glMatrixMode(matrixMode);
             GlStateManager.popMatrix();
+            GL11.glPopClientAttrib();
+            GL11.glPopAttrib();
+
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                    lightmapX, lightmapY);
+            GL13.glActiveTexture(activeTexture);
+            GL13.glClientActiveTexture(clientActiveTexture);
+            GL11.glMatrixMode(matrixMode);
         }
     }
 }
