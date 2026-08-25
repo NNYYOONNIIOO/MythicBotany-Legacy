@@ -165,6 +165,7 @@ message.mythicbotany.ritual_wrong_items=Você conhece o ritual e é poderoso o s
 message.mythicbotany.ritual_wrong_shape=Este ritual parece errado até para você que estuda as runas a fundo.
 tile.mythicbotany:alfsteel_block.name=Bloco de Alfsteel
 tile.mythicbotany:alfsteel_pylon.name=Pilão de Alfsteel
+tile.mythicbotany.alfsteel_pylon=Pilão de Alfsteel
 tile.mythicbotany:aquapanthus_floating.name=Aquapanthus Flutuante
 tile.mythicbotany:aquapanthus.description=Experimente quando estiver seco.
 tile.mythicbotany:aquapanthus.name=Aquapanthus

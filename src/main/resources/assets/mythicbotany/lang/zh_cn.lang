@@ -259,6 +259,7 @@ tile.botania:specialflower.mythicbotany_raindeletia.name=雨德花
 tile.botania:specialflower.mythicbotany_wither_aconite.name=凋零菟葵
 tile.mythicbotany:alfsteel_block.name=精灵钢块
 tile.mythicbotany:alfsteel_pylon.name=精灵水晶
+tile.mythicbotany.alfsteel_pylon=精灵水晶
 tile.mythicbotany:aquapanthus.description.name=在干燥时尝试
 tile.mythicbotany:aquapanthus.name=百水莲
 tile.mythicbotany:aquapanthus_floating.name=悬浮百水莲

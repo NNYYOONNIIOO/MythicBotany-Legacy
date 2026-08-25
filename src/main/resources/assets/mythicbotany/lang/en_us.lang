@@ -275,6 +275,7 @@ tile.botania:flower.mythicbotany_feysythia.reference=A Fairytale of Fey.
 tile.botania:flower.mythicbotany_petrunia.reference=The Petrunia can activate rune rituals when supplied with enough mana and placed near the central rune holder.
 tile.mythicbotany:alfsteel_block.name=Block of Alfsteel
 tile.mythicbotany:alfsteel_pylon.name=Alfsteel Pylon
+tile.mythicbotany.alfsteel_pylon=Alfsteel Pylon
 tile.mythicbotany:aquapanthus.description.name=Try it when it's dry.
 tile.mythicbotany:aquapanthus.name=Aquapanthus
 tile.mythicbotany:aquapanthus_floating.name=Floating Aquapanthus

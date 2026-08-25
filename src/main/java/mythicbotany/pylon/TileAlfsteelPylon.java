@@ -129,11 +129,10 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
         }
         TileEntity clickedTile = world.getTileEntity(clickedPos);
         if (clickedTile instanceof TileSpreader) {
-            // The spreader stores the receiver position and is responsible for
-            // creating the mana burst target.  Delegate on the server, while
-            // acknowledging the client-side wand action immediately.
-            return world.isRemote || ((TileSpreader) clickedTile)
-                    .bindTo(player, wand, getPos(), side);
+            // Let Botania's spreader perform the normal binding and receiver
+            // scan on both logical sides.  The Forest Wand then dispatches the
+            // spreader's updated rotation and receiver state as usual.
+            return ((TileSpreader) clickedTile).bindTo(player, wand, getPos(), side);
         }
         return false;
     }
