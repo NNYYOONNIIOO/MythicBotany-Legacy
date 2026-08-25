@@ -58,7 +58,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing, getHornX(facing), HORN_Y, HORN_Z,
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
-                    packedLight, false);
+                    packedLight, true);
         } finally {
             glState.pop();
         }
