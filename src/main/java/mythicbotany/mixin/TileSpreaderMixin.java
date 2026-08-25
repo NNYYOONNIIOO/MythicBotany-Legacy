@@ -3,6 +3,7 @@ package mythicbotany.mixin;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -19,6 +20,10 @@ import vazkii.botania.common.block.tile.mana.TileSpreader;
 /** Keeps an Alfsteel pylon as a real spreader receiver after burst tracing. */
 @Mixin(TileSpreader.class)
 public abstract class TileSpreaderMixin {
+    private static final String MYTHICBOTANY_PYLON_X = "MythicBotanyPylonX";
+    private static final String MYTHICBOTANY_PYLON_Y = "MythicBotanyPylonY";
+    private static final String MYTHICBOTANY_PYLON_Z = "MythicBotanyPylonZ";
+
     @Shadow(remap = false)
     private IManaReceiver receiver;
 
@@ -61,6 +66,28 @@ public abstract class TileSpreaderMixin {
             if (receiver instanceof TileAlfsteelPylon) {
                 receiver = null;
             }
+        }
+    }
+
+    @Inject(method = "writePacketNBT", at = @At("TAIL"), remap = false)
+    private void mythicbotany$writePylon(NBTTagCompound compound, CallbackInfo ci) {
+        if (mythicbotany$forcedReceiver == null) {
+            return;
+        }
+        compound.setInteger(MYTHICBOTANY_PYLON_X, mythicbotany$forcedReceiver.getX());
+        compound.setInteger(MYTHICBOTANY_PYLON_Y, mythicbotany$forcedReceiver.getY());
+        compound.setInteger(MYTHICBOTANY_PYLON_Z, mythicbotany$forcedReceiver.getZ());
+    }
+
+    @Inject(method = "readPacketNBT", at = @At("TAIL"), remap = false)
+    private void mythicbotany$readPylon(NBTTagCompound compound, CallbackInfo ci) {
+        if (compound.hasKey(MYTHICBOTANY_PYLON_X, 3)
+                && compound.hasKey(MYTHICBOTANY_PYLON_Y, 3)
+                && compound.hasKey(MYTHICBOTANY_PYLON_Z, 3)) {
+            mythicbotany$forcedReceiver = new BlockPos(
+                    compound.getInteger(MYTHICBOTANY_PYLON_X),
+                    compound.getInteger(MYTHICBOTANY_PYLON_Y),
+                    compound.getInteger(MYTHICBOTANY_PYLON_Z));
         }
     }
 
