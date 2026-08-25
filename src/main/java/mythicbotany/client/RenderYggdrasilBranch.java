@@ -21,16 +21,18 @@ import vazkii.botania.common.item.ModItems;
 /** Renders the permanent resource and the stored Gjallar horn on a branch. */
 public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdrasilBranch> {
     // Local block coordinates: X = left/right, Y = up/down, Z = front/back.
-    // The branch's blockstate rotation is applied to this complete local pose.
+    // The blockstate rotation is applied to this complete local pose.
     public static final double MANA_RESOURCE_X = 0.5D;
     public static final double MANA_RESOURCE_Y = 0.9D;
     public static final double MANA_RESOURCE_Z = 0.5D;
     public static final float MANA_RESOURCE_SCALE = 0.8F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
     public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
+    // Native front-view pose Z=160 plus the requested 90-degree adjustment.
     public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
 
     public static final float HORN_SCALE = 1.0F;
+    // The requested left-to-right 180-degree turn for every branch facing.
     public static final float HORN_ROTATION_X = 180.0F;
     public static final float HORN_ROTATION_Y = 90.0F;
     public static final float HORN_ROTATION_Z = 0.0F;
@@ -49,7 +51,6 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             IBlockState state = tile.getWorld().getBlockState(tile.getPos());
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
-
             renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing,
                     getHornX(facing), HORN_Y, HORN_Z,
@@ -71,7 +72,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     }
 
     private static float getManaResourceRotationY(EnumFacing facing) {
-        // North and south are the two requested top-down 180-degree turns.
+        // North and south are the requested top-down 180-degree turns.
         switch (facing) {
             case NORTH:
             case SOUTH:
@@ -82,8 +83,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     }
 
     private static double getHornX(EnumFacing facing) {
-        // In the east/west side view, the local right direction is X. Applying
-        // one local block here moves the horn 16 pixels to the observer's right.
+        // For east/west, local X is the observer's right in the side view.
+        // One local block unit is exactly the requested 16-pixel displacement.
         switch (facing) {
             case EAST:
             case WEST:
@@ -94,7 +95,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     }
 
     private static float getBranchRotation(EnumFacing facing) {
-        // Must match blockstates/yggdrasil_branch.json.
+        // Must match blockstates/yggdrasil_branch.json exactly.
         switch (facing) {
             case EAST:
                 return 90.0F;
@@ -121,11 +122,24 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             return;
         }
 
-        // RenderItem is also used by EntityItem. Reconcile the cached texture
-        // and capability state before each attached model so a nearby dropped
-        // item cannot make the branch model black.
+        int matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+        int activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+        int defaultTexture = captureTexture(OpenGlHelper.defaultTexUnit);
+        int lightmapTexture = captureTexture(OpenGlHelper.lightmapTexUnit);
+        GL13.glActiveTexture(activeTexture);
+        GlStateManager.setActiveTexture(activeTexture);
+        float oldLightmapX = OpenGlHelper.lastBrightnessX;
+        float oldLightmapY = OpenGlHelper.lastBrightnessY;
+        FloatBuffer color = BufferUtils.createFloatBuffer(4);
+        GL11.glGetFloat(GL11.GL_CURRENT_COLOR, color);
+        float oldColorR = color.get(0);
+        float oldColorG = color.get(1);
+        float oldColorB = color.get(2);
+        float oldColorA = color.get(3);
+
         synchronizeRenderStateCache();
         GlStateManager.pushMatrix();
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         try {
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
@@ -133,16 +147,19 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            setLightmap(fullbright ? 0xF000F0 : packedLight);
 
-            // The generated item model is a flat quad. Keep both sides visible;
-            // the outer OpenGLState restores the caller's culling state.
+            setLightmap(fullbright ? 0xF000F0 : packedLight);
+            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            GlStateManager.enableTexture2D();
+            // RenderItem binds the block atlas itself. Avoid manually binding
+            // it here, which is what caused stale texture-cache black planes.
             GL11.glDisable(GL11.GL_CULL_FACE);
             GlStateManager.disableCull();
 
-            // This rotation is identical to the blockstate model rotation, so
-            // position and orientation are always in the branch's local frame.
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
@@ -153,14 +170,33 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.enableLighting();
-            GlStateManager.enableTexture2D();
-            GlStateManager.disableBlend();
-            GlStateManager.disableAlpha();
-            GlStateManager.disableRescaleNormal();
+            GL11.glMatrixMode(matrixMode);
             GlStateManager.popMatrix();
+            GL11.glPopAttrib();
+
+            restoreTexture(OpenGlHelper.defaultTexUnit, defaultTexture);
+            restoreTexture(OpenGlHelper.lightmapTexUnit, lightmapTexture);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
+                    oldLightmapX, oldLightmapY);
+            GL13.glActiveTexture(activeTexture);
+            GlStateManager.setActiveTexture(activeTexture);
+            synchronizeRenderStateCache();
+            GL11.glColor4f(oldColorR, oldColorG, oldColorB, oldColorA);
+            GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
+            GlStateManager.color(oldColorR, oldColorG, oldColorB, oldColorA);
         }
+    }
+
+    private static int captureTexture(int textureUnit) {
+        GL13.glActiveTexture(textureUnit);
+        return GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+    }
+
+    private static void restoreTexture(int textureUnit, int texture) {
+        GL13.glActiveTexture(textureUnit);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+        GlStateManager.setActiveTexture(textureUnit);
+        GlStateManager.bindTexture(texture);
     }
 
     private static void synchronizeRenderStateCache() {
@@ -177,8 +213,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
                 GlStateManager::enableCull, GlStateManager::disableCull);
         synchronizeCapability(GL12.GL_RESCALE_NORMAL, GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL),
                 GlStateManager::enableRescaleNormal, GlStateManager::disableRescaleNormal);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     private static void synchronizeTextureCache() {
@@ -231,7 +268,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    /** Captures/restores fixed-function state around nested RenderItem calls. */
+    /** Captures and restores the fixed-function state used by this TESR. */
     private static final class OpenGLState {
         private final int matrixMode;
         private final int activeTexture;
@@ -267,11 +304,6 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             return new OpenGLState();
         }
 
-        private static int captureTexture(int textureUnit) {
-            GL13.glActiveTexture(textureUnit);
-            return GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-        }
-
         private void push() {
             GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
             GL11.glPushClientAttrib(GL11.GL_CLIENT_PIXEL_STORE_BIT
@@ -285,7 +317,6 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.popMatrix();
             GL11.glPopClientAttrib();
             GL11.glPopAttrib();
-
             restoreTexture(OpenGlHelper.defaultTexUnit, defaultTexture);
             restoreTexture(OpenGlHelper.lightmapTexUnit, lightmapTexture);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
@@ -295,16 +326,9 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GL13.glClientActiveTexture(clientActiveTexture);
             GL11.glMatrixMode(matrixMode);
             synchronizeRenderStateCache();
+            GL11.glColor4f(colorR, colorG, colorB, colorA);
             GlStateManager.color(0.0F, 0.0F, 0.0F, 0.0F);
             GlStateManager.color(colorR, colorG, colorB, colorA);
-            GL11.glColor4f(colorR, colorG, colorB, colorA);
-        }
-
-        private static void restoreTexture(int textureUnit, int texture) {
-            GL13.glActiveTexture(textureUnit);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
-            GlStateManager.setActiveTexture(textureUnit);
-            GlStateManager.bindTexture(texture);
         }
     }
 }
