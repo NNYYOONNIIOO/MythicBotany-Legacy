@@ -5,6 +5,8 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -16,8 +18,13 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import vazkii.botania.api.wand.IWandHUD;
+import vazkii.botania.api.wand.IWandable;
+import vazkii.botania.client.core.handler.HUDHandler;
 
-public class BlockAlfsteelPylon extends BlockContainer {
+public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWandHUD {
     private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(
             0.125D, 0.0D, 0.125D, 0.875D, 21.0D / 16.0D, 0.875D);
 
@@ -37,6 +44,25 @@ public class BlockAlfsteelPylon extends BlockContainer {
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TileAlfsteelPylon();
+    }
+
+    @Override
+    public boolean onUsedByWand(EntityPlayer player, ItemStack stack, World world,
+                                BlockPos pos, EnumFacing side) {
+        // The TileEntity handles the bind/select operation. This marker makes
+        // the Forest Wand enter Botania's normal binding path for the block.
+        return true;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void renderHUD(Minecraft mc, ScaledResolution res, World world, BlockPos pos) {
+        TileEntity tile = world.getTileEntity(pos);
+        if (tile instanceof TileAlfsteelPylon) {
+            TileAlfsteelPylon pylon = (TileAlfsteelPylon) tile;
+            HUDHandler.drawSimpleManaHUD(0xFFAA00, pylon.getCurrentMana(),
+                    pylon.getMaxMana(), "tile.mythicbotany.alfsteel_pylon", res);
+        }
     }
 
     @Override

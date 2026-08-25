@@ -8,18 +8,23 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Enchantments;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemTool;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import vazkii.botania.api.internal.VanillaPacketDispatcher;
 import vazkii.botania.api.mana.IManaPool;
 import vazkii.botania.api.mana.ManaNetworkEvent;
 import vazkii.botania.api.mana.spark.ISparkAttachable;
 import vazkii.botania.api.mana.spark.ISparkEntity;
+import vazkii.botania.api.wand.IWandBindable;
+import vazkii.botania.common.block.tile.mana.TileSpreader;
 
 /**
  * Alfsteel pylon for the Botania 1.12 mana API.
@@ -28,7 +33,7 @@ import vazkii.botania.api.mana.spark.ISparkEntity;
  * interfaces, so this tile uses the stable receiver contract and forwards
  * stored mana to adjacent MythicBotany mana tiles.
  */
-public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISparkAttachable {
+public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISparkAttachable, IWandBindable {
     private static final int ALFSTEEL_TOOL_MANA_PER_POINT = 100;
     private static final int ALFSTEEL_ARMOR_MANA_PER_POINT = 70;
     private static final int MENDING_MANA_PER_POINT = 200;
@@ -109,6 +114,30 @@ public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISpa
     @Override
     public void attachSpark(ISparkEntity entity) {
         // Spark attachment is discovered from the Spark entity above this tile.
+    }
+
+    @Override
+    public boolean canSelect(EntityPlayer player, ItemStack wand, BlockPos pos, EnumFacing side) {
+        return true;
+    }
+
+    @Override
+    public boolean bindTo(EntityPlayer player, ItemStack wand, BlockPos clickedPos, EnumFacing side) {
+        if (world == null || player == null) {
+            return false;
+        }
+        if (world.getTileEntity(clickedPos) instanceof TileSpreader) {
+            // When the pylon is selected first, the spreader clicked second
+            // owns the receiver simulation and completes the binding here.
+            return ((TileSpreader) world.getTileEntity(clickedPos))
+                    .bindTo(player, wand, getPos(), side);
+        }
+        return false;
+    }
+
+    @Override
+    public BlockPos getBinding() {
+        return null;
     }
 
     @Override
