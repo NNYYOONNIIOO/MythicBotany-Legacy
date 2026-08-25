@@ -125,30 +125,26 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         OpenGLState state = OpenGLState.capture();
         state.push();
         try {
+            // RenderItem expects the normal item lighting/texture context.
+            // The permanent resource uses a maximum lightmap, but lighting is
+            // intentionally kept enabled so its baked quad cannot turn black.
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
+            GlStateManager.enableLighting();
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             forceColor(1.0F, 1.0F, 1.0F, 1.0F);
+            setLightmap(fullbright ? 0xF000F0 : packedLight);
 
-            // The mana resource is a flat generated item model. It needs a
-            // maximum lightmap and no face lighting when viewed from behind;
-            // this scope restores every changed GL/cache value afterwards.
-            if (fullbright) {
-                GL11.glDisable(GL11.GL_LIGHTING);
-                GlStateManager.disableLighting();
-                setLightmap(0xF000F0);
-            } else {
-                GL11.glEnable(GL11.GL_LIGHTING);
-                GlStateManager.enableLighting();
-                setLightmap(packedLight);
-            }
+            // Item/generated models are flat quads; do not hide their reverse
+            // side when the branch is viewed from another horizontal facing.
             GL11.glDisable(GL11.GL_CULL_FACE);
             GlStateManager.disableCull();
 
-            // Apply the same horizontal rotation as the blockstate model before
-            // applying local position and model rotations.
+            // Match blockstates/yggdrasil_branch.json before applying all local
+            // position and rotation values. This makes attached models follow
+            // north/east/south/west branch rotations instead of world axes.
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
@@ -185,7 +181,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         }
     }
 
-    /** Captures and restores all fixed-function state touched by the renderer. */
+    /** Captures and restores all fixed-function state touched by this renderer. */
     private static final class OpenGLState {
         private final int matrixMode;
         private final int activeTexture;
