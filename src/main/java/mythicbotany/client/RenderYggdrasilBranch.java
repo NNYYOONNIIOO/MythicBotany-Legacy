@@ -96,11 +96,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GlStateManager.pushMatrix();
         GlStateManager.enableRescaleNormal();
         try {
-            // RenderItem changes the lightmap and the cached color state. Set
-            // both before and after each attached model so later EntityItems
-            // cannot inherit the branch's state.
-            setLightmap(packedLight);
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            // RenderItem may be called immediately after another EntityItem.
+            // Restore the actual GL state as well as GlStateManager's cache;
+            // setting only GlStateManager.color can be a no-op when its cache
+            // already says white while OpenGL is still black.
+            prepareItemRenderState(packedLight);
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
@@ -114,11 +114,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            setLightmap(packedLight);
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            prepareItemRenderState(packedLight);
             GlStateManager.disableRescaleNormal();
             GlStateManager.popMatrix();
         }
+    }
+
+    private static void prepareItemRenderState(int packedLight) {
+        setLightmap(packedLight);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glEnable(GL11.GL_LIGHTING);
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableLighting();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     /** Renders the complete branch item, including its permanent mana resource. */
@@ -188,10 +198,6 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GL13.glActiveTexture(activeTexture);
             GL13.glClientActiveTexture(clientActiveTexture);
             GL11.glMatrixMode(matrixMode);
-            // Synchronize GlStateManager's cached color with the state that
-            // the attribute stack restored. Otherwise a following item/entity
-            // render can keep using the branch model's black color.
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 }
