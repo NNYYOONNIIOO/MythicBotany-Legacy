@@ -17,26 +17,23 @@ import vazkii.botania.common.item.ModItems;
 
 /** Renders a horn stored in a placed Yggdrasil branch. */
 public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdrasilBranch> {
-    // After facing alignment: X is left/right, Y is up/down, and Z is front/back.
-    // Position uses X/Y/Z. For an item lying on the branch top, rotation around
-    // Y changes its direction in the front view; rotation around Z is a roll.
+    // Local coordinates are measured from the branch block: X = left/right,
+    // Y = up/down, Z = front/back. The complete local pose is rotated with
+    // the block, so all four branch directions use the same settings.
     public static final double MANA_RESOURCE_X = 0.5D;
-    public static final double MANA_RESOURCE_Y = 12.5D / 16.0D;
+    public static final double MANA_RESOURCE_Y = 0.9D;
     public static final double MANA_RESOURCE_Z = 0.5D;
-    public static final double FRONT_OFFSET = 3.0D / 16.0D;
-    public static final float MANA_RESOURCE_SCALE = 0.45F;
+    public static final float MANA_RESOURCE_SCALE = 0.8F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
-    // Front view, counterclockwise 90 degrees.
     public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
     public static final float MANA_RESOURCE_ROTATION_Z = 0.0F;
-    public static final float HORN_SCALE = 0.45F;
+    public static final float HORN_SCALE = 1.0F;
     public static final float HORN_ROTATION_X = 0.0F;
-    // Front view, 180 degrees. Keep this separate from the position constants.
     public static final float HORN_ROTATION_Y = 180.0F;
     public static final float HORN_ROTATION_Z = 0.0F;
     public static final double HORN_X = 0.5D;
-    public static final double HORN_Y = 0.5D / 16.0D + HORN_SCALE / 2.0D;
-    public static final double HORN_Z = 0.5D;
+    public static final double HORN_Y = 0.1D;
+    public static final double HORN_Z = 0.25D;
 
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z, float partialTicks,
@@ -47,9 +44,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             IBlockState state = tile.getWorld().getBlockState(tile.getPos());
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             renderManaResource(x, y, z, facing);
-            renderStack(tile.getHorn(), x + HORN_X + facing.getXOffset() * FRONT_OFFSET,
-                    y + HORN_Y, z + HORN_Z + facing.getZOffset() * FRONT_OFFSET,
-                    facing, HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z);
+            renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, HORN_Z,
+                    HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z);
         } finally {
             glState.pop();
         }
@@ -57,28 +53,31 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
 
     private static void renderManaResource(double x, double y, double z, EnumFacing facing) {
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
-                x + MANA_RESOURCE_X + facing.getXOffset() * FRONT_OFFSET,
-                y + MANA_RESOURCE_Y,
-                z + MANA_RESOURCE_Z + facing.getZOffset() * FRONT_OFFSET,
-                facing, MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X, MANA_RESOURCE_ROTATION_Y, MANA_RESOURCE_ROTATION_Z);
+                x, y, z, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
+                MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
+                MANA_RESOURCE_ROTATION_Y, MANA_RESOURCE_ROTATION_Z);
     }
 
     private static void renderStack(ItemStack stack, double x, double y, double z,
-                                     EnumFacing facing, float scale,
-                                     float rotationX, float rotationY, float rotationZ) {
+                                     EnumFacing facing, double localX, double localY,
+                                     double localZ, float scale, float rotationX,
+                                     float rotationY, float rotationZ) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
         GlStateManager.pushMatrix();
         GlStateManager.enableRescaleNormal();
-        GlStateManager.translate(x, y, z);
+        GlStateManager.translate(x + 0.5D, y, z + 0.5D);
         GlStateManager.rotate(facing.getHorizontalAngle(), 0.0F, 1.0F, 0.0F);
-        // Base item/generated plane is placed on the branch top first.
-        GlStateManager.rotate(90.0F + rotationX, 1.0F, 0.0F, 0.0F);
+        GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
+        // GROUND is the same item context used by the current MythicBotany
+        // renderer; rotation values therefore correspond directly to the
+        // local X/Y/Z axes above instead of the GUI/FIXED transform.
+        GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
         GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
         GlStateManager.scale(scale, scale, scale);
-        Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+        Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         GlStateManager.disableRescaleNormal();
         GlStateManager.popMatrix();
     }
