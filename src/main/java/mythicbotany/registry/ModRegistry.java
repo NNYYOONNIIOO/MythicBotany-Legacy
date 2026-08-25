@@ -5,12 +5,14 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemCraftedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import mythicbotany.recipe.RecipeAlfsteelPickElementium;
 import mythicbotany.recipe.ModRecipes;
 
 public final class ModRegistry {
@@ -31,6 +33,18 @@ public final class ModRegistry {
             itemBlock.setRegistryName(block.getRegistryName());
             event.getRegistry().register(itemBlock);
         }
+    }
+
+    @SubscribeEvent
+    public void registerRecipes(RegistryEvent.Register<IRecipe> event) {
+        Item elementiumPick = ForgeRegistries.ITEMS.getValue(
+                new ResourceLocation("botania", "elementiumpick"));
+        if (elementiumPick == null) {
+            return;
+        }
+        RecipeAlfsteelPickElementium recipe = new RecipeAlfsteelPickElementium(elementiumPick);
+        recipe.setRegistryName(new ResourceLocation("mythicbotany", "alfsteel_pick_elementium"));
+        event.getRegistry().register(recipe);
     }
 
     @SubscribeEvent

@@ -34,6 +34,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.oredict.OreDictionary;
+import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.item.ISequentialBreaker;
 import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.IManaItem;
@@ -71,6 +76,40 @@ public class ItemAlfsteelPick extends ItemPickaxe implements IManaItem, ISequent
                 (stack, world, entity) -> isEnabled(stack) ? 1.0F : 0.0F);
         addPropertyOverride(new ResourceLocation("mythicbotany", "tipped"),
                 (stack, world, entity) -> isTipped(stack) ? 1.0F : 0.0F);
+        MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @SubscribeEvent
+    public void onHarvestDrops(HarvestDropsEvent event) {
+        EntityPlayer player = event.getHarvester();
+        if (player == null) {
+            return;
+        }
+        ItemStack stack = player.getHeldItemMainhand();
+        if (stack.isEmpty() || stack.getItem() != this || !isTipped(stack)) {
+            return;
+        }
+        event.getDrops().removeIf(drop -> !drop.isEmpty()
+                && (isDisposableDrop(drop)
+                || isSemiDisposableDrop(drop) && !player.isSneaking()));
+    }
+
+    private static boolean isDisposableDrop(ItemStack stack) {
+        for (int id : OreDictionary.getOreIDs(stack)) {
+            if (BotaniaAPI.disposableBlocks.contains(OreDictionary.getOreName(id))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isSemiDisposableDrop(ItemStack stack) {
+        for (int id : OreDictionary.getOreIDs(stack)) {
+            if (BotaniaAPI.semiDisposableBlocks.contains(OreDictionary.getOreName(id))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The shatterer is a 5-damage, 1.2-speed main-hand weapon. */

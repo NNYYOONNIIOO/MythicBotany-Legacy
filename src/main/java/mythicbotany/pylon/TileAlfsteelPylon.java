@@ -1,17 +1,25 @@
 package mythicbotany.pylon;
 
+import com.google.common.base.Predicates;
 import java.util.List;
 
 import mythicbotany.tile.ManaTileEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.init.Enchantments;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemTool;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
+import vazkii.botania.api.internal.VanillaPacketDispatcher;
+import vazkii.botania.api.mana.IManaPool;
+import vazkii.botania.api.mana.ManaNetworkEvent;
+import vazkii.botania.api.mana.spark.ISparkAttachable;
+import vazkii.botania.api.mana.spark.ISparkEntity;
 
 /**
  * Alfsteel pylon for the Botania 1.12 mana API.
@@ -20,11 +28,12 @@ import net.minecraft.util.math.AxisAlignedBB;
  * interfaces, so this tile uses the stable receiver contract and forwards
  * stored mana to adjacent MythicBotany mana tiles.
  */
-public class TileAlfsteelPylon extends ManaTileEntity {
+public class TileAlfsteelPylon extends ManaTileEntity implements IManaPool, ISparkAttachable {
     private static final int ALFSTEEL_TOOL_MANA_PER_POINT = 100;
     private static final int ALFSTEEL_ARMOR_MANA_PER_POINT = 70;
     private static final int MENDING_MANA_PER_POINT = 200;
     private static final int MAX_PYLON_MANA = 1000;
+    private boolean networkRegistered;
 
     @Override
     public int getMaxMana() {
@@ -32,15 +41,96 @@ public class TileAlfsteelPylon extends ManaTileEntity {
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        registerToManaNetwork();
+    }
+
+    @Override
+    public void invalidate() {
+        removeFromManaNetwork();
+        super.invalidate();
+    }
+
+    @Override
+    public void onChunkUnload() {
+        removeFromManaNetwork();
+        super.onChunkUnload();
+    }
+
+    private void registerToManaNetwork() {
+        if (world != null && !world.isRemote && !isInvalid() && !networkRegistered) {
+            ManaNetworkEvent.addPool(this);
+            networkRegistered = true;
+        }
+    }
+
+    private void removeFromManaNetwork() {
+        if (networkRegistered) {
+            ManaNetworkEvent.removePool(this);
+            networkRegistered = false;
+        }
+    }
+
+    @Override
     public void recieveMana(int amount) {
-        // Botania mana bursts call this method directly; the base implementation
-        // clamps both positive and negative changes to this tile's 1000-mana cap.
+        int oldMana = mana;
         super.recieveMana(amount);
+        if (oldMana != mana && world != null && !world.isRemote) {
+            VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
+        }
     }
 
     @Override
     public boolean canRecieveManaFromBursts() {
-        return mana < getMaxMana();
+        return !isFull();
+    }
+
+    @Override
+    public boolean isOutputtingPower() {
+        return false;
+    }
+
+    @Override
+    public EnumDyeColor getColor() {
+        return EnumDyeColor.ORANGE;
+    }
+
+    @Override
+    public void setColor(EnumDyeColor color) {
+        // The Alfsteel pylon has a fixed color.
+    }
+
+    @Override
+    public boolean canAttachSpark(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public void attachSpark(ISparkEntity entity) {
+        // Spark attachment is discovered from the Spark entity above this tile.
+    }
+
+    @Override
+    public int getAvailableSpaceForMana() {
+        return Math.max(0, getMaxMana() - getCurrentMana());
+    }
+
+    @Override
+    public ISparkEntity getAttachedSpark() {
+        if (world == null) {
+            return null;
+        }
+        List<Entity> sparks = world.getEntitiesWithinAABB(Entity.class,
+                new AxisAlignedBB(pos.getX(), pos.getY() + 1.0D, pos.getZ(),
+                        pos.getX() + 1.0D, pos.getY() + 2.0D, pos.getZ() + 1.0D),
+                Predicates.instanceOf(ISparkEntity.class));
+        return sparks.size() == 1 ? (ISparkEntity) sparks.get(0) : null;
+    }
+
+    @Override
+    public boolean areIncomingTranfersDone() {
+        return false;
     }
 
     /** Kept as a block-break hook for parity with later pylon implementations. */
@@ -49,9 +139,13 @@ public class TileAlfsteelPylon extends ManaTileEntity {
 
     @Override
     public void update() {
-        if (world == null || world.isRemote) {
+        if (world == null) {
             return;
         }
+        if (world.isRemote) {
+            return;
+        }
+        registerToManaNetwork();
         repairTopItem();
     }
 
