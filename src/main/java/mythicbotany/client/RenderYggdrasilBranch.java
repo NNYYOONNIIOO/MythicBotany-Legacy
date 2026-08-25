@@ -7,8 +7,10 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import org.lwjgl.BufferUtils;
@@ -104,6 +106,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             // setting only GlStateManager.color can be a no-op when its cache
             // already says white while OpenGL is still black.
             prepareItemRenderState(packedLight);
+            RenderHelper.enableStandardItemLighting();
+            // Every vanilla item model is rendered from the block atlas. Bind
+            // it explicitly because a preceding EntityItem may have left a
+            // different atlas active while GlStateManager's cache is stale.
+            Minecraft.getMinecraft().getTextureManager()
+                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
@@ -117,7 +125,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            prepareItemRenderState(packedLight);
+            RenderHelper.disableStandardItemLighting();
+            GlStateManager.disableBlend();
+            GlStateManager.disableAlpha();
+            GlStateManager.resetColor();
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.disableRescaleNormal();
             GlStateManager.popMatrix();
         }
@@ -138,6 +150,8 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         GL11.glEnable(GL11.GL_LIGHTING);
         GlStateManager.enableTexture2D();
         GlStateManager.enableLighting();
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
