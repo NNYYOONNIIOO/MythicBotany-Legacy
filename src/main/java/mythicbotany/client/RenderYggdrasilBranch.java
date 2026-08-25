@@ -17,20 +17,20 @@ import vazkii.botania.common.item.ModItems;
 
 /** Renders a horn stored in a placed Yggdrasil branch. */
 public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdrasilBranch> {
-    // 坐标说明：完成方块朝向旋转后，X 为左右，Y 为上下，Z 为正面/背面。
-    // 物品在枝干顶面时，正面视角的旋转使用 Y 轴；位置仍由 X/Y/Z 控制。
+    // After facing alignment: X is left/right, Y is up/down, and Z is front/back.
+    // Position uses X/Y/Z; front-view item rotation uses the local Z axis.
     public static final double MANA_RESOURCE_X = 0.5D;
     public static final double MANA_RESOURCE_Y = 12.5D / 16.0D;
     public static final double MANA_RESOURCE_Z = 0.5D;
     public static final double FRONT_OFFSET = 3.0D / 16.0D;
     public static final float MANA_RESOURCE_SCALE = 0.45F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
-    public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
-    public static final float MANA_RESOURCE_ROTATION_Z = 0.0F;
+    public static final float MANA_RESOURCE_ROTATION_Y = 0.0F;
+    public static final float MANA_RESOURCE_ROTATION_Z = 90.0F;
     public static final float HORN_SCALE = 0.45F;
     public static final float HORN_ROTATION_X = 0.0F;
-    public static final float HORN_ROTATION_Y = 180.0F;
-    public static final float HORN_ROTATION_Z = 0.0F;
+    public static final float HORN_ROTATION_Y = 0.0F;
+    public static final float HORN_ROTATION_Z = 180.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.5D / 16.0D + HORN_SCALE / 2.0D;
     public static final double HORN_Z = 0.5D;
