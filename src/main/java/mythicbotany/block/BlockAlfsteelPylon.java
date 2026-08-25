@@ -62,7 +62,7 @@ public class BlockAlfsteelPylon extends BlockContainer implements IWandable, IWa
         if (tile instanceof TileAlfsteelPylon) {
             TileAlfsteelPylon pylon = (TileAlfsteelPylon) tile;
             HUDHandler.drawSimpleManaHUD(0xFFAA00, pylon.getCurrentMana(),
-                    pylon.getMaxMana(), I18n.format("tile.mythicbotany.alfsteel_pylon"), res);
+                    pylon.getMaxMana(), I18n.format("tile.mythicbotany:alfsteel_pylon.name"), res);
         }
     }
 
