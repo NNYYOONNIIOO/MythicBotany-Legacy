@@ -32,17 +32,20 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final double MANA_RESOURCE_Z = 0.5D;
     public static final float MANA_RESOURCE_SCALE = 0.8F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
-    // Base pose Y=90, Z=160; add the requested 90-degree front-view turn.
+    // Base pose Y=90, Z=250. North and south receive an additional 180°
+    // around the vertical axis when viewed from above.
     public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
     public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
     public static final float HORN_SCALE = 1.0F;
-    public static final float HORN_ROTATION_X = 0.0F;
-    // Base pose Y=90; turn the horn 180 degrees in the front-view plane.
+    // The requested 180° is seen from left to right, so it is a local-X turn.
+    public static final float HORN_ROTATION_X = 180.0F;
     public static final float HORN_ROTATION_Y = 90.0F;
-    public static final float HORN_ROTATION_Z = 180.0F;
+    public static final float HORN_ROTATION_Z = 0.0F;
     public static final double HORN_X = 0.5D;
     public static final double HORN_Y = 0.1D;
     public static final double HORN_Z = 0.25D;
+    /** Sixteen pixels in block-local coordinates. */
+    public static final double HORN_SIDE_OFFSET = 1.0D;
 
     @Override
     public void render(TileYggdrasilBranch tile, double x, double y, double z, float partialTicks,
@@ -54,7 +57,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
             renderManaResource(x, y, z, facing, packedLight);
-            renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, HORN_Z,
+            renderStack(tile.getHorn(), x, y, z, facing, getHornX(facing), HORN_Y, HORN_Z,
                     HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
                     packedLight);
         } finally {
@@ -67,7 +70,27 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
-                MANA_RESOURCE_ROTATION_Y, MANA_RESOURCE_ROTATION_Z, packedLight);
+                getManaResourceRotationY(facing), MANA_RESOURCE_ROTATION_Z, packedLight);
+    }
+
+    private static float getManaResourceRotationY(EnumFacing facing) {
+        switch (facing) {
+            case NORTH:
+            case SOUTH:
+                return MANA_RESOURCE_ROTATION_Y + 180.0F;
+            default:
+                return MANA_RESOURCE_ROTATION_Y;
+        }
+    }
+
+    private static double getHornX(EnumFacing facing) {
+        switch (facing) {
+            case EAST:
+            case WEST:
+                return HORN_X + HORN_SIDE_OFFSET;
+            default:
+                return HORN_X;
+        }
     }
 
     private static void setLightmap(int packedLight) {
