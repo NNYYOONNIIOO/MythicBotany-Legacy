@@ -133,13 +133,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         try {
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
+            GlStateManager.enableLighting();
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glEnable(GL11.GL_ALPHA_TEST);
-            GL11.glEnable(GL11.GL_BLEND);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
             GL13.glActiveTexture(OpenGlHelper.lightmapTexUnit);
@@ -151,20 +149,19 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
 
             GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
             GlStateManager.enableTexture2D();
             Minecraft.getMinecraft().getTextureManager()
                     .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            // RenderItem needs the normal item-light setup even for fullbright
-            // attachments. Disabling lighting here is what produced black
-            // planes when the branch was rendered beside EntityItems.
+            // RenderItem needs the normal item-light setup. Fullbright uses a
+            // maximum lightmap but keeps lighting enabled, avoiding black
+            // quads when the branch is rendered beside EntityItems.
             RenderHelper.enableStandardItemLighting();
             GL11.glDisable(GL11.GL_CULL_FACE);
             GlStateManager.disableCull();
 
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
-            // This matches blockstates/yggdrasil_branch.json, so the local
-            // attachment pose follows all four branch orientations.
+            // Match blockstates/yggdrasil_branch.json so local attachment
+            // positions and rotations follow every branch orientation.
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
             GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
