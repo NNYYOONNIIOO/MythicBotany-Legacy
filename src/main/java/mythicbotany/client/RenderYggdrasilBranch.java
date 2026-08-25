@@ -31,10 +31,10 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     public static final double MANA_RESOURCE_Z = 0.5D;
     public static final float MANA_RESOURCE_SCALE = 0.8F;
     public static final float MANA_RESOURCE_ROTATION_X = 0.0F;
-    // Base pose Y=90, Z=250. North and south receive an additional 180°
-    // around the vertical axis when viewed from above.
+    // Native pose is Y=90, Z=160. North and south receive an additional
+    // 180° around the vertical axis when viewed from above.
     public static final float MANA_RESOURCE_ROTATION_Y = 90.0F;
-    public static final float MANA_RESOURCE_ROTATION_Z = 250.0F;
+    public static final float MANA_RESOURCE_ROTATION_Z = 160.0F;
     public static final float HORN_SCALE = 1.0F;
     // The requested 180° is seen from left to right, so it is a local-X turn.
     public static final float HORN_ROTATION_X = 180.0F;
@@ -73,6 +73,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     }
 
     private static float getManaResourceRotationY(EnumFacing facing) {
+        // Top-down view: only north/south need the requested 180-degree turn.
         switch (facing) {
             case NORTH:
             case SOUTH:
@@ -83,11 +84,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     }
 
     private static double getHornX(EnumFacing facing) {
+        // Left-to-right side view: east/west move one block-local unit
+        // (16 pixels) to the observer's right after branch rotation.
         switch (facing) {
             case EAST:
             case WEST:
-                // The model's own right is local X. The branch rotation then
-                // carries this 16-pixel offset to the correct world side.
                 return HORN_X + HORN_SIDE_OFFSET;
             default:
                 return HORN_X;
@@ -123,12 +124,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
         if (stack == null || stack.isEmpty()) {
             return;
         }
-        float oldLightmapX = OpenGlHelper.lastBrightnessX;
-        float oldLightmapY = OpenGlHelper.lastBrightnessY;
-        int oldActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
         GlStateManager.pushMatrix();
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         try {
+            // RenderItem owns atlas binding and model lighting. Only establish
+            // the normal TESR state and the requested lightmap; manually
+            // binding the atlas/standard lights here corrupts the next item
+            // renderer and produces black attached quads.
             GlStateManager.enableRescaleNormal();
             GlStateManager.enableTexture2D();
             GlStateManager.enableLighting();
@@ -136,28 +137,12 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-            GL13.glActiveTexture(OpenGlHelper.lightmapTexUnit);
-            GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-            int blockLight = fullbright ? 240 : packedLight & 65535;
-            int skyLight = fullbright ? 240 : packedLight >>> 16;
-            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
-                    blockLight, skyLight);
-
-            GL13.glActiveTexture(OpenGlHelper.defaultTexUnit);
-            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-            GlStateManager.enableTexture2D();
-            // RenderItem binds the block atlas and configures its own item
-            // model state. Do not bind the atlas or replace the world lights
-            // here: doing so leaves the next EntityItem with a stale texture
-            // or lighting cache and renders attached quads as black planes.
-            GL11.glDisable(GL11.GL_CULL_FACE);
-            GlStateManager.disableCull();
+            setLightmap(fullbright ? 0xF000F0 : packedLight);
 
             GlStateManager.translate(x + 0.5D, y, z + 0.5D);
-            // Match blockstates/yggdrasil_branch.json so local attachment
-            // positions and rotations follow every branch orientation.
+            // This is the same Y rotation as blockstates/yggdrasil_branch.json.
+            // All local positions and model rotations therefore follow the
+            // branch instead of remaining in world axes.
             GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
             GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
             GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
@@ -167,15 +152,13 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             Minecraft.getMinecraft().getRenderItem()
                     .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
         } finally {
-            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,
-                    oldLightmapX, oldLightmapY);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.enableLighting();
+            GlStateManager.enableTexture2D();
+            GlStateManager.disableBlend();
+            GlStateManager.disableAlpha();
+            GlStateManager.disableRescaleNormal();
             GlStateManager.popMatrix();
-            GL11.glPopAttrib();
-            GL13.glActiveTexture(oldActiveTexture);
-            GlStateManager.setActiveTexture(oldActiveTexture);
-            synchronizeRenderStateCache();
         }
     }
     private static void prepareItemRenderState(int packedLight) {
