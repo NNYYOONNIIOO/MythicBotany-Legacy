@@ -48,21 +48,21 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             IBlockState state = tile.getWorld().getBlockState(tile.getPos());
             EnumFacing facing = state.getValue(BlockYggdrasilBranch.FACING);
             int packedLight = tile.getWorld().getCombinedLight(tile.getPos(), 0);
-            setLightmap(packedLight);
-            renderManaResource(x, y, z, facing);
-            setLightmap(packedLight);
+            renderManaResource(x, y, z, facing, packedLight);
             renderStack(tile.getHorn(), x, y, z, facing, HORN_X, HORN_Y, HORN_Z,
-                    HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z);
+                    HORN_SCALE, HORN_ROTATION_X, HORN_ROTATION_Y, HORN_ROTATION_Z,
+                    packedLight);
         } finally {
             glState.pop();
         }
     }
 
-    private static void renderManaResource(double x, double y, double z, EnumFacing facing) {
+    private static void renderManaResource(double x, double y, double z, EnumFacing facing,
+                                           int packedLight) {
         renderStack(new ItemStack(ModItems.manaResource, 1, 3),
                 x, y, z, facing, MANA_RESOURCE_X, MANA_RESOURCE_Y, MANA_RESOURCE_Z,
                 MANA_RESOURCE_SCALE, MANA_RESOURCE_ROTATION_X,
-                MANA_RESOURCE_ROTATION_Y, MANA_RESOURCE_ROTATION_Z);
+                MANA_RESOURCE_ROTATION_Y, MANA_RESOURCE_ROTATION_Z, packedLight);
     }
 
     private static void setLightmap(int packedLight) {
@@ -89,28 +89,36 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
     private static void renderStack(ItemStack stack, double x, double y, double z,
                                      EnumFacing facing, double localX, double localY,
                                      double localZ, float scale, float rotationX,
-                                     float rotationY, float rotationZ) {
+                                     float rotationY, float rotationZ, int packedLight) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
         GlStateManager.pushMatrix();
         GlStateManager.enableRescaleNormal();
-        // EntityItem rendering can leave a non-white current color behind.
-        // Set it directly because GlStateManager may still cache the old value.
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.translate(x + 0.5D, y, z + 0.5D);
-        GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
-        GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
-        // GROUND is the same item context used by the current MythicBotany
-        // renderer; rotation values therefore correspond directly to the
-        // local X/Y/Z axes above instead of the GUI/FIXED transform.
-        GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
-        GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
-        GlStateManager.scale(scale, scale, scale);
-        Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
-        GlStateManager.disableRescaleNormal();
-        GlStateManager.popMatrix();
+        try {
+            // RenderItem changes the lightmap and the cached color state. Set
+            // both before and after each attached model so later EntityItems
+            // cannot inherit the branch's state.
+            setLightmap(packedLight);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.translate(x + 0.5D, y, z + 0.5D);
+            GlStateManager.rotate(getBranchRotation(facing), 0.0F, 1.0F, 0.0F);
+            GlStateManager.translate(localX - 0.5D, localY, localZ - 0.5D);
+            // GROUND is the same item context used by the current MythicBotany
+            // renderer; rotation values therefore correspond directly to the
+            // local X/Y/Z axes above instead of the GUI/FIXED transform.
+            GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
+            GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
+            GlStateManager.scale(scale, scale, scale);
+            Minecraft.getMinecraft().getRenderItem()
+                    .renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+        } finally {
+            setLightmap(packedLight);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.disableRescaleNormal();
+            GlStateManager.popMatrix();
+        }
     }
 
     /** Renders the complete branch item, including its permanent mana resource. */
@@ -129,7 +137,7 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.translate(-0.5D, -0.5D, -0.5D);
             Minecraft.getMinecraft().getBlockRendererDispatcher()
                     .renderBlockBrightness(state, 1.0F);
-            renderManaResource(0.0D, 0.0D, 0.0D, facing);
+            renderManaResource(0.0D, 0.0D, 0.0D, facing, 0xF000F0);
         } finally {
             glState.pop();
         }
@@ -180,6 +188,10 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GL13.glActiveTexture(activeTexture);
             GL13.glClientActiveTexture(clientActiveTexture);
             GL11.glMatrixMode(matrixMode);
+            // Synchronize GlStateManager's cached color with the state that
+            // the attribute stack restored. Otherwise a following item/entity
+            // render can keep using the branch model's black color.
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 }
