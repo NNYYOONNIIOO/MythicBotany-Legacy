@@ -22,7 +22,7 @@ public final class AlfheimPortalOverlayHandler {
     private static int portalTime;
 
     public static void setPortalTime(int time) {
-        portalTime = Math.max(portalTime, Math.min(MAX_PORTAL_TIME, Math.max(0, time)));
+        portalTime = Math.min(MAX_PORTAL_TIME, Math.max(0, time));
     }
 
     @SubscribeEvent

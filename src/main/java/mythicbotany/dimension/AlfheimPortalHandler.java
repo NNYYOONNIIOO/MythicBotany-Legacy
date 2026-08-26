@@ -2,10 +2,13 @@ package mythicbotany.dimension;
 
 import mythicbotany.block.BlockReturnPortal;
 import mythicbotany.network.NetworkHandler;
+import mythicbotany.registry.ModItems;
 import mythicbotany.registry.ModBlocks;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.EntityPlayer.SleepResult;
+import net.minecraft.item.ItemShears;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
@@ -13,12 +16,14 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import vazkii.botania.api.recipe.ElvenPortalUpdateEvent;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +34,9 @@ public final class AlfheimPortalHandler {
     private static final int PORTAL_TIME = 120;
     private static final Map<UUID, Integer> portalTimes = new HashMap<>();
     private static final Map<UUID, Long> lastPortalTicks = new HashMap<>();
+    private static final Map<UUID, EntityPlayerMP> activePortalPlayers = new HashMap<>();
     private static final Set<UUID> playersInPortal = new HashSet<>();
+    private static final float DREAM_CHERRY_DROP_CHANCE = 0.05F;
 
     @SubscribeEvent
     public void onElvenPortalUpdate(ElvenPortalUpdateEvent event) {
@@ -65,6 +72,24 @@ public final class AlfheimPortalHandler {
             } else {
                 teleportToAlfheim(player, portalPos);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onDreamwoodLeavesHarvest(HarvestDropsEvent event) {
+        if (event.getState().getBlock() != ModBlocks.dreamwoodLeaves) {
+            return;
+        }
+
+        EntityPlayer harvester = event.getHarvester();
+        ItemStack held = harvester == null ? ItemStack.EMPTY : harvester.getHeldItemMainhand();
+        if (event.isSilkTouching() || held.getItem() instanceof ItemShears) {
+            return;
+        }
+
+        event.getDrops().clear();
+        if (event.getWorld().rand.nextFloat() < DREAM_CHERRY_DROP_CHANCE) {
+            event.getDrops().add(new ItemStack(ModItems.dreamCherry));
         }
     }
 
@@ -113,9 +138,13 @@ public final class AlfheimPortalHandler {
     private static boolean advancePortalTime(EntityPlayerMP player) {
         UUID id = player.getUniqueID();
         playersInPortal.add(id);
+        activePortalPlayers.put(id, player);
         if (player.timeUntilPortal > 0) {
-            portalTimes.remove(id);
+            if (portalTimes.remove(id) != null) {
+                NetworkHandler.sendPortalEffect(player, 0);
+            }
             lastPortalTicks.remove(id);
+            activePortalPlayers.remove(id);
             return false;
         }
 
@@ -133,6 +162,7 @@ public final class AlfheimPortalHandler {
 
         portalTimes.remove(id);
         lastPortalTicks.remove(id);
+        activePortalPlayers.remove(id);
         return true;
     }
 
@@ -166,8 +196,16 @@ public final class AlfheimPortalHandler {
         }
         tickReturnPortalWorld(DimensionManager.getWorld(0));
         tickReturnPortalWorld(DimensionManager.getWorld(ModDimensions.ALFHEIM_DIMENSION_ID));
-        portalTimes.keySet().removeIf(id -> !playersInPortal.contains(id));
-        lastPortalTicks.keySet().removeIf(id -> !playersInPortal.contains(id));
+        for (UUID id : new HashSet<>(portalTimes.keySet())) {
+            if (!playersInPortal.contains(id)) {
+                EntityPlayerMP player = activePortalPlayers.remove(id);
+                if (player != null) {
+                    NetworkHandler.sendPortalEffect(player, 0);
+                }
+                portalTimes.remove(id);
+                lastPortalTicks.remove(id);
+            }
+        }
         playersInPortal.clear();
     }
 
@@ -175,7 +213,7 @@ public final class AlfheimPortalHandler {
         if (world == null) {
             return;
         }
-        for (EntityPlayer player : world.playerEntities) {
+        for (EntityPlayer player : new ArrayList<EntityPlayer>(world.playerEntities)) {
             if (!(player instanceof EntityPlayerMP)) {
                 continue;
             }
