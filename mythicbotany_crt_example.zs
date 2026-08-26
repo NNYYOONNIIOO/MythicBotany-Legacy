@@ -22,8 +22,8 @@ mods.mythicbotany.addRuneRitual(
     <minecraft:stone>,
     [<minecraft:stone:1>, mods.mythicbotany.entity("minecraft:zombie")],
     <minecraft:stone:1>,
-    [mods.mythicbotany.rune(1, 1, <botania:rune>),
-     mods.mythicbotany.rune(1, 0, <mythicbotany:helheim_rune>)],
+    [[1, 1, <botania:rune>],
+     [1, 0, <mythicbotany:helheim_rune>]],
     5000,
     200
 );

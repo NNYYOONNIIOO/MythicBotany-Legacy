@@ -120,8 +120,8 @@ public final class MythicBotanyCraftTweaker {
 
     /**
      * Legacy helper for scripts that build rune entries programmatically.
-     * Direct tuple syntax is also supported, so this helper is not required:
-     * [(1, 1, <botania:rune>), (1, 0, <mythicbotany:helheim_rune>)]
+     * Direct array syntax is also supported, so this helper is not required:
+     * [[1, 1, <botania:rune>], [1, 0, <mythicbotany:helheim_rune>]]
      */
     @ZenMethod
     public static Object[] rune(int x, int z, IItemStack rune) {
