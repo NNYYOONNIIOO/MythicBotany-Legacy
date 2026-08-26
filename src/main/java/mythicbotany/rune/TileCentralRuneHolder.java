@@ -365,7 +365,10 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         while (normalized.startsWith("entity:")) {
             normalized = normalized.substring("entity:".length());
         }
-        int separator = normalized.lastIndexOf(':');
+        while (normalized.startsWith("entity.")) {
+            normalized = normalized.substring("entity.".length());
+        }
+        int separator = Math.max(normalized.lastIndexOf(':'), normalized.lastIndexOf('.'));
         if (separator >= 0) {
             normalized = normalized.substring(separator + 1);
         }
@@ -377,13 +380,13 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
 
     private String getEntityId(Entity entity) {
         try {
-            java.lang.reflect.Method getKey = EntityList.class.getMethod("getKey", Entity.class);
-            Object key = getKey.invoke(null, entity);
+            java.lang.reflect.Method getKey = EntityList.class.getMethod("getKey", Class.class);
+            Object key = getKey.invoke(null, entity.getClass());
             if (key != null) {
                 return key.toString();
             }
         } catch (Exception ignored) {
-            // Older Forge mappings do not expose EntityList#getKey(Entity).
+            // Older Forge mappings do not expose EntityList#getKey(Class).
         }
         return EntityList.getEntityString(entity);
     }

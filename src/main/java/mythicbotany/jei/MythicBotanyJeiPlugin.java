@@ -281,9 +281,19 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         private static int spawnEggMetadata(String entityId) {
             try {
                 Method getId = EntityList.class.getMethod("getIDFromString", String.class);
-                Object id = getId.invoke(null, entityId);
-                if (id instanceof Number) {
-                    return ((Number) id).intValue();
+                String path = entityId;
+                int separator = path.lastIndexOf(':');
+                if (separator >= 0) {
+                    path = path.substring(separator + 1);
+                }
+                String capitalized = path.isEmpty() ? path
+                        : Character.toUpperCase(path.charAt(0)) + path.substring(1);
+                String[] candidates = {entityId, path, capitalized, "Entity" + capitalized};
+                for (String candidate : candidates) {
+                    Object id = getId.invoke(null, candidate);
+                    if (id instanceof Number && ((Number) id).intValue() >= 0) {
+                        return ((Number) id).intValue();
+                    }
                 }
             } catch (Exception ignored) {
                 // Custom entities may not have a vanilla spawn-egg metadata value.
