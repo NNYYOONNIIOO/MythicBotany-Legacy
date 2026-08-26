@@ -54,9 +54,11 @@ public final class AlfheimBiomes {
         };
         biome.topBlock = top;
         biome.fillerBlock = filler;
-        // Tree placement is handled by ModWorldGenerator so Alfheim only
-        // receives Dreamwood trees, with a higher density in its forest.
+        // Tree placement is handled by ModWorldGenerator. Explicitly clear
+        // both vanilla tree counters: BiomeDecorator adds one extra tree from
+        // extraTreeChance even when treesPerChunk is zero.
         biome.decorator.treesPerChunk = 0;
+        biome.decorator.extraTreeChance = 0.0F;
         biome.getSpawnableList(EnumCreatureType.CREATURE).add(new Biome.SpawnListEntry(
                 EntityAlfPixie.class, 5, 4, 10));
         biome.getSpawnableList(EnumCreatureType.CREATURE).add(new Biome.SpawnListEntry(

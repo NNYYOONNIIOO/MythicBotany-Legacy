@@ -7,15 +7,18 @@ import net.minecraft.world.storage.WorldInfo;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 /** Continuous, domain-warped biome source for Alfheim. */
 public final class AlfheimBiomeProvider extends BiomeProvider {
     private final long seed;
+    private final BiomeProvider vanillaProvider;
 
     public AlfheimBiomeProvider(WorldInfo worldInfo) {
         super(worldInfo);
         seed = worldInfo.getSeed();
+        vanillaProvider = new BiomeProvider(worldInfo);
     }
 
     @Override
@@ -97,54 +100,34 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
     }
 
     private Biome getBiomeAt(int x, int z) {
-        // Several smooth octaves plus a small coordinate warp keep boundaries
-        // curved and independent of chunk coordinates.
-        // Use broad, low-frequency regions. This prevents several different
-        // biomes from meeting every few chunks and keeps their boundaries from
-        // turning into straight chunk-sized strips.
-        // Keep the climate regions broad. Low-frequency sampling prevents
-        // different surface palettes from changing every few chunks.
-        // Domain warping plus several differently rotated scales produces
-        // irregular coastlines and lobes rather than circular biome islands.
-        double warpX = fractalNoise(x / 680.0D, z / 680.0D, 0x4D595448L) * 0.68D
-                + fractalNoise((x + z * 0.37D) / 210.0D,
-                (z - x * 0.21D) / 210.0D, 0x1A2B3CL) * 0.32D;
-        double warpZ = fractalNoise(x / 680.0D, z / 680.0D, 0x59474744L) * 0.68D
-                + fractalNoise((x - z * 0.23D) / 210.0D,
-                (z + x * 0.31D) / 210.0D, 0x4D5E6FL) * 0.32D;
-        double warpedX = x + warpX * 180.0D;
-        double warpedZ = z + warpZ * 180.0D;
+        // Reuse vanilla 1.12's multi-layer biome climate map. It provides the
+        // irregular, scale-varied boundaries seen in the Overworld instead of
+        // the rounded contours produced by one custom threshold field.
+        Biome vanillaBiome = vanillaProvider.getBiome(new BlockPos(x, 0, z));
+        return mapVanillaBiome(vanillaBiome);
+    }
 
-        double continentalness = fractalNoise(warpedX / 1250.0D,
-                warpedZ / 1250.0D, 0x31A7L) * 0.62D
-                + fractalNoise((warpedX + warpedZ * 0.35D) / 420.0D,
-                (warpedZ - warpedX * 0.20D) / 420.0D, 0x7B21L) * 0.38D;
-        double erosion = fractalNoise((warpedX - warpedZ * 0.28D) / 360.0D,
-                (warpedZ + warpedX * 0.22D) / 360.0D, 0x8C42L);
-        double moisture = fractalNoise((warpedX - warpZ * 42.0D) / 760.0D,
-                (warpedZ + warpX * 42.0D) / 760.0D, 0x9E37L) * 0.72D
-                + fractalNoise((warpedX - warpedZ * 0.25D) / 250.0D,
-                (warpedZ + warpedX * 0.18D) / 250.0D, 0xA54FL) * 0.28D;
-        double climate = fractalNoise((warpedX + warpX * 52.0D) / 820.0D,
-                (warpedZ + warpZ * 52.0D) / 820.0D, 0xA17F5L) * 0.72D
-                + fractalNoise((warpedX + warpedZ * 0.22D) / 290.0D,
-                (warpedZ - warpedX * 0.27D) / 290.0D, 0xC391L) * 0.28D;
+    private Biome mapVanillaBiome(Biome vanillaBiome) {
+        String name = vanillaBiome.getRegistryName() == null
+                ? vanillaBiome.getBiomeName()
+                : vanillaBiome.getRegistryName().getPath();
+        name = name.toLowerCase(Locale.ROOT);
 
-        // Erosion moves the boundaries instead of merely drawing concentric
-        // rings around the continentalness field. Each threshold leaves a
-        // broad, organic transition zone for the surface generator.
-        if (continentalness < -0.24D + erosion * 0.12D) {
+        if (name.contains("ocean") || name.contains("river")
+                || name.contains("beach") || name.contains("shore")
+                || name.contains("swamp")) {
             return AlfheimBiomes.ALFHEIM_LAKES;
         }
-        if (continentalness > 0.26D + erosion * 0.12D) {
-            return AlfheimBiomes.ALFHEIM_HILLS;
-        }
-        if (climate > 0.18D + erosion * 0.08D
-                && continentalness > -0.10D && continentalness < 0.36D) {
+        if (name.contains("desert") || name.contains("savanna")
+                || name.contains("mesa")) {
             return AlfheimBiomes.GOLDEN_FIELDS;
         }
-        if (moisture > 0.04D + erosion * 0.06D
-                && continentalness > -0.30D && continentalness < 0.44D) {
+        if (name.contains("hill") || name.contains("mountain")
+                || name.contains("extreme")) {
+            return AlfheimBiomes.ALFHEIM_HILLS;
+        }
+        if (name.contains("forest") || name.contains("taiga")
+                || name.contains("jungle")) {
             return AlfheimBiomes.DREAMWOOD_FOREST;
         }
         return AlfheimBiomes.ALFHEIM_PLAINS;
