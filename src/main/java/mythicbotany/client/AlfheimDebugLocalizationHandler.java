@@ -3,19 +3,16 @@ package mythicbotany.client;
 import mythicbotany.MythicBotany;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.List;
 
 /** Localizes the biome id printed by the F3 debug overlay. */
-@Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class AlfheimDebugLocalizationHandler {
     private static final String BIOME_PREFIX = "Biome: ";
 
-    private AlfheimDebugLocalizationHandler() {
+    public AlfheimDebugLocalizationHandler() {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

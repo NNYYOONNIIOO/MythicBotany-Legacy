@@ -12,12 +12,14 @@ import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.client.RenderCentralRuneHolder;
 import mythicbotany.client.RenderRuneHolder;
+import mythicbotany.client.AlfheimDebugLocalizationHandler;
 import mythicbotany.tile.TileManaInfuser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -25,6 +27,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public final class ClientProxy extends CommonProxy {
     private static boolean itemStackRendererRegistered;
     private static boolean entityRenderersRegistered;
+    private static boolean debugLocalizationRegistered;
 
     @Override
     public void preInit() {
@@ -34,6 +37,10 @@ public final class ClientProxy extends CommonProxy {
     @Override
     public void init() {
         registerEntityRenderers();
+        if (!debugLocalizationRegistered) {
+            MinecraftForge.EVENT_BUS.register(new AlfheimDebugLocalizationHandler());
+            debugLocalizationRegistered = true;
+        }
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
