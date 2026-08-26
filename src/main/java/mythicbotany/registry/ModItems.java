@@ -225,7 +225,9 @@ public final class ModItems {
             if (!world.isRemote) {
                 AlfsteelRepairHelper.repairArmor(stack, player, world.getTotalWorldTime());
                 if (armorType == EntityEquipmentSlot.HEAD && hasFullSet(player)) {
-                    if (player.shouldHeal() && player.ticksExisted % 40 == 0) {
+                    int food = player.getFoodStats().getFoodLevel();
+                    if (food > 0 && food < 18 && player.shouldHeal()
+                            && player.ticksExisted % 40 == 0) {
                         player.heal(1.0F);
                     }
                     ManaItemHandler.dispatchManaExact(stack, player, 1, true);
