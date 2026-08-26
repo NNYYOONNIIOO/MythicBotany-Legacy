@@ -104,45 +104,47 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         // turning into straight chunk-sized strips.
         // Keep the climate regions broad. Low-frequency sampling prevents
         // different surface palettes from changing every few chunks.
-        // A second, smaller rotated field breaks up the circular contours of
-        // a single low-frequency noise field without creating tiny islands.
-        double warpX = fractalNoise(x / 520.0D, z / 520.0D, 0x4D595448L) * 0.72D
-                + fractalNoise((x + z * 0.37D) / 190.0D,
-                (z - x * 0.21D) / 190.0D, 0x1A2B3CL) * 0.28D;
-        double warpZ = fractalNoise(x / 520.0D, z / 520.0D, 0x59474744L) * 0.72D
-                + fractalNoise((x - z * 0.23D) / 190.0D,
-                (z + x * 0.31D) / 190.0D, 0x4D5E6FL) * 0.28D;
-        double warpedX = x + warpX * 120.0D;
-        double warpedZ = z + warpZ * 120.0D;
+        // Domain warping plus several differently rotated scales produces
+        // irregular coastlines and lobes rather than circular biome islands.
+        double warpX = fractalNoise(x / 680.0D, z / 680.0D, 0x4D595448L) * 0.68D
+                + fractalNoise((x + z * 0.37D) / 210.0D,
+                (z - x * 0.21D) / 210.0D, 0x1A2B3CL) * 0.32D;
+        double warpZ = fractalNoise(x / 680.0D, z / 680.0D, 0x59474744L) * 0.68D
+                + fractalNoise((x - z * 0.23D) / 210.0D,
+                (z + x * 0.31D) / 210.0D, 0x4D5E6FL) * 0.32D;
+        double warpedX = x + warpX * 180.0D;
+        double warpedZ = z + warpZ * 180.0D;
 
-        // The fields are deliberately broad, but not so broad that a normal
-        // exploration distance only exposes plains. All samples are in world
-        // coordinates, so no value changes at a chunk edge.
-        double land = fractalNoise(warpedX / 1050.0D, warpedZ / 1050.0D, 0x31A7L) * 0.70D
-                + fractalNoise((warpedX + warpedZ * 0.35D) / 280.0D,
-                (warpedZ - warpedX * 0.20D) / 280.0D, 0x7B21L) * 0.30D;
-        double moisture = fractalNoise((warpedX - warpZ * 40.0D) / 720.0D,
-                (warpedZ + warpX * 40.0D) / 720.0D, 0x9E37L) * 0.72D
-                + fractalNoise((warpedX - warpedZ * 0.25D) / 240.0D,
-                (warpedZ + warpedX * 0.18D) / 240.0D, 0x8C42L) * 0.28D;
-        double climate = fractalNoise((warpedX + warpX * 48.0D) / 780.0D,
-                (warpedZ + warpZ * 48.0D) / 780.0D, 0xA17F5L) * 0.72D
-                + fractalNoise((warpedX + warpedZ * 0.22D) / 260.0D,
-                (warpedZ - warpedX * 0.27D) / 260.0D, 0xC391L) * 0.28D;
+        double continentalness = fractalNoise(warpedX / 1250.0D,
+                warpedZ / 1250.0D, 0x31A7L) * 0.62D
+                + fractalNoise((warpedX + warpedZ * 0.35D) / 420.0D,
+                (warpedZ - warpedX * 0.20D) / 420.0D, 0x7B21L) * 0.38D;
+        double erosion = fractalNoise((warpedX - warpedZ * 0.28D) / 360.0D,
+                (warpedZ + warpedX * 0.22D) / 360.0D, 0x8C42L);
+        double moisture = fractalNoise((warpedX - warpZ * 42.0D) / 760.0D,
+                (warpedZ + warpX * 42.0D) / 760.0D, 0x9E37L) * 0.72D
+                + fractalNoise((warpedX - warpedZ * 0.25D) / 250.0D,
+                (warpedZ + warpedX * 0.18D) / 250.0D, 0xA54FL) * 0.28D;
+        double climate = fractalNoise((warpedX + warpX * 52.0D) / 820.0D,
+                (warpedZ + warpZ * 52.0D) / 820.0D, 0xA17F5L) * 0.72D
+                + fractalNoise((warpedX + warpedZ * 0.22D) / 290.0D,
+                (warpedZ - warpedX * 0.27D) / 290.0D, 0xC391L) * 0.28D;
 
-        // These thresholds intentionally give every climate a useful region.
-        // The old values only selected the extreme tails of the noise fields,
-        // which made almost the whole dimension plains.
-        if (land < -0.22D) {
+        // Erosion moves the boundaries instead of merely drawing concentric
+        // rings around the continentalness field. Each threshold leaves a
+        // broad, organic transition zone for the surface generator.
+        if (continentalness < -0.24D + erosion * 0.12D) {
             return AlfheimBiomes.ALFHEIM_LAKES;
         }
-        if (climate > 0.18D && land > -0.08D && land < 0.30D) {
-            return AlfheimBiomes.GOLDEN_FIELDS;
-        }
-        if (land > 0.24D) {
+        if (continentalness > 0.26D + erosion * 0.12D) {
             return AlfheimBiomes.ALFHEIM_HILLS;
         }
-        if (moisture > 0.04D && land > -0.28D && land < 0.42D) {
+        if (climate > 0.18D + erosion * 0.08D
+                && continentalness > -0.10D && continentalness < 0.36D) {
+            return AlfheimBiomes.GOLDEN_FIELDS;
+        }
+        if (moisture > 0.04D + erosion * 0.06D
+                && continentalness > -0.30D && continentalness < 0.44D) {
             return AlfheimBiomes.DREAMWOOD_FOREST;
         }
         return AlfheimBiomes.ALFHEIM_PLAINS;

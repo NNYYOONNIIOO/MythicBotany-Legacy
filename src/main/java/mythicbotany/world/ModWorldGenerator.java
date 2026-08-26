@@ -272,6 +272,7 @@ public class ModWorldGenerator implements IWorldGenerator {
         IBlockState state = world.getBlockState(pos);
         return world.isAirBlock(pos)
                 || state.getMaterial() == Material.LEAVES
+                || state.getMaterial() == Material.PLANTS
                 || state.getMaterial() == Material.WATER
                 || state.getBlock() == ModBlocks.dreamwoodLeaves;
     }
