@@ -151,11 +151,28 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             stacks.init(0, true, 47, 44);
             stacks.set(0, new ItemStack(ModBlocks.manaInfuser));
 
-            stacks.init(1, true, 47, 12);
-            stacks.set(1, wrapper.recipe.getInput());
+            List<ItemStack> inputs = wrapper.recipe.getInputs();
+            for (int i = 0; i < inputs.size(); i++) {
+                stacks.init(i + 1, true, inputSlotX(i, inputs.size()),
+                        inputSlotY(i, inputs.size()));
+                stacks.set(i + 1, inputs.get(i));
+            }
 
-            stacks.init(2, false, 86, 11);
-            stacks.set(2, wrapper.recipe.getOutput());
+            int outputSlot = inputs.size() + 1;
+            stacks.init(outputSlot, false, 86, 11);
+            stacks.set(outputSlot, wrapper.recipe.getOutput());
+        }
+
+        private static int inputSlotX(int index, int count) {
+            int columns = Math.min(4, Math.max(1, count));
+            int column = index % columns;
+            return 5 + column * 18;
+        }
+
+        private static int inputSlotY(int index, int count) {
+            int columns = Math.min(4, Math.max(1, count));
+            int row = index / columns;
+            return 4 + row * 18;
         }
     }
 
@@ -379,7 +396,11 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
         @Override
         public void getIngredients(IIngredients ingredients) {
-            ingredients.setInput(ItemStack.class, recipe.getInput());
+            List<List<ItemStack>> inputs = new ArrayList<>();
+            for (ItemStack input : recipe.getInputs()) {
+                inputs.add(Collections.singletonList(input));
+            }
+            ingredients.setInputLists(ItemStack.class, inputs);
             ingredients.setOutput(ItemStack.class, recipe.getOutput());
         }
 
