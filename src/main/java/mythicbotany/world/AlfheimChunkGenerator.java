@@ -54,31 +54,16 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
         }
 
         if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
-            final int waterLevel = 63;
-            // Fill only genuine depressions. Do not carve a fixed shelf or
-            // create a horizontal sand strip at y=60/61.
-            if (isBiomeEdge(x, z, biome, 24) || surface >= waterLevel) {
-                chunk.setBlockState(new BlockPos(x, surface, z), Blocks.GRASS.getDefaultState());
-                for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
-                    chunk.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState());
-                }
-                return;
-            }
-            BlockPos seabed = new BlockPos(x, surface, z);
-            IBlockState seabedState = chunk.getBlockState(seabed);
-            if (seabedState.getBlock() == Blocks.STONE
-                    || seabedState.getBlock() == Blocks.DIRT
-                    || seabedState.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
-                chunk.setBlockState(seabed, Blocks.SAND.getDefaultState());
-            }
-            for (int y = surface + 1; y <= waterLevel; y++) {
-                chunk.setBlockState(new BlockPos(x, y, z), Blocks.WATER.getDefaultState());
-            }
+            applyLakeSurface(chunk, x, z, surface);
             return;
         }
 
-        boolean biomeEdge = isBiomeEdge(x, z, biome, 32);
-        IBlockState top = biomeEdge ? Blocks.GRASS.getDefaultState() : biome.topBlock;
+        // Keep the transition palette vanilla. Golden grass is reserved for
+        // the center of golden fields, never for a noisy/rectangular border.
+        boolean biomeEdge = isBiomeEdge(x, z, biome, 48);
+        IBlockState top = biomeEdge || biome.topBlock.getBlock()
+                == vazkii.botania.common.block.ModBlocks.altGrass
+                ? Blocks.GRASS.getDefaultState() : biome.topBlock;
         chunk.setBlockState(new BlockPos(x, surface, z), top);
         for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
             IBlockState current = chunk.getBlockState(new BlockPos(x, y, z));
@@ -87,6 +72,46 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
                     || current.getBlock() == Blocks.DIRT
                     || current.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
                 chunk.setBlockState(new BlockPos(x, y, z), biome.fillerBlock);
+            }
+        }
+    }
+
+    private void applyLakeSurface(Chunk chunk, int x, int z, int surface) {
+        // The overworld generator already gives us a continuous terrain height.
+        // Only water-fill low terrain; never carve it down to a global y level.
+        final int seaLevel = 62;
+        final int maxWaterDepth = 8;
+        if (surface >= seaLevel || seaLevel - surface > maxWaterDepth) {
+            setGroundColumn(chunk, x, z, surface, Blocks.GRASS.getDefaultState(),
+                    Blocks.DIRT.getDefaultState());
+            return;
+        }
+
+        IBlockState water = Blocks.WATER.getDefaultState();
+        for (int y = surface + 1; y <= seaLevel; y++) {
+            chunk.setBlockState(new BlockPos(x, y, z), water);
+        }
+        // Keep the bed mostly natural and use at most one sand block at the
+        // shoreline. This avoids the conspicuous two-layer horizontal shelf.
+        if (surface >= seaLevel - 2 && surface > 1) {
+            IBlockState bed = chunk.getBlockState(new BlockPos(x, surface, z));
+            if (bed.getBlock() == Blocks.DIRT || bed.getBlock() == Blocks.STONE
+                    || bed.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
+                chunk.setBlockState(new BlockPos(x, surface, z), Blocks.SAND.getDefaultState());
+            }
+        }
+    }
+
+    private void setGroundColumn(Chunk chunk, int x, int z, int surface,
+                                  IBlockState top, IBlockState filler) {
+        chunk.setBlockState(new BlockPos(x, surface, z), top);
+        for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
+            IBlockState current = chunk.getBlockState(new BlockPos(x, y, z));
+            if (current.getMaterial() == Material.GROUND
+                    || current.getBlock() == Blocks.STONE
+                    || current.getBlock() == Blocks.DIRT
+                    || current.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
+                chunk.setBlockState(new BlockPos(x, y, z), filler);
             }
         }
     }
