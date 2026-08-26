@@ -193,12 +193,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         if (entitySlot >= 0 && entitySlot < wrapper.recipe.getSpecialInputs().size()) {
                             ResourceLocation entityId = new ResourceLocation(
                                     wrapper.recipe.getSpecialInputs().get(entitySlot));
-                            String translationKey = "entity." + entityId.getNamespace() + "."
-                                    + entityId.getPath() + ".name";
-                            String entityName = I18n.format(translationKey);
-                            if (entityName.equals(translationKey)) {
-                                entityName = entityId.toString();
-                            }
+                            String entityName = entityDisplayName(entityId);
                             tooltip.add(entityName + "\u751f\u7269");
                             tooltip.add("\u5b9e\u4f53\u5fc5\u987b\u9760\u8fd1\u4eea\u5f0f\u5728\u8fd9\u4e2a\u8fc7\u7a0b\u4e2d\u5c06\u88ab\u727a\u7272\u3002");
                         }
@@ -231,6 +226,25 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             tag.setTag("EntityTag", entityTag);
             stack.setTagCompound(tag);
             return stack;
+        }
+
+        private static String entityDisplayName(ResourceLocation entityId) {
+            String path = entityId.getPath();
+            String capitalizedPath = path.isEmpty() ? path
+                    : Character.toUpperCase(path.charAt(0)) + path.substring(1);
+            String[] keys = {
+                    "entity." + path + ".name",
+                    "entity." + capitalizedPath + ".name",
+                    "entity." + entityId.getNamespace() + "." + path + ".name",
+                    "entity." + entityId.getNamespace() + "." + capitalizedPath + ".name"
+            };
+            for (String key : keys) {
+                String translated = I18n.format(key);
+                if (!translated.equals(key)) {
+                    return translated;
+                }
+            }
+            return entityId.toString();
         }
     }
 
@@ -350,6 +364,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         try {
             Object helpers = registry.getJeiHelpers();
             Method getRecipeRegistry = helpers.getClass().getMethod("getRecipeRegistry");
+            getRecipeRegistry.setAccessible(true);
             Object recipeRegistry = getRecipeRegistry.invoke(helpers);
             if (recipeRegistry == null) {
                 return false;
@@ -358,9 +373,11 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (!"addRecipes".equals(method.getName()) || parameterTypes.length != 2
                         || parameterTypes[1] != String.class
-                        || !parameterTypes[0].isAssignableFrom(recipes.getClass())) {
+                        || (!parameterTypes[0].isAssignableFrom(recipes.getClass())
+                        && !List.class.isAssignableFrom(parameterTypes[0]))) {
                     continue;
                 }
+                method.setAccessible(true);
                 method.invoke(recipeRegistry, recipes, categoryUid);
                 return true;
             }
