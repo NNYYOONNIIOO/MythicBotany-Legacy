@@ -60,6 +60,9 @@ public final class MythicBotany {
         MinecraftForge.EVENT_BUS.register(new AlfsteelArmorHandler());
         MinecraftForge.EVENT_BUS.register(new MjoellnirHandler());
         MinecraftForge.EVENT_BUS.register(new AlfheimPortalHandler());
+        // DecorateBiomeEvent is posted on Forge's terrain-generation bus,
+        // not the regular event bus used by @EventBusSubscriber.
+        MinecraftForge.TERRAIN_GEN_BUS.register(new ModWorldGenerator());
     }
 
     @Mod.EventHandler

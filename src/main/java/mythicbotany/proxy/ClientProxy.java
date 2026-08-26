@@ -32,15 +32,13 @@ public final class ClientProxy extends CommonProxy {
     @Override
     public void preInit() {
         registerEntityRenderers();
+        registerDebugLocalization();
     }
 
     @Override
     public void init() {
         registerEntityRenderers();
-        if (!debugLocalizationRegistered) {
-            MinecraftForge.EVENT_BUS.register(new AlfheimDebugLocalizationHandler());
-            debugLocalizationRegistered = true;
-        }
+        registerDebugLocalization();
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
@@ -48,6 +46,13 @@ public final class ClientProxy extends CommonProxy {
             TileEntityItemStackRenderer.instance = new RenderAlfsteelPylon.ForwardingTEISR(
                     TileEntityItemStackRenderer.instance);
             itemStackRendererRegistered = true;
+        }
+    }
+
+    private static void registerDebugLocalization() {
+        if (!debugLocalizationRegistered) {
+            MinecraftForge.EVENT_BUS.register(new AlfheimDebugLocalizationHandler());
+            debugLocalizationRegistered = true;
         }
     }
 
