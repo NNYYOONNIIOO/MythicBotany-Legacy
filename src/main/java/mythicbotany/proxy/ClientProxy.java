@@ -3,6 +3,7 @@ package mythicbotany.proxy;
 import mythicbotany.client.RenderAlfPixie;
 import mythicbotany.client.RenderMjoellnir;
 import mythicbotany.client.RenderMjoellnirPlaced;
+import mythicbotany.client.AlfheimSkyRenderer;
 import mythicbotany.entity.EntityMjoellnir;
 import mythicbotany.entity.EntityMjoellnirPlaced;
 import mythicbotany.entity.EntityAlfPixie;
@@ -14,6 +15,7 @@ import mythicbotany.client.RenderCentralRuneHolder;
 import mythicbotany.client.RenderRuneHolder;
 import mythicbotany.client.AlfheimBiomeLocalization;
 import mythicbotany.client.AlfheimBiomeOverlayHandler;
+import mythicbotany.dimension.ModDimensions;
 import mythicbotany.tile.TileManaInfuser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
@@ -21,6 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -29,17 +32,20 @@ public final class ClientProxy extends CommonProxy {
     private static boolean itemStackRendererRegistered;
     private static boolean entityRenderersRegistered;
     private static boolean debugLocalizationRegistered;
+    private static boolean skyHandlerRegistered;
 
     @Override
     public void preInit() {
         registerEntityRenderers();
         registerDebugLocalization();
+        registerSkyHandler();
     }
 
     @Override
     public void init() {
         registerEntityRenderers();
         registerDebugLocalization();
+        registerSkyHandler();
         AlfheimBiomeLocalization.apply();
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
@@ -55,6 +61,22 @@ public final class ClientProxy extends CommonProxy {
         if (!debugLocalizationRegistered) {
             MinecraftForge.EVENT_BUS.register(new AlfheimBiomeOverlayHandler());
             debugLocalizationRegistered = true;
+        }
+    }
+
+    private void registerSkyHandler() {
+        if (!skyHandlerRegistered) {
+            MinecraftForge.EVENT_BUS.register(this);
+            skyHandlerRegistered = true;
+        }
+    }
+
+    @net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event) {
+        if (event.getWorld().isRemote
+                && event.getWorld().provider.getDimension()
+                == ModDimensions.ALFHEIM_DIMENSION_ID) {
+            event.getWorld().provider.setSkyRenderer(new AlfheimSkyRenderer());
         }
     }
 

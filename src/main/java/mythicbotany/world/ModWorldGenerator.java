@@ -107,7 +107,7 @@ public class ModWorldGenerator implements IWorldGenerator {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
-            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 4
+            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 8
                     : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 12
                     : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 16
                     : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 20 : 0;
@@ -200,6 +200,7 @@ public class ModWorldGenerator implements IWorldGenerator {
             int z = chunkZ * 16 + random.nextInt(16);
             BlockPos surface = findGroundSurface(world, x, z);
             if (surface != null
+                    && !hasDreamwoodAbove(world, surface)
                     && world.isAirBlock(surface.up())) {
                 world.setBlockState(surface.up(), (i & 1) == 0
                         ? Blocks.RED_FLOWER.getDefaultState()
@@ -221,7 +222,8 @@ public class ModWorldGenerator implements IWorldGenerator {
             int x = centerX + random.nextInt(5) - 2;
             int z = centerZ + random.nextInt(5) - 2;
             BlockPos surface = findGroundSurface(world, x, z);
-            if (surface != null && world.isAirBlock(surface.up())
+            if (surface != null && !hasDreamwoodAbove(world, surface)
+                    && world.isAirBlock(surface.up())
                     && isValidWheatGround(world, surface)) {
                 world.setBlockState(surface, Blocks.FARMLAND.getDefaultState(), 2);
                 world.setBlockState(surface.up(), Blocks.WHEAT.getDefaultState()
@@ -275,11 +277,16 @@ public class ModWorldGenerator implements IWorldGenerator {
         // crystal: a diluted pool stores the generated mana while bifrost
         // pillars form the visible crystal around it.
         IBlockState pool = getDilutedPoolState();
+        if (pool == null) {
+            return false;
+        }
         world.setBlockState(origin, pool, 2);
         TileEntity tile = world.getTileEntity(origin);
-        if (tile instanceof IManaPool) {
-            ((IManaPool) tile).recieveMana(10 + random.nextInt(490));
+        if (!(tile instanceof IManaPool)) {
+            world.setBlockToAir(origin);
+            return false;
         }
+        ((IManaPool) tile).recieveMana(10 + random.nextInt(490));
 
         IBlockState crystal = vazkii.botania.common.block.ModBlocks.bifrostPerm.getDefaultState();
         for (BlockPos pos : crystalBlocks) {
@@ -297,8 +304,23 @@ public class ModWorldGenerator implements IWorldGenerator {
                         .withProperty(BotaniaStateProps.POOL_VARIANT, variant);
             }
         }
-        // Compatibility fallback for Botania builds without a named variant.
-        return vazkii.botania.common.block.ModBlocks.pool.getStateFromMeta(1);
+        // Never fall back to metadata here: on some Botania builds that state
+        // is the creative pool, which must not be generated naturally.
+        return null;
+    }
+
+    private boolean hasDreamwoodAbove(World world, BlockPos ground) {
+        for (int y = ground.getY() + 1; y < world.getActualHeight(); y++) {
+            IBlockState state = world.getBlockState(
+                    new BlockPos(ground.getX(), y, ground.getZ()));
+            Block block = state.getBlock();
+            if (block == vazkii.botania.common.block.ModBlocks.dreamwood
+                    || block == ModBlocks.dreamwoodLeaves
+                    || state.getMaterial() == Material.LEAVES) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean canReplaceCrystalBlock(World world, BlockPos pos) {
