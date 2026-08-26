@@ -108,7 +108,7 @@ public class ModWorldGenerator implements IWorldGenerator {
         } else if (biome == AlfheimBiomes.GOLDEN_FIELDS) {
             generateGoldenField(world, random, chunkX, chunkZ);
         } else if (biome == AlfheimBiomes.ALFHEIM_HILLS) {
-            if (random.nextInt(8) == 0) {
+            if (random.nextInt(24) == 0) {
                 generateManaCrystal(world, random, chunkX * 16 + random.nextInt(16),
                         chunkZ * 16 + random.nextInt(16));
             }

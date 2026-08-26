@@ -98,16 +98,21 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
     private Biome getBiomeAt(int x, int z) {
         // Several smooth octaves plus a small coordinate warp keep boundaries
         // curved and independent of chunk coordinates.
-        double warpX = fractalNoise(x / 320.0D, z / 320.0D, 0x4D595448L);
-        double warpZ = fractalNoise(x / 320.0D, z / 320.0D, 0x59474744L);
-        double warpedX = x + warpX * 96.0D;
-        double warpedZ = z + warpZ * 96.0D;
+        // Use broad, low-frequency regions. This prevents several different
+        // biomes from meeting every few chunks and keeps their boundaries from
+        // turning into straight chunk-sized strips.
+        // Keep the climate regions broad. Low-frequency sampling prevents
+        // different surface palettes from changing every few chunks.
+        double warpX = fractalNoise(x / 720.0D, z / 720.0D, 0x4D595448L);
+        double warpZ = fractalNoise(x / 720.0D, z / 720.0D, 0x59474744L);
+        double warpedX = x + warpX * 40.0D;
+        double warpedZ = z + warpZ * 40.0D;
 
-        double land = fractalNoise(warpedX / 640.0D, warpedZ / 640.0D, 0x31A7L);
-        double moisture = fractalNoise((warpedX - warpZ * 48.0D) / 360.0D,
-                (warpedZ + warpX * 48.0D) / 360.0D, 0x9E37L);
-        double climate = fractalNoise((warpedX + warpX * 64.0D) / 420.0D,
-                (warpedZ + warpZ * 64.0D) / 420.0D, 0xA17F5L);
+        double land = fractalNoise(warpedX / 1500.0D, warpedZ / 1500.0D, 0x31A7L);
+        double moisture = fractalNoise((warpedX - warpZ * 24.0D) / 900.0D,
+                (warpedZ + warpX * 24.0D) / 900.0D, 0x9E37L);
+        double climate = fractalNoise((warpedX + warpX * 32.0D) / 1000.0D,
+                (warpedZ + warpZ * 32.0D) / 1000.0D, 0xA17F5L);
 
         // Use wide, low-frequency regions. The previous thresholds made large
         // terrain/surface changes meet abruptly and look like chunk seams.
@@ -117,7 +122,7 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         if (land > 0.68D) {
             return AlfheimBiomes.ALFHEIM_HILLS;
         }
-        if (climate > 0.72D && land > -0.08D && land < 0.30D) {
+        if (climate > 0.62D && land > -0.08D && land < 0.30D) {
             return AlfheimBiomes.GOLDEN_FIELDS;
         }
         if (moisture > 0.24D && land > -0.12D) {
@@ -131,11 +136,11 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         double amplitude = 1.0D;
         double amplitudeSum = 0.0D;
         double frequency = 1.0D;
-        for (int octave = 0; octave < 4; octave++) {
+        for (int octave = 0; octave < 3; octave++) {
             value += gradientNoise(x * frequency, z * frequency,
                     salt + octave * 0x632BE59BD9B4E019L) * amplitude;
             amplitudeSum += amplitude;
-            amplitude *= 0.5D;
+            amplitude *= 0.45D;
             frequency *= 2.0D;
         }
         return value / amplitudeSum;

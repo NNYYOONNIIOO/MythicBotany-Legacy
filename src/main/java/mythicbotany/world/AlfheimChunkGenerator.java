@@ -57,7 +57,7 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
             final int waterLevel = 63;
             // Fill only genuine depressions. Do not carve a fixed shelf or
             // create a horizontal sand strip at y=60/61.
-            if (isBiomeEdge(x, z, biome) || surface >= waterLevel) {
+            if (isBiomeEdge(x, z, biome, 24) || surface >= waterLevel) {
                 chunk.setBlockState(new BlockPos(x, surface, z), Blocks.GRASS.getDefaultState());
                 for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
                     chunk.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState());
@@ -77,7 +77,7 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
             return;
         }
 
-        boolean biomeEdge = isBiomeEdge(x, z, biome);
+        boolean biomeEdge = isBiomeEdge(x, z, biome, 32);
         IBlockState top = biomeEdge ? Blocks.GRASS.getDefaultState() : biome.topBlock;
         chunk.setBlockState(new BlockPos(x, surface, z), top);
         for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
@@ -100,9 +100,9 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
         return -1;
     }
 
-    private boolean isBiomeEdge(int x, int z, Biome center) {
-        for (int dx = -8; dx <= 8; dx += 2) {
-            for (int dz = -8; dz <= 8; dz += 2) {
+    private boolean isBiomeEdge(int x, int z, Biome center, int radius) {
+        for (int dx = -radius; dx <= radius; dx += 2) {
+            for (int dz = -radius; dz <= radius; dz += 2) {
                 if (dx == 0 && dz == 0) {
                     continue;
                 }
