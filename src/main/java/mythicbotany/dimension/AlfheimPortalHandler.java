@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer.SleepResult;
 import net.minecraft.item.ItemShears;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -218,14 +219,22 @@ public final class AlfheimPortalHandler {
                 continue;
             }
             EntityPlayerMP serverPlayer = (EntityPlayerMP) player;
-            BlockPos playerPos = serverPlayer.getPosition();
+            AxisAlignedBB playerBox = serverPlayer.getEntityBoundingBox();
+            int minX = (int) Math.floor(playerBox.minX);
+            int maxX = (int) Math.floor(playerBox.maxX);
+            int minY = (int) Math.floor(playerBox.minY);
+            int maxY = (int) Math.floor(playerBox.maxY);
+            int minZ = (int) Math.floor(playerBox.minZ);
+            int maxZ = (int) Math.floor(playerBox.maxZ);
             BlockPos portalPos = null;
-            for (int dx = -1; dx <= 1 && portalPos == null; dx++) {
-                for (int dy = -1; dy <= 1 && portalPos == null; dy++) {
-                    for (int dz = -1; dz <= 1; dz++) {
-                        BlockPos candidate = playerPos.add(dx, dy, dz);
-                        if (world.getBlockState(candidate).getBlock()
-                                == ModBlocks.returnPortal) {
+            for (int x = minX; x <= maxX && portalPos == null; x++) {
+                for (int y = minY; y <= maxY && portalPos == null; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        BlockPos candidate = new BlockPos(x, y, z);
+                        AxisAlignedBB blockBox = new AxisAlignedBB(x, y, z,
+                                x + 1.0D, y + 1.0D, z + 1.0D);
+                        if (world.getBlockState(candidate).getBlock() == ModBlocks.returnPortal
+                                && blockBox.intersects(playerBox)) {
                             portalPos = candidate;
                             break;
                         }
