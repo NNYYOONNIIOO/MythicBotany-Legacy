@@ -9,4 +9,7 @@ public class CommonProxy {
 
     public void handleInfuserEffect(int x, int y, int z, int mana, int requirement, boolean complete) {
     }
+
+    public void handlePortalEffect(int portalTime) {
+    }
 }

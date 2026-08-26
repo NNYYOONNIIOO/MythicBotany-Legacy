@@ -1,6 +1,7 @@
 package mythicbotany.dimension;
 
 import mythicbotany.block.BlockReturnPortal;
+import mythicbotany.network.NetworkHandler;
 import mythicbotany.registry.ModBlocks;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -125,6 +126,7 @@ public final class AlfheimPortalHandler {
         lastPortalTicks.put(id, worldTick);
         int time = portalTimes.containsKey(id) ? portalTimes.get(id) + 1 : 1;
         portalTimes.put(id, time);
+        NetworkHandler.sendPortalEffect(player, time);
         if (time < PORTAL_TIME) {
             return false;
         }
@@ -146,12 +148,14 @@ public final class AlfheimPortalHandler {
         }
         player.changeDimension(ModDimensions.ALFHEIM_DIMENSION_ID,
                 new TeleporterAlfheim(target, sourcePos, false));
+        NetworkHandler.sendPortalEffect(player, PORTAL_TIME);
     }
 
     private static void teleportToOverworld(EntityPlayerMP player, BlockPos sourcePos) {
         WorldServer target = DimensionManager.getWorld(0);
         if (target != null) {
             player.changeDimension(0, new TeleporterAlfheim(target, sourcePos, true));
+            NetworkHandler.sendPortalEffect(player, PORTAL_TIME);
         }
     }
 

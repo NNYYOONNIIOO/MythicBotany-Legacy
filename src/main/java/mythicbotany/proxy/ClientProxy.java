@@ -16,6 +16,7 @@ import mythicbotany.client.RenderCentralRuneHolder;
 import mythicbotany.client.RenderRuneHolder;
 import mythicbotany.client.AlfheimBiomeLocalization;
 import mythicbotany.client.AlfheimBiomeOverlayHandler;
+import mythicbotany.client.AlfheimPortalOverlayHandler;
 import mythicbotany.dimension.ModDimensions;
 import mythicbotany.tile.TileManaInfuser;
 import mythicbotany.tile.TileReturnPortal;
@@ -35,12 +36,14 @@ public final class ClientProxy extends CommonProxy {
     private static boolean entityRenderersRegistered;
     private static boolean debugLocalizationRegistered;
     private static boolean skyHandlerRegistered;
+    private static boolean portalOverlayRegistered;
 
     @Override
     public void preInit() {
         registerEntityRenderers();
         registerDebugLocalization();
         registerSkyHandler();
+        registerPortalOverlay();
     }
 
     @Override
@@ -48,6 +51,7 @@ public final class ClientProxy extends CommonProxy {
         registerEntityRenderers();
         registerDebugLocalization();
         registerSkyHandler();
+        registerPortalOverlay();
         AlfheimBiomeLocalization.apply();
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileReturnPortal.class, new RenderReturnPortal());
@@ -64,6 +68,13 @@ public final class ClientProxy extends CommonProxy {
         if (!debugLocalizationRegistered) {
             MinecraftForge.EVENT_BUS.register(new AlfheimBiomeOverlayHandler());
             debugLocalizationRegistered = true;
+        }
+    }
+
+    private static void registerPortalOverlay() {
+        if (!portalOverlayRegistered) {
+            MinecraftForge.EVENT_BUS.register(new AlfheimPortalOverlayHandler());
+            portalOverlayRegistered = true;
         }
     }
 
@@ -100,6 +111,16 @@ public final class ClientProxy extends CommonProxy {
             @Override
             public void run() {
                 TileManaInfuser.spawnProgressParticles(new BlockPos(x, y, z), mana, requirement, complete);
+            }
+        });
+    }
+
+    @Override
+    public void handlePortalEffect(final int portalTime) {
+        Minecraft.getMinecraft().addScheduledTask(new Runnable() {
+            @Override
+            public void run() {
+                AlfheimPortalOverlayHandler.setPortalTime(portalTime);
             }
         });
     }

@@ -19,6 +19,8 @@ public final class NetworkHandler {
                 nextMessageId++, Side.SERVER);
         CHANNEL.registerMessage(PacketInfuserEffect.Handler.class, PacketInfuserEffect.class,
                 nextMessageId++, Side.CLIENT);
+        CHANNEL.registerMessage(PacketPortalEffect.Handler.class, PacketPortalEffect.class,
+                nextMessageId++, Side.CLIENT);
     }
 
     public static void sendInfuserEffect(net.minecraft.world.World world, net.minecraft.util.math.BlockPos pos,
@@ -33,5 +35,10 @@ public final class NetworkHandler {
 
     public static void sendToServer(PacketLeftClick message) {
         CHANNEL.sendToServer(message);
+    }
+
+    public static void sendPortalEffect(net.minecraft.entity.player.EntityPlayerMP player,
+                                        int portalTime) {
+        CHANNEL.sendTo(new PacketPortalEffect(portalTime), player);
     }
 }

@@ -553,17 +553,6 @@ public class ModWorldGenerator implements IWorldGenerator {
         IBlockState altarState = vazkii.botania.common.block.ModBlocks.altar.getDefaultState()
                 .withProperty(BotaniaStateProps.ALTAR_VARIANT, variant);
         world.setBlockState(base, altarState, 2);
-        IBlockState wood = vazkii.botania.common.block.ModBlocks.livingwood.getDefaultState();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                if (dx != 0 || dz != 0) {
-                    BlockPos pos = base.add(dx, 0, dz);
-                    if (world.isAirBlock(pos)) {
-                        world.setBlockState(pos, wood, 2);
-                    }
-                }
-            }
-        }
 
         TileEntity tile = world.getTileEntity(base);
         if (!(tile instanceof vazkii.botania.common.block.tile.TileAltar)) {

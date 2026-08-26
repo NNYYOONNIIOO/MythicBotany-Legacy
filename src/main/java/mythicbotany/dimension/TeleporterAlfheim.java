@@ -29,12 +29,47 @@ public class TeleporterAlfheim extends Teleporter {
     @Override
     public void placeInPortal(Entity entity, float rotationYaw) {
         BlockPos destination = returning ? findOverworldDestination() : findOrCreateReturnPortal();
-        entity.setLocationAndAngles(destination.getX() + 0.5D, destination.getY(),
-                destination.getZ() + 0.5D, rotationYaw, 0.0F);
+        BlockPos spawn = findPositiveAxisSpawn(destination);
+        entity.setLocationAndAngles(spawn.getX() + 0.5D, spawn.getY(),
+                spawn.getZ() + 0.5D, rotationYaw, 0.0F);
         entity.motionX = 0.0D;
         entity.motionY = 0.0D;
         entity.motionZ = 0.0D;
         entity.timeUntilPortal = 200;
+    }
+
+    /** Prefer the positive X/Z sides of the portal, falling back to its center. */
+    private BlockPos findPositiveAxisSpawn(BlockPos anchor) {
+        int[][] offsets = new int[][] {
+                {1, 0}, {0, 1}, {1, 1}, {2, 0}, {0, 2}, {2, 1}, {1, 2},
+                {-1, 0}, {0, -1}, {0, 0}
+        };
+        for (int[] offset : offsets) {
+            BlockPos candidate = anchor.add(offset[0], 0, offset[1]);
+            if (canOccupy(candidate)) {
+                return candidate;
+            }
+            if (isSolid(candidate) && canOccupy(candidate.up())) {
+                return candidate.up();
+            }
+        }
+        return anchor;
+    }
+
+    private boolean canOccupy(BlockPos pos) {
+        return isOpen(pos) && isOpen(pos.up()) && isSolid(pos.down());
+    }
+
+    private boolean isOpen(BlockPos pos) {
+        Block block = world.getBlockState(pos).getBlock();
+        return block == ModBlocks.returnPortal
+                || block == vazkii.botania.common.block.ModBlocks.alfPortal
+                || block.isPassable(world, pos);
+    }
+
+    private boolean isSolid(BlockPos pos) {
+        IBlockState state = world.getBlockState(pos);
+        return state.getMaterial().isSolid();
     }
 
     private BlockPos findOrCreateReturnPortal() {
