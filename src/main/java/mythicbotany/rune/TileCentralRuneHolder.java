@@ -170,6 +170,12 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             finishRecipe();
         }
         markDirty();
+        // The HUD progress pie is rendered on the client. A plain markDirty()
+        // does not send the changing progress to clients, so the client kept
+        // rendering a zero-progress (unfilled) output icon.
+        if (world.getTotalWorldTime() % 2L == 0L) {
+            world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
+        }
     }
 
     /** Starts a matching ritual and consumes its mana and dropped ingredients from the player/world. */
