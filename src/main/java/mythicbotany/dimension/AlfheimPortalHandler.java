@@ -231,8 +231,7 @@ public final class AlfheimPortalHandler {
                 for (int y = minY; y <= maxY && portalPos == null; y++) {
                     for (int z = minZ; z <= maxZ; z++) {
                         BlockPos candidate = new BlockPos(x, y, z);
-                        AxisAlignedBB blockBox = new AxisAlignedBB(x, y, z,
-                                x + 1.0D, y + 1.0D, z + 1.0D);
+                        AxisAlignedBB blockBox = BlockReturnPortal.getPortalBounds(candidate);
                         if (world.getBlockState(candidate).getBlock() == ModBlocks.returnPortal
                                 && blockBox.intersects(playerBox)) {
                             portalPos = candidate;

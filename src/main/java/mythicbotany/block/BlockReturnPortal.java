@@ -19,6 +19,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 /** A non-solid portal block used to return from Alfheim. */
 public final class BlockReturnPortal extends Block {
+    /** The portal surface is six pixels away from both horizontal block edges. */
+    public static final double PORTAL_BOTTOM = 6.0D / 16.0D;
+    public static final double PORTAL_TOP = 10.0D / 16.0D;
+
     public BlockReturnPortal() {
         super(Material.PORTAL);
         setHardness(-1.0F);
@@ -39,9 +43,15 @@ public final class BlockReturnPortal extends Block {
     }
 
     private void handleEntity(World world, BlockPos pos, Entity entity) {
-        if (!world.isRemote && entity instanceof EntityPlayerMP) {
+        if (!world.isRemote && entity instanceof EntityPlayerMP
+                && getPortalBounds(pos).intersects(entity.getEntityBoundingBox())) {
             AlfheimPortalHandler.onReturnPortalCollision((EntityPlayerMP) entity, pos);
         }
+    }
+
+    public static AxisAlignedBB getPortalBounds(BlockPos pos) {
+        return new AxisAlignedBB(pos.getX(), pos.getY() + PORTAL_BOTTOM, pos.getZ(),
+                pos.getX() + 1.0D, pos.getY() + PORTAL_TOP, pos.getZ() + 1.0D);
     }
 
     @Override

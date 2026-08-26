@@ -1,5 +1,6 @@
 package mythicbotany.client;
 
+import mythicbotany.block.BlockReturnPortal;
 import mythicbotany.tile.TileReturnPortal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -17,8 +18,8 @@ import vazkii.botania.client.core.proxy.ClientProxy;
 /** Renders both portal faces as a translucent slab, matching the active Alfheim portal. */
 @SideOnly(Side.CLIENT)
 public final class RenderReturnPortal extends TileEntitySpecialRenderer<TileReturnPortal> {
-    private static final float TOP = 10.0F / 16.0F;
-    private static final float BOTTOM = 6.0F / 16.0F;
+    private static final float TOP = (float) BlockReturnPortal.PORTAL_TOP;
+    private static final float BOTTOM = (float) BlockReturnPortal.PORTAL_BOTTOM;
     private static final float ALPHA = 0.42F;
 
     @Override

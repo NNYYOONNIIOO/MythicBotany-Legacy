@@ -22,7 +22,11 @@ public final class AlfheimPortalOverlayHandler {
     private static int portalTime;
 
     public static void setPortalTime(int time) {
-        portalTime = Math.min(MAX_PORTAL_TIME, Math.max(0, time));
+        // A zero packet means that the player left the portal. Keep the
+        // current value and let the client tick fade it out naturally.
+        if (time > 0) {
+            portalTime = Math.min(MAX_PORTAL_TIME, time);
+        }
     }
 
     @SubscribeEvent
