@@ -107,11 +107,12 @@ public class ModWorldGenerator implements IWorldGenerator {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
-            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 8
-                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 12
-                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 16
-                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 20 : 0;
-            if (chance > 0 && random.nextInt(chance) == 0) {
+            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 32
+                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 64
+                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 80
+                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 96 : 0;
+            if (chance > 0 && random.nextInt(chance) == 0
+                    && !hasNearbyDreamwood(world, x, z, 10)) {
                 generateDreamwoodTree(world, random, x, z);
             }
         }
@@ -217,6 +218,7 @@ public class ModWorldGenerator implements IWorldGenerator {
         int centerZ = chunkZ * 16 + random.nextInt(12) + 2;
         int wheatCount = 3 + random.nextInt(6);
         int planted = 0;
+        List<BlockPos> plantedPositions = new ArrayList<>();
         int attempts = wheatCount * 8;
         while (planted < wheatCount && attempts-- > 0) {
             int x = centerX + random.nextInt(5) - 2;
@@ -224,10 +226,12 @@ public class ModWorldGenerator implements IWorldGenerator {
             BlockPos surface = findGroundSurface(world, x, z);
             if (surface != null && !hasDreamwoodAbove(world, surface)
                     && world.isAirBlock(surface.up())
-                    && isValidWheatGround(world, surface)) {
+                    && isValidWheatGround(world, surface)
+                    && !plantedPositions.contains(surface)) {
                 world.setBlockState(surface, Blocks.FARMLAND.getDefaultState(), 2);
                 world.setBlockState(surface.up(), Blocks.WHEAT.getDefaultState()
                         .withProperty(BlockCrops.AGE, 7), 2);
+                plantedPositions.add(surface);
                 planted++;
             }
         }
@@ -298,15 +302,32 @@ public class ModWorldGenerator implements IWorldGenerator {
     /** Resolve the diluted variant by its state name instead of assuming that
      * every Botania 1.12 build uses the same metadata ordering. */
     private IBlockState getDilutedPoolState() {
-        for (PoolVariant variant : PoolVariant.values()) {
-            if (variant.name().toLowerCase(java.util.Locale.ROOT).contains("dilut")) {
-                return vazkii.botania.common.block.ModBlocks.pool.getDefaultState()
-                        .withProperty(BotaniaStateProps.POOL_VARIANT, variant);
+        return vazkii.botania.common.block.ModBlocks.pool.getDefaultState()
+                .withProperty(BotaniaStateProps.POOL_VARIANT, PoolVariant.DILUTED);
+    }
+
+    private boolean hasNearbyDreamwood(World world, int x, int z, int radius) {
+        for (int dx = -radius; dx <= radius; dx += 2) {
+            for (int dz = -radius; dz <= radius; dz += 2) {
+                int sampleX = x + dx;
+                int sampleZ = z + dz;
+                BlockPos top = world.getTopSolidOrLiquidBlock(
+                        new BlockPos(sampleX, 0, sampleZ));
+                for (int y = top.getY(); y > 0; y--) {
+                    Block block = world.getBlockState(
+                            new BlockPos(sampleX, y, sampleZ)).getBlock();
+                    if (block == vazkii.botania.common.block.ModBlocks.dreamwood
+                            || block == ModBlocks.dreamwoodLeaves) {
+                        return true;
+                    }
+                    if (block == Blocks.GRASS || block == Blocks.DIRT
+                            || block == Blocks.FARMLAND) {
+                        break;
+                    }
+                }
             }
         }
-        // Never fall back to metadata here: on some Botania builds that state
-        // is the creative pool, which must not be generated naturally.
-        return null;
+        return false;
     }
 
     private boolean hasDreamwoodAbove(World world, BlockPos ground) {

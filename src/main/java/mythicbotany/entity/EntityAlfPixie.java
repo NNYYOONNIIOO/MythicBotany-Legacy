@@ -58,6 +58,7 @@ public class EntityAlfPixie extends EntityMob {
             steerTowardsFlightTarget();
         }
         super.onLivingUpdate();
+        updateFlightRotation();
     }
 
     private void updateFlightTarget() {
