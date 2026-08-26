@@ -3,6 +3,8 @@ package mythicbotany.jei;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.IModRegistry;
+import mezz.jei.api.IJeiRuntime;
+import mezz.jei.api.IRecipeRegistry;
 import mezz.jei.api.JEIPlugin;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
@@ -30,16 +32,21 @@ import net.minecraft.util.text.TextFormatting;
 import vazkii.botania.client.core.handler.HUDHandler;
 import vazkii.botania.common.block.tile.mana.TilePool;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 /** JEI 4.x integration for the 1.12.2 mana infuser and rune holders. */
 @JEIPlugin
 public final class MythicBotanyJeiPlugin implements IModPlugin {
     private static final ResourceLocation RITUAL_BACKGROUND = new ResourceLocation(
             MythicBotany.MODID, "textures/gui/jei_ritual.png");
+    private IRecipeRegistry runtimeRecipeRegistry;
+    private final List<YggdrasilBranchRecipe> pendingBranchRecipes = new ArrayList<>();
+    private final Set<YggdrasilBranchRecipe> initialBranchRecipes =
+            Collections.newSetFromMap(new IdentityHashMap<YggdrasilBranchRecipe, Boolean>());
 
     @Override
     public void register(IModRegistry registry) {
@@ -61,10 +68,18 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         }
         registry.addRecipes(ritualRecipes, RitualCategory.UID);
         YggdrasilBranchRecipe.registerDefaults();
+        initialBranchRecipes.clear();
+        pendingBranchRecipes.clear();
+        List<YggdrasilBranchWrapper> branchRecipes = new ArrayList<>();
+        for (YggdrasilBranchRecipe recipe : YggdrasilBranchRecipe.getRecipes()) {
+            initialBranchRecipes.add(recipe);
+            branchRecipes.add(new YggdrasilBranchWrapper(recipe));
+        }
+        registry.addRecipes(branchRecipes, YggdrasilBranchCategory.UID);
         YggdrasilBranchRecipe.addListener(new YggdrasilBranchRecipe.RecipeListener() {
             @Override
             public void onRecipeAdded(YggdrasilBranchRecipe recipe) {
-                addYggdrasilBranchRecipe(registry, recipe);
+                addYggdrasilBranchRecipe(recipe);
             }
         });
 
@@ -73,6 +88,28 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.runeHolder), RitualCategory.UID);
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.yggdrasilBranch),
                 YggdrasilBranchCategory.UID);
+    }
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime runtime) {
+        runtimeRecipeRegistry = runtime.getRecipeRegistry();
+        for (YggdrasilBranchRecipe recipe : new ArrayList<>(pendingBranchRecipes)) {
+            runtimeRecipeRegistry.addRecipe(new YggdrasilBranchWrapper(recipe),
+                    YggdrasilBranchCategory.UID);
+        }
+        pendingBranchRecipes.clear();
+    }
+
+    private void addYggdrasilBranchRecipe(YggdrasilBranchRecipe recipe) {
+        if (recipe == null || initialBranchRecipes.contains(recipe)) {
+            return;
+        }
+        if (runtimeRecipeRegistry != null) {
+            runtimeRecipeRegistry.addRecipe(new YggdrasilBranchWrapper(recipe),
+                    YggdrasilBranchCategory.UID);
+        } else if (!pendingBranchRecipes.contains(recipe)) {
+            pendingBranchRecipes.add(recipe);
+        }
     }
 
     private static final class InfuserCategory implements IRecipeCategory<InfuserWrapper> {
@@ -195,7 +232,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                                     wrapper.recipe.getSpecialInputs().get(entitySlot));
                             String entityName = entityDisplayName(entityId);
                             tooltip.add(entityName + "\u751f\u7269");
-                            tooltip.add("\u5b9e\u4f53\u5fc5\u987b\u9760\u8fd1\u4eea\u5f0f\u5728\u8fd9\u4e2a\u8fc7\u7a0b\u4e2d\u5c06\u88ab\u727a\u7272\u3002");
+                            tooltip.add(I18n.format("tooltip.mythicbotany.sacrifice_entity1"));
+                            tooltip.add(I18n.format("tooltip.mythicbotany.sacrifice_entity2"));
                         }
                     }
                 }
@@ -215,7 +253,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             int columns = Math.min(6, Math.max(1, count));
             int rows = (count + columns - 1) / columns;
             int row = index / columns;
-            return 140 - 18 * (rows - 1) + row * 18;
+            return 116 - 18 * (rows - 1) + row * 18;
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
@@ -342,49 +380,6 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         recipe.getMana(), 1000000);
             }
         }
-    }
-
-    private static void addYggdrasilBranchRecipe(IModRegistry registry,
-                                                  YggdrasilBranchRecipe recipe) {
-        List<YggdrasilBranchWrapper> wrappers = Collections.singletonList(
-                new YggdrasilBranchWrapper(recipe));
-        if (!addToRuntimeRecipeRegistry(registry, wrappers, YggdrasilBranchCategory.UID)) {
-            registry.addRecipes(wrappers, YggdrasilBranchCategory.UID);
-        }
-    }
-
-    /**
-     * CraftTweaker can register recipes after JEI's normal plugin phase. JEI 1.12
-     * exposes a runtime recipe registry, but its exact API differs between JEI
-     * builds, so use the optional method when present and retain the normal
-     * registration fallback for older builds.
-     */
-    private static boolean addToRuntimeRecipeRegistry(IModRegistry registry,
-                                                       List<?> recipes, String categoryUid) {
-        try {
-            Object helpers = registry.getJeiHelpers();
-            Method getRecipeRegistry = helpers.getClass().getMethod("getRecipeRegistry");
-            getRecipeRegistry.setAccessible(true);
-            Object recipeRegistry = getRecipeRegistry.invoke(helpers);
-            if (recipeRegistry == null) {
-                return false;
-            }
-            for (Method method : recipeRegistry.getClass().getMethods()) {
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                if (!"addRecipes".equals(method.getName()) || parameterTypes.length != 2
-                        || parameterTypes[1] != String.class
-                        || (!parameterTypes[0].isAssignableFrom(recipes.getClass())
-                        && !List.class.isAssignableFrom(parameterTypes[0]))) {
-                    continue;
-                }
-                method.setAccessible(true);
-                method.invoke(recipeRegistry, recipes, categoryUid);
-                return true;
-            }
-        } catch (Exception ignored) {
-            // The normal IModRegistry path below remains valid during JEI setup.
-        }
-        return false;
     }
 
     private static final class YggdrasilBranchWrapper implements IRecipeWrapper {
