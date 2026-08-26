@@ -13,6 +13,7 @@ import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import mythicbotany.MythicBotany;
 import mythicbotany.recipe.InfuserRecipe;
+import mythicbotany.recipe.YggdrasilBranchRecipe;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
 import mythicbotany.rune.RuneRitualRecipe;
@@ -21,7 +22,9 @@ import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import vazkii.botania.client.core.handler.HUDHandler;
@@ -56,8 +59,14 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             ritualRecipes.add(new RitualWrapper(recipe));
         }
         registry.addRecipes(ritualRecipes, RitualCategory.UID);
-        registry.addRecipes(Collections.singletonList(new YggdrasilBranchWrapper()),
-                YggdrasilBranchCategory.UID);
+        YggdrasilBranchRecipe.registerDefaults();
+        YggdrasilBranchRecipe.addListener(new YggdrasilBranchRecipe.RecipeListener() {
+            @Override
+            public void onRecipeAdded(YggdrasilBranchRecipe recipe) {
+                registry.addRecipes(Collections.singletonList(new YggdrasilBranchWrapper(recipe)),
+                        YggdrasilBranchCategory.UID);
+            }
+        });
 
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.manaInfuser), InfuserCategory.UID);
         registry.addRecipeCatalyst(new ItemStack(ModBlocks.centralRuneHolder), RitualCategory.UID);
@@ -135,17 +144,35 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             final int runeCount = wrapper.recipe.getRunes().size();
             int slotIndex = 1;
             for (RuneRitualRecipe.RunePosition rune : wrapper.recipe.getRunes()) {
-                int x = 62 + 16 * (rune.getOriginalX() / 2);
-                int y = 62 - 16 * (rune.getOriginalZ() / 2);
+                int x = 62 + 16 * rune.getOriginalX();
+                int y = 62 - 16 * rune.getOriginalZ();
                 stacks.init(slotIndex, true, x, y);
                 stacks.set(slotIndex, rune.getRune());
                 slotIndex++;
             }
 
             for (RuneRitualRecipe.InputRequirement input : wrapper.recipe.getInputs()) {
-                stacks.init(slotIndex, true, 8 + 18 * (slotIndex - runeCount - 1), 116);
+                int extraIndex = slotIndex - runeCount - 1;
+                int extraCount = wrapper.recipe.getInputs().size()
+                        + wrapper.recipe.getSpecialInputs().size();
+                stacks.init(slotIndex, true, extraInputX(extraIndex, extraCount),
+                        extraInputY(extraIndex, extraCount));
+                stacks.setBackground(slotIndex, slot);
                 stacks.set(slotIndex, input.getDisplayStack());
                 slotIndex++;
+            }
+
+            int entityIndex = 0;
+            for (String entityId : wrapper.recipe.getSpecialInputs()) {
+                int extraIndex = wrapper.recipe.getInputs().size() + entityIndex;
+                int extraCount = wrapper.recipe.getInputs().size()
+                        + wrapper.recipe.getSpecialInputs().size();
+                stacks.init(slotIndex, true, extraInputX(extraIndex, extraCount),
+                        extraInputY(extraIndex, extraCount));
+                stacks.setBackground(slotIndex, slot);
+                stacks.set(slotIndex, entityDisplayStack(entityId));
+                slotIndex++;
+                entityIndex++;
             }
 
             stacks.init(slotIndex, false, 60, 170);
@@ -159,10 +186,51 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         RuneRitualRecipe.RunePosition rune = wrapper.recipe.getRunes().get(hoveredSlot - 1);
                         tooltip.add(TextFormatting.GOLD + I18n.format(
                                 "tooltip.mythicbotany.rune_offset",
-                                rune.getOriginalX() / 2, rune.getOriginalZ() / 2));
+                                rune.getOriginalX(), rune.getOriginalZ()));
+                    } else {
+                        int entityStart = 1 + runeCount + wrapper.recipe.getInputs().size();
+                        int entitySlot = hoveredSlot - entityStart;
+                        if (entitySlot >= 0 && entitySlot < wrapper.recipe.getSpecialInputs().size()) {
+                            ResourceLocation entityId = new ResourceLocation(
+                                    wrapper.recipe.getSpecialInputs().get(entitySlot));
+                            String translationKey = "entity." + entityId.getNamespace() + "."
+                                    + entityId.getPath() + ".name";
+                            String entityName = I18n.format(translationKey);
+                            if (entityName.equals(translationKey)) {
+                                entityName = entityId.toString();
+                            }
+                            tooltip.add(entityName + "\u751f\u7269");
+                            tooltip.add("\u5b9e\u4f53\u5fc5\u987b\u9760\u8fd1\u4eea\u5f0f\u5728\u8fd9\u4e2a\u8fc7\u7a0b\u4e2d\u5c06\u88ab\u727a\u7272\u3002");
+                        }
                     }
                 }
             });
+        }
+
+        private static int extraInputX(int index, int count) {
+            int columns = Math.min(6, Math.max(1, count));
+            int row = index / columns;
+            int column = index % columns;
+            int itemsInRow = Math.min(columns, count - row * columns);
+            int startX = 62 - 9 * (itemsInRow - 1);
+            return startX + column * 18;
+        }
+
+        private static int extraInputY(int index, int count) {
+            int columns = Math.min(6, Math.max(1, count));
+            int rows = (count + columns - 1) / columns;
+            int row = index / columns;
+            return 140 - 18 * (rows - 1) + row * 18;
+        }
+
+        private static ItemStack entityDisplayStack(String entityId) {
+            ItemStack stack = new ItemStack(Items.SPAWN_EGG);
+            NBTTagCompound entityTag = new NBTTagCompound();
+            entityTag.setString("id", entityId);
+            NBTTagCompound tag = new NBTTagCompound();
+            tag.setTag("EntityTag", entityTag);
+            stack.setTagCompound(tag);
+            return stack;
         }
     }
 
@@ -201,11 +269,11 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                               IIngredients ingredients) {
             IGuiItemStackGroup stacks = layout.getItemStacks();
             stacks.init(0, true, 32, 12);
-            stacks.set(0, wrapper.input);
+            stacks.set(0, wrapper.recipe.getInput());
             stacks.init(1, true, 62, 12);
             stacks.set(1, new ItemStack(ModBlocks.yggdrasilBranch));
             stacks.init(2, false, 93, 12);
-            stacks.set(2, wrapper.output);
+            stacks.set(2, wrapper.recipe.getOutput());
         }
     }
 
@@ -260,20 +328,23 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
     }
 
     private static final class YggdrasilBranchWrapper implements IRecipeWrapper {
-        private final ItemStack input = new ItemStack(ModItems.gjallarHornEmpty);
-        private final ItemStack output = new ItemStack(ModItems.gjallarHornFull);
+        private final YggdrasilBranchRecipe recipe;
+
+        private YggdrasilBranchWrapper(YggdrasilBranchRecipe recipe) {
+            this.recipe = recipe;
+        }
 
         @Override
         public void getIngredients(IIngredients ingredients) {
-            ingredients.setInput(ItemStack.class, input);
-            ingredients.setOutput(ItemStack.class, output);
+            ingredients.setInput(ItemStack.class, recipe.getInput());
+            ingredients.setOutput(ItemStack.class, recipe.getOutput());
         }
 
         @Override
         public void drawInfo(Minecraft minecraft, int width, int height,
                              int mouseX, int mouseY) {
             HUDHandler.renderManaBar(20, 50, 0x0000FF, 0.75F,
-                    TileYggdrasilBranch.getManaRequired(), TilePool.MAX_MANA / 10);
+                    recipe.getMana(), TilePool.MAX_MANA / 10);
         }
     }
 }

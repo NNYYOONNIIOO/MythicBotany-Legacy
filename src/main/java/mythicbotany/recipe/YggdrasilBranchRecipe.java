@@ -11,7 +11,12 @@ import java.util.List;
 public final class YggdrasilBranchRecipe {
     public static final int MANA_PER_TICK = 10;
     public static final int DEFAULT_MANA = 6000;
+    public interface RecipeListener {
+        void onRecipeAdded(YggdrasilBranchRecipe recipe);
+    }
+
     private static final List<YggdrasilBranchRecipe> RECIPES = new ArrayList<>();
+    private static final List<RecipeListener> LISTENERS = new ArrayList<>();
     private static boolean defaultsRegistered;
 
     private final ItemStack input;
@@ -42,10 +47,28 @@ public final class YggdrasilBranchRecipe {
         for (int i = 0; i < RECIPES.size(); i++) {
             if (RECIPES.get(i).sameInput(recipe.input)) {
                 RECIPES.set(i, recipe);
+                notifyListeners(recipe);
                 return;
             }
         }
         RECIPES.add(recipe);
+        notifyListeners(recipe);
+    }
+
+    public static synchronized void addListener(RecipeListener listener) {
+        if (listener == null || LISTENERS.contains(listener)) {
+            return;
+        }
+        LISTENERS.add(listener);
+        for (YggdrasilBranchRecipe recipe : RECIPES) {
+            listener.onRecipeAdded(recipe);
+        }
+    }
+
+    private static void notifyListeners(YggdrasilBranchRecipe recipe) {
+        for (RecipeListener listener : new ArrayList<>(LISTENERS)) {
+            listener.onRecipeAdded(recipe);
+        }
     }
 
     public static YggdrasilBranchRecipe find(ItemStack stack) {
