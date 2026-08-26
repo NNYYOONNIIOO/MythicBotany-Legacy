@@ -98,8 +98,11 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
     }
 
     private Biome getBiomeAt(int x, int z) {
-        double continentalness = noise(Math.floorDiv(x, 256), Math.floorDiv(z, 256), 0x31A7L);
-        double weirdness = noise(Math.floorDiv(x, 192), Math.floorDiv(z, 192), 0x9E37L);
+        // Sample continuous value noise instead of floor-dividing coordinates. The
+        // old implementation changed biome exactly at 192/256-block boundaries,
+        // which made every boundary line up with a chunk edge.
+        double continentalness = smoothNoise(x / 256.0D, z / 256.0D, 0x31A7L);
+        double weirdness = smoothNoise(x / 192.0D, z / 192.0D, 0x9E37L);
         if (continentalness < -0.35D) {
             return AlfheimBiomes.ALFHEIM_LAKES;
         }
@@ -113,7 +116,21 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         return AlfheimBiomes.ALFHEIM_HILLS;
     }
 
-    private double noise(int x, int z, long salt) {
+    private double smoothNoise(double x, double z, long salt) {
+        int x0 = (int) Math.floor(x);
+        int z0 = (int) Math.floor(z);
+        double tx = fade(x - x0);
+        double tz = fade(z - z0);
+        double n00 = hash(x0, z0, salt);
+        double n10 = hash(x0 + 1, z0, salt);
+        double n01 = hash(x0, z0 + 1, salt);
+        double n11 = hash(x0 + 1, z0 + 1, salt);
+        double nx0 = lerp(n00, n10, tx);
+        double nx1 = lerp(n01, n11, tx);
+        return lerp(nx0, nx1, tz);
+    }
+
+    private double hash(int x, int z, long salt) {
         long value = seed ^ salt;
         value ^= (long) x * 341873128712L;
         value ^= (long) z * 132897987541L;
@@ -121,5 +138,13 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         value = (value ^ (value >>> 33)) * 0xc4ceb9fe1a85ec53L;
         value ^= value >>> 33;
         return ((value & 0x1FFFFFFFFFFFFFL) / (double) 0x20000000000000L) * 2.0D - 1.0D;
+    }
+
+    private static double fade(double value) {
+        return value * value * (3.0D - 2.0D * value);
+    }
+
+    private static double lerp(double first, double second, double amount) {
+        return first + (second - first) * amount;
     }
 }

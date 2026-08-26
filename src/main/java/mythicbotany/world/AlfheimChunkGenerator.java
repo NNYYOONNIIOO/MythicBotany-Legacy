@@ -58,19 +58,27 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
         }
 
         if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
-            int waterLevel = 62;
-            if (surface > waterLevel) {
-                for (int y = waterLevel + 1; y <= surface; y++) {
+            final int waterLevel = 63;
+            // Keep the seabed at its generated height. Sand belongs on the
+            // seabed, not at fixed y=60/61 across every lake column.
+            if (surface >= waterLevel) {
+                for (int y = waterLevel; y <= surface; y++) {
                     chunk.setBlockState(new BlockPos(x, y, z), Blocks.AIR.getDefaultState());
                 }
-            } else {
-                for (int y = surface + 1; y <= waterLevel; y++) {
-                    chunk.setBlockState(new BlockPos(x, y, z), Blocks.WATER.getDefaultState());
+                surface = waterLevel - 1;
+            }
+            for (int y = surface; y >= Math.max(1, surface - 2); y--) {
+                BlockPos pos = new BlockPos(x, y, z);
+                IBlockState state = chunk.getBlockState(pos);
+                if (state.getBlock() == Blocks.STONE
+                        || state.getBlock() == Blocks.DIRT
+                        || state.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
+                    chunk.setBlockState(pos, Blocks.SAND.getDefaultState());
                 }
             }
-            chunk.setBlockState(new BlockPos(x, waterLevel, z), Blocks.WATER.getDefaultState());
-            chunk.setBlockState(new BlockPos(x, waterLevel - 1, z), Blocks.SAND.getDefaultState());
-            chunk.setBlockState(new BlockPos(x, waterLevel - 2, z), Blocks.SAND.getDefaultState());
+            for (int y = surface + 1; y <= waterLevel; y++) {
+                chunk.setBlockState(new BlockPos(x, y, z), Blocks.WATER.getDefaultState());
+            }
             return;
         }
 

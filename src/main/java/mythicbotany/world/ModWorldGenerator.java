@@ -61,7 +61,7 @@ public class ModWorldGenerator implements IWorldGenerator {
     private void generateAlfheimFeatures(World world, Random random, int chunkX, int chunkZ) {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
         if (biome == AlfheimBiomes.DREAMWOOD_FOREST) {
-            for (int i = 0; i < 2 + random.nextInt(3); i++) {
+            for (int i = 0; i < 4 + random.nextInt(4); i++) {
                 generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
                         chunkZ * 16 + random.nextInt(16));
             }
