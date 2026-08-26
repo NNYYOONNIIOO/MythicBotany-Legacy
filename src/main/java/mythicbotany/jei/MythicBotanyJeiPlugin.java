@@ -32,8 +32,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import vazkii.botania.client.core.handler.HUDHandler;
-import vazkii.botania.client.integration.jei.crafting.AncientWillRecipeWrapper;
-import vazkii.botania.common.crafting.recipe.AncientWillRecipe;
 import vazkii.botania.common.block.tile.mana.TilePool;
 
 import java.lang.reflect.Method;
@@ -60,7 +58,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         RitualCategory ritualCategory = new RitualCategory(guiHelper);
         YggdrasilBranchCategory yggdrasilBranchCategory = new YggdrasilBranchCategory(guiHelper);
         registry.addRecipeCategories(infuserCategory, ritualCategory, yggdrasilBranchCategory);
-        registry.handleRecipes(AncientWillRecipe.class, AncientWillRecipeWrapper::new,
+        registry.addRecipes(Collections.singletonList(new AlfsteelAncientWillRecipeWrapper()),
                 VanillaRecipeCategoryUid.CRAFTING);
 
         List<InfuserWrapper> infuserRecipes = new ArrayList<>();

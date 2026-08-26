@@ -246,7 +246,7 @@ public final class ModItems {
             EntityPlayer player = Minecraft.getMinecraft().player;
             list.add(I18n.format("tooltip.mythicbotany.alfsteel.set",
                     getAlfsteelArmorPieceCount(player)));
-            list.add(I18n.format("tooltip.mythicbotany.alfsteel.mana_discount"));
+            list.add(I18n.format("tooltip.mythicbotany.alfsteel.mana_discount", "20%"));
             list.add(I18n.format("tooltip.mythicbotany.alfsteel.heal"));
             list.add(I18n.format("tooltip.mythicbotany.alfsteel.mana_generation"));
             for (int i = 0; i < 4; i++) {
