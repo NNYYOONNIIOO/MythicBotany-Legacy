@@ -4,14 +4,15 @@ import net.minecraft.world.DimensionType;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.biome.BiomeProvider;
 import net.minecraft.world.gen.IChunkGenerator;
-import mythicbotany.world.AlfheimBiomeProvider;
 import mythicbotany.world.AlfheimChunkGenerator;
+import mythicbotany.world.VanillaTransitionAlfheimBiomeProvider;
 
 public class WorldProviderAlfheim extends WorldProvider {
     @Override
     protected void init() {
         this.hasSkyLight = true;
-        this.biomeProvider = new AlfheimBiomeProvider(this.world.getWorldInfo());
+        this.biomeProvider = new VanillaTransitionAlfheimBiomeProvider(
+                this.world.getWorldInfo());
         this.generateLightBrightnessTable();
     }
 

@@ -12,7 +12,7 @@ import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.client.RenderCentralRuneHolder;
 import mythicbotany.client.RenderRuneHolder;
-import mythicbotany.client.AlfheimDebugLocalizationHandler;
+import mythicbotany.client.AlfheimBiomeOverlayHandler;
 import mythicbotany.tile.TileManaInfuser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
@@ -51,7 +51,7 @@ public final class ClientProxy extends CommonProxy {
 
     private static void registerDebugLocalization() {
         if (!debugLocalizationRegistered) {
-            MinecraftForge.EVENT_BUS.register(new AlfheimDebugLocalizationHandler());
+            MinecraftForge.EVENT_BUS.register(new AlfheimBiomeOverlayHandler());
             debugLocalizationRegistered = true;
         }
     }
