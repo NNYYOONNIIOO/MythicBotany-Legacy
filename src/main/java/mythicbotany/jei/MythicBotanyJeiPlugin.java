@@ -241,7 +241,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         }
 
         private static int extraInputX(int index, int count) {
-            int columns = Math.min(6, Math.max(1, count));
+            int columns = Math.min(7, Math.max(1, count));
             int row = index / columns;
             int column = index % columns;
             int itemsInRow = Math.min(columns, count - row * columns);
@@ -250,10 +250,10 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         }
 
         private static int extraInputY(int index, int count) {
-            int columns = Math.min(6, Math.max(1, count));
+            int columns = Math.min(7, Math.max(1, count));
             int rows = (count + columns - 1) / columns;
             int row = index / columns;
-            return 116 - 18 * (rows - 1) + row * 18;
+            return 140 - 18 * (rows - 1) + row * 18;
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
