@@ -109,10 +109,10 @@ public class ModWorldGenerator implements IWorldGenerator {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
-            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 64
-                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 128
-                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 160
-                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 192 : 0;
+            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 22
+                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 43
+                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 54
+                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 64 : 0;
             if (chance > 0 && random.nextInt(chance) == 0
                     && !hasNearbyDreamwood(world, x, z, 10)) {
                 generateDreamwoodTree(world, random, x, z);
@@ -125,15 +125,10 @@ public class ModWorldGenerator implements IWorldGenerator {
         } else if (biome == AlfheimBiomes.GOLDEN_FIELDS) {
             generateGoldenField(world, random, chunkX, chunkZ);
         } else if (biome == AlfheimBiomes.ALFHEIM_HILLS) {
-            if (random.nextInt(2) == 0) {
-                int crystalAttempts = 1 + random.nextInt(2);
-                for (int i = 0; i < crystalAttempts; i++) {
-                    if (generateManaCrystal(world, random,
-                            chunkX * 16 + random.nextInt(16),
-                            chunkZ * 16 + random.nextInt(16))) {
-                        break;
-                    }
-                }
+            if (random.nextInt(4) == 0) {
+                generateManaCrystal(world, random,
+                        chunkX * 16 + random.nextInt(16),
+                        chunkZ * 16 + random.nextInt(16));
             }
             generateFlowers(world, random, chunkX, chunkZ, 3);
         } else if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
@@ -530,7 +525,12 @@ public class ModWorldGenerator implements IWorldGenerator {
             return;
         }
         BlockPos base = surface.up();
-        world.setBlockState(base, vazkii.botania.common.block.ModBlocks.altar.getDefaultState(), 2);
+        vazkii.botania.api.state.enums.AltarVariant variant =
+                vazkii.botania.api.state.enums.AltarVariant.values()[
+                        random.nextInt(vazkii.botania.api.state.enums.AltarVariant.values().length)];
+        IBlockState altarState = vazkii.botania.common.block.ModBlocks.altar.getDefaultState()
+                .withProperty(BotaniaStateProps.ALTAR_VARIANT, variant);
+        world.setBlockState(base, altarState, 2);
         IBlockState wood = vazkii.botania.common.block.ModBlocks.livingwood.getDefaultState();
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
@@ -540,6 +540,25 @@ public class ModWorldGenerator implements IWorldGenerator {
                         world.setBlockState(pos, wood, 2);
                     }
                 }
+            }
+        }
+
+        TileEntity tile = world.getTileEntity(base);
+        if (!(tile instanceof vazkii.botania.common.block.tile.TileAltar)) {
+            return;
+        }
+        vazkii.botania.common.block.tile.TileAltar altar =
+                (vazkii.botania.common.block.tile.TileAltar) tile;
+        if (random.nextInt(30) == 0) {
+            altar.setLava(true);
+        } else if (random.nextInt(4) != 0) {
+            altar.setWater(true);
+            int petals = random.nextInt(5);
+            for (int slot = 0; slot < petals; slot++) {
+                altar.getItemHandler().setStackInSlot(slot,
+                        new net.minecraft.item.ItemStack(
+                                vazkii.botania.common.item.ModItems.petal, 1,
+                                random.nextInt(16)));
             }
         }
     }

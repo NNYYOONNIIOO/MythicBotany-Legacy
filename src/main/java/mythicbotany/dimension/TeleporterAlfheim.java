@@ -76,7 +76,7 @@ public class TeleporterAlfheim extends Teleporter {
     }
 
     private BlockPos findOverworldDestination() {
-        BlockPos portal = findBlock(vazkii.botania.common.block.ModBlocks.alfPortal);
+        BlockPos portal = findNearbyBlock(vazkii.botania.common.block.ModBlocks.alfPortal, 8);
         if (portal != null) {
             return portal.up();
         }
@@ -87,8 +87,31 @@ public class TeleporterAlfheim extends Teleporter {
 
     private BlockPos findBlock(Block block) {
         BlockPos source = sourcePos == null ? world.getSpawnPoint() : sourcePos;
+        return findBlockAt(block, source.getX(), source.getZ());
+    }
+
+    private BlockPos findNearbyBlock(Block block, int radius) {
+        BlockPos source = sourcePos == null ? world.getSpawnPoint() : sourcePos;
+        for (int distance = 0; distance <= radius; distance++) {
+            for (int dx = -distance; dx <= distance; dx++) {
+                for (int dz = -distance; dz <= distance; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != distance) {
+                        continue;
+                    }
+                    BlockPos found = findBlockAt(block, source.getX() + dx,
+                            source.getZ() + dz);
+                    if (found != null) {
+                        return found;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private BlockPos findBlockAt(Block block, int x, int z) {
         for (int y = world.getActualHeight() - 1; y >= 0; y--) {
-            BlockPos pos = new BlockPos(source.getX(), y, source.getZ());
+            BlockPos pos = new BlockPos(x, y, z);
             if (world.getBlockState(pos).getBlock() == block) {
                 return pos;
             }

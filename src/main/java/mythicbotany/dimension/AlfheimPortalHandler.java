@@ -157,6 +157,32 @@ public final class AlfheimPortalHandler {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
+        WorldServer alfheim = DimensionManager.getWorld(ModDimensions.ALFHEIM_DIMENSION_ID);
+        if (alfheim != null) {
+            for (EntityPlayer player : alfheim.playerEntities) {
+                if (!(player instanceof EntityPlayerMP)) {
+                    continue;
+                }
+                EntityPlayerMP serverPlayer = (EntityPlayerMP) player;
+                BlockPos playerPos = serverPlayer.getPosition();
+                BlockPos portalPos = null;
+                for (int dx = -1; dx <= 1 && portalPos == null; dx++) {
+                    for (int dy = -1; dy <= 1 && portalPos == null; dy++) {
+                        for (int dz = -1; dz <= 1; dz++) {
+                            BlockPos candidate = playerPos.add(dx, dy, dz);
+                            if (alfheim.getBlockState(candidate).getBlock()
+                                    == ModBlocks.returnPortal) {
+                                portalPos = candidate;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (portalPos != null) {
+                    onReturnPortalCollision(serverPlayer, portalPos);
+                }
+            }
+        }
         portalTimes.keySet().removeIf(id -> !playersInPortal.contains(id));
         lastPortalTicks.keySet().removeIf(id -> !playersInPortal.contains(id));
         playersInPortal.clear();

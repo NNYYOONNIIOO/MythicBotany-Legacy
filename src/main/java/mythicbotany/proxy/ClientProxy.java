@@ -3,6 +3,7 @@ package mythicbotany.proxy;
 import mythicbotany.client.RenderAlfPixie;
 import mythicbotany.client.RenderMjoellnir;
 import mythicbotany.client.RenderMjoellnirPlaced;
+import mythicbotany.client.RenderReturnPortal;
 import mythicbotany.client.AlfheimSkyRenderer;
 import mythicbotany.entity.EntityMjoellnir;
 import mythicbotany.entity.EntityMjoellnirPlaced;
@@ -17,6 +18,7 @@ import mythicbotany.client.AlfheimBiomeLocalization;
 import mythicbotany.client.AlfheimBiomeOverlayHandler;
 import mythicbotany.dimension.ModDimensions;
 import mythicbotany.tile.TileManaInfuser;
+import mythicbotany.tile.TileReturnPortal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.util.math.BlockPos;
@@ -48,6 +50,7 @@ public final class ClientProxy extends CommonProxy {
         registerSkyHandler();
         AlfheimBiomeLocalization.apply();
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileReturnPortal.class, new RenderReturnPortal());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());
         if (!itemStackRendererRegistered) {

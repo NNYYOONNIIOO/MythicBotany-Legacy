@@ -1,12 +1,14 @@
 package mythicbotany.block;
 
 import mythicbotany.dimension.AlfheimPortalHandler;
+import mythicbotany.tile.TileReturnPortal;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -14,7 +16,6 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import vazkii.botania.api.state.BotaniaStateProps;
 
 /** A non-solid portal block used to return from Alfheim. */
 public final class BlockReturnPortal extends Block {
@@ -29,6 +30,15 @@ public final class BlockReturnPortal extends Block {
 
     @Override
     public void onEntityWalk(World world, BlockPos pos, Entity entity) {
+        handleEntity(world, pos, entity);
+    }
+
+    @Override
+    public void onEntityCollision(World world, BlockPos pos, IBlockState state, Entity entity) {
+        handleEntity(world, pos, entity);
+    }
+
+    private void handleEntity(World world, BlockPos pos, Entity entity) {
         if (!world.isRemote && entity instanceof EntityPlayerMP) {
             AlfheimPortalHandler.onReturnPortalCollision((EntityPlayerMP) entity, pos);
         }
@@ -82,6 +92,16 @@ public final class BlockReturnPortal extends Block {
     @Override
     public boolean isFullCube(IBlockState state) {
         return false;
+    }
+
+    @Override
+    public boolean hasTileEntity(IBlockState state) {
+        return true;
+    }
+
+    @Override
+    public TileEntity createTileEntity(World world, IBlockState state) {
+        return new TileReturnPortal();
     }
 
     @SideOnly(Side.CLIENT)
