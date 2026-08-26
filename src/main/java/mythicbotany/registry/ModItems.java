@@ -15,6 +15,10 @@ import mythicbotany.item.ItemMythicRing;
 import mythicbotany.item.ItemManaMythicRing;
 import mythicbotany.item.ItemAuraMythicRing;
 import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -27,20 +31,24 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.init.MobEffects;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ISpecialArmor;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import vazkii.botania.api.item.IAncientWillContainer;
 import vazkii.botania.api.mana.IManaDiscountArmor;
 import vazkii.botania.api.mana.IManaGivingItem;
 import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.client.model.armor.ModelArmorTerrasteel;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 
+import java.util.List;
 import java.util.UUID;
 
 public final class ModItems {
@@ -68,7 +76,7 @@ public final class ModItems {
     public static final Item mjoellnir = named(new ItemMjoellnir(ALFSTEEL_TOOLS), "mjoellnir");
     public static final Item alfsteelPick = named(new ItemAlfsteelPick(ALFSTEEL_PICK_TOOLS), "alfsteel_pick");
     public static final Item alfsteelAxe = named(new ItemAlfsteelAxe(ALFSTEEL_TOOLS, 9.0F, -3.0F), "alfsteel_axe");
-    public static final Item alfsteelHelmet = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.HEAD), "alfsteel_helmet");
+    public static final Item alfsteelHelmet = named(new AlfsteelHelmet(ALFSTEEL_ARMOR), "alfsteel_helmet");
     public static final Item alfsteelChestplate = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.CHEST), "alfsteel_chestplate");
     public static final Item alfsteelLeggings = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.LEGS), "alfsteel_leggings");
     public static final Item alfsteelBoots = named(new AlfsteelArmor(ALFSTEEL_ARMOR, EntityEquipmentSlot.FEET), "alfsteel_boots");
@@ -111,6 +119,54 @@ public final class ModItems {
         item.setTranslationKey(MythicBotany.MODID + ":" + name);
         item.setCreativeTab(MythicBotany.TAB);
         return item;
+    }
+
+    public static Item getAlfsteelArmorPiece(int index) {
+        switch (index) {
+            case 0: return alfsteelHelmet;
+            case 1: return alfsteelChestplate;
+            case 2: return alfsteelLeggings;
+            case 3: return alfsteelBoots;
+            default: return null;
+        }
+    }
+
+    public static boolean hasAlfsteelArmorPiece(EntityPlayer player, int index) {
+        if (player == null || index < 0 || index > 3) {
+            return false;
+        }
+        EntityEquipmentSlot slot;
+        switch (index) {
+            case 0: slot = EntityEquipmentSlot.HEAD; break;
+            case 1: slot = EntityEquipmentSlot.CHEST; break;
+            case 2: slot = EntityEquipmentSlot.LEGS; break;
+            case 3: slot = EntityEquipmentSlot.FEET; break;
+            default: return false;
+        }
+        ItemStack stack = player.getItemStackFromSlot(slot);
+        return !stack.isEmpty() && stack.getItem() == getAlfsteelArmorPiece(index);
+    }
+
+    public static int getAlfsteelArmorPieceCount(EntityPlayer player) {
+        int count = 0;
+        for (int i = 0; i < 4; i++) {
+            if (hasAlfsteelArmorPiece(player, i)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static boolean hasFullAlfsteelSet(EntityPlayer player) {
+        return getAlfsteelArmorPieceCount(player) == 4;
+    }
+
+    public static boolean hasAncientWill(ItemStack stack, int will) {
+        if (stack == null || stack.isEmpty() || stack.getItem() != alfsteelHelmet
+                || will < 0 || will > 5 || !stack.hasTagCompound()) {
+            return false;
+        }
+        return stack.getTagCompound().getBoolean("AncientWill" + will);
     }
 
     private static class AlfsteelArmor extends ItemArmor
@@ -177,6 +233,36 @@ public final class ModItems {
             }
         }
 
+        @SideOnly(Side.CLIENT)
+        @Override
+        public void addInformation(ItemStack stack, World world, List<String> list, ITooltipFlag flags) {
+            if (!GuiScreen.isShiftKeyDown()) {
+                list.add(I18n.format("tooltip.mythicbotany.alfsteel.shift"));
+                return;
+            }
+
+            EntityPlayer player = Minecraft.getMinecraft().player;
+            list.add(I18n.format("tooltip.mythicbotany.alfsteel.set",
+                    getAlfsteelArmorPieceCount(player)));
+            list.add(I18n.format("tooltip.mythicbotany.alfsteel.mana_discount"));
+            list.add(I18n.format("tooltip.mythicbotany.alfsteel.heal"));
+            list.add(I18n.format("tooltip.mythicbotany.alfsteel.mana_generation"));
+            for (int i = 0; i < 4; i++) {
+                Item item = getAlfsteelArmorPiece(i);
+                String color = hasAlfsteelArmorPiece(player, i)
+                        ? TextFormatting.GREEN.toString() : TextFormatting.GRAY.toString();
+                list.add(color + " - " + new ItemStack(item).getDisplayName());
+            }
+
+            if (this instanceof AlfsteelHelmet) {
+                for (int i = 0; i < 6; i++) {
+                    if (hasAncientWill(stack, i)) {
+                        list.add(I18n.format("tooltip.mythicbotany.alfsteel.will" + i));
+                    }
+                }
+            }
+        }
+
         @Override
         public ISpecialArmor.ArmorProperties getProperties(EntityLivingBase player,
                                                             net.minecraft.item.ItemStack armor,
@@ -202,10 +288,31 @@ public final class ModItems {
         }
 
         private boolean hasFullSet(EntityPlayer player) {
-            return player.getItemStackFromSlot(EntityEquipmentSlot.HEAD).getItem() instanceof AlfsteelArmor
-                    && player.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem() instanceof AlfsteelArmor
-                    && player.getItemStackFromSlot(EntityEquipmentSlot.LEGS).getItem() instanceof AlfsteelArmor
-                    && player.getItemStackFromSlot(EntityEquipmentSlot.FEET).getItem() instanceof AlfsteelArmor;
+            return hasFullAlfsteelSet(player);
+        }
+    }
+
+    /** Only the helmet accepts Botania's six Ancient Will upgrades. */
+    private static final class AlfsteelHelmet extends AlfsteelArmor
+            implements IAncientWillContainer {
+        private AlfsteelHelmet(ItemArmor.ArmorMaterial material) {
+            super(material, EntityEquipmentSlot.HEAD);
+        }
+
+        @Override
+        public void addAncientWill(ItemStack stack, int will) {
+            if (will < 0 || will > 5) {
+                return;
+            }
+            NBTTagCompound tag = stack.hasTagCompound()
+                    ? stack.getTagCompound() : new NBTTagCompound();
+            tag.setBoolean("AncientWill" + will, true);
+            stack.setTagCompound(tag);
+        }
+
+        @Override
+        public boolean hasAncientWill(ItemStack stack, int will) {
+            return ModItems.hasAncientWill(stack, will);
         }
     }
 }

@@ -158,13 +158,16 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
     private static final class RitualCategory implements IRecipeCategory<RitualWrapper> {
         private static final String UID = MythicBotany.MODID + ":ritual";
+        private static final int ITEM_SLOT_SIZE = 18;
         private final IDrawable background;
-        private final IDrawable slot;
+        private final IDrawable itemSlot;
         private final IDrawable icon;
 
         private RitualCategory(IGuiHelper helper) {
             background = helper.createDrawable(RITUAL_BACKGROUND, 0, 0, 136, 196);
-            slot = helper.getSlotDrawable();
+            // JEI's standard slot is exactly 18x18. Keep the rune artwork in
+            // the background untouched and use this slot only for extras/output.
+            itemSlot = helper.getSlotDrawable();
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.centralRuneHolder));
         }
 
@@ -196,7 +199,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         + wrapper.recipe.getSpecialInputs().size();
                 stacks.init(slotIndex, true, extraInputX(extraIndex, extraCount),
                         extraInputY(extraIndex, extraCount));
-                stacks.setBackground(slotIndex, slot);
+                stacks.setBackground(slotIndex, itemSlot);
                 stacks.set(slotIndex, input.getDisplayStack());
                 slotIndex++;
             }
@@ -208,14 +211,14 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         + wrapper.recipe.getSpecialInputs().size();
                 stacks.init(slotIndex, true, extraInputX(extraIndex, extraCount),
                         extraInputY(extraIndex, extraCount));
-                stacks.setBackground(slotIndex, slot);
+                stacks.setBackground(slotIndex, itemSlot);
                 stacks.set(slotIndex, entityDisplayStack(entityId));
                 slotIndex++;
                 entityIndex++;
             }
 
             stacks.init(slotIndex, false, 60, 170);
-            stacks.setBackground(slotIndex, slot);
+            stacks.setBackground(slotIndex, itemSlot);
             stacks.set(slotIndex, wrapper.recipe.getOutput());
 
             stacks.addTooltipCallback(new ITooltipCallback<ItemStack>() {
@@ -246,15 +249,15 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             int row = index / columns;
             int column = index % columns;
             int itemsInRow = Math.min(columns, count - row * columns);
-            int startX = 62 - 9 * (itemsInRow - 1);
-            return startX + column * 18;
+            int startX = 62 - ITEM_SLOT_SIZE / 2 * (itemsInRow - 1);
+            return startX + column * ITEM_SLOT_SIZE;
         }
 
         private static int extraInputY(int index, int count) {
             int columns = Math.min(7, Math.max(1, count));
             int rows = (count + columns - 1) / columns;
             int row = index / columns;
-            return 140 - 18 * (rows - 1) + row * 18;
+            return 140 - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
