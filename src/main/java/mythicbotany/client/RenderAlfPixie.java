@@ -22,4 +22,5 @@ public class RenderAlfPixie extends RenderLiving<EntityAlfPixie> {
     protected ResourceLocation getEntityTexture(EntityAlfPixie entity) {
         return TEXTURE;
     }
+
 }

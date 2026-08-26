@@ -52,6 +52,8 @@ public class ModWorldGenerator implements IWorldGenerator {
                     if (state.getBlock() == vazkii.botania.common.block.ModBlocks.altGrass
                             && state.getBlock().getMetaFromState(state) != 1) {
                         chunk.setBlockState(pos, Blocks.GRASS.getDefaultState());
+                    } else if (isLegacyManaCrystal(event.getWorld(), pos, state)) {
+                        normalizeLegacyManaCrystal(event.getWorld(), pos);
                     }
                 }
             }
@@ -107,10 +109,10 @@ public class ModWorldGenerator implements IWorldGenerator {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
-            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 32
-                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 64
-                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 80
-                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 96 : 0;
+            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 64
+                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 128
+                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 160
+                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 192 : 0;
             if (chance > 0 && random.nextInt(chance) == 0
                     && !hasNearbyDreamwood(world, x, z, 10)) {
                 generateDreamwoodTree(world, random, x, z);
@@ -301,9 +303,47 @@ public class ModWorldGenerator implements IWorldGenerator {
 
     /** Resolve the diluted variant by its state name instead of assuming that
      * every Botania 1.12 build uses the same metadata ordering. */
-    private IBlockState getDilutedPoolState() {
+    private static IBlockState getDilutedPoolState() {
         return vazkii.botania.common.block.ModBlocks.pool.getDefaultState()
                 .withProperty(BotaniaStateProps.POOL_VARIANT, PoolVariant.DILUTED);
+    }
+
+    /**
+     * Older builds generated mana crystals with a creative pool at the
+     * centre. Convert only the distinctive crystal shape, never arbitrary
+     * creative pools placed by a player.
+     */
+    private static boolean isLegacyManaCrystal(World world, BlockPos pos,
+                                               IBlockState state) {
+        if (state.getBlock() != vazkii.botania.common.block.ModBlocks.pool
+                || state.getValue(BotaniaStateProps.POOL_VARIANT) != PoolVariant.CREATIVE
+                || !world.isAirBlock(pos.up())
+                || world.getBlockState(pos.up(2)).getBlock()
+                != vazkii.botania.common.block.ModBlocks.bifrostPerm) {
+            return false;
+        }
+        for (EnumFacing direction : EnumFacing.HORIZONTALS) {
+            if (world.getBlockState(pos.offset(direction)).getBlock()
+                    != vazkii.botania.common.block.ModBlocks.bifrostPerm) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void normalizeLegacyManaCrystal(World world, BlockPos pos) {
+        int existingMana = 0;
+        TileEntity oldTile = world.getTileEntity(pos);
+        if (oldTile instanceof IManaPool) {
+            existingMana = ((IManaPool) oldTile).getCurrentMana();
+        }
+
+        world.setBlockState(pos, getDilutedPoolState(), 3);
+        TileEntity newTile = world.getTileEntity(pos);
+        if (newTile instanceof IManaPool) {
+            int mana = Math.max(10, Math.min(490, existingMana));
+            ((IManaPool) newTile).recieveMana(mana);
+        }
     }
 
     private boolean hasNearbyDreamwood(World world, int x, int z, int radius) {
