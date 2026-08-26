@@ -12,7 +12,6 @@ import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.client.RenderCentralRuneHolder;
 import mythicbotany.client.RenderRuneHolder;
-import mythicbotany.client.AlfheimBiomeOverlayHandler;
 import mythicbotany.client.AlfheimBiomeLocalization;
 import mythicbotany.tile.TileManaInfuser;
 import net.minecraft.client.Minecraft;
@@ -28,18 +27,15 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public final class ClientProxy extends CommonProxy {
     private static boolean itemStackRendererRegistered;
     private static boolean entityRenderersRegistered;
-    private static boolean debugLocalizationRegistered;
 
     @Override
     public void preInit() {
         registerEntityRenderers();
-        registerDebugLocalization();
     }
 
     @Override
     public void init() {
         registerEntityRenderers();
-        registerDebugLocalization();
         AlfheimBiomeLocalization.apply();
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
@@ -48,13 +44,6 @@ public final class ClientProxy extends CommonProxy {
             TileEntityItemStackRenderer.instance = new RenderAlfsteelPylon.ForwardingTEISR(
                     TileEntityItemStackRenderer.instance);
             itemStackRendererRegistered = true;
-        }
-    }
-
-    private static void registerDebugLocalization() {
-        if (!debugLocalizationRegistered) {
-            MinecraftForge.EVENT_BUS.register(new AlfheimBiomeOverlayHandler());
-            debugLocalizationRegistered = true;
         }
     }
 

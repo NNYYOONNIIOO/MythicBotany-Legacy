@@ -3,17 +3,20 @@ package mythicbotany.client;
 import mythicbotany.MythicBotany;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.List;
 
 /** Localizes Alfheim biome registry ids shown by the F3 overlay. */
+@Mod.EventBusSubscriber(value = Side.CLIENT, modid = MythicBotany.MODID)
 public final class AlfheimBiomeOverlayHandler {
     private static final String NAMESPACE = MythicBotany.MODID + ".";
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void localizeBiomeLine(RenderGameOverlayEvent.Text event) {
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void localizeBiomeLine(RenderGameOverlayEvent.Text event) {
         localize(event.getLeft());
         localize(event.getRight());
     }
