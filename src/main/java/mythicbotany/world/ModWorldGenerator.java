@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -23,6 +24,7 @@ import net.minecraftforge.fml.common.IWorldGenerator;
 import vazkii.botania.api.mana.IManaPool;
 import vazkii.botania.api.state.BotaniaStateProps;
 import vazkii.botania.api.state.enums.PoolVariant;
+import vazkii.botania.common.block.tile.mana.TilePool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,17 +106,21 @@ public class ModWorldGenerator implements IWorldGenerator {
         // placement. These trees are much larger in 1.12, so use a lower
         // probability here to keep the forest readable instead of filling
         // every chunk with overlapping canopies.
-        int treeAttempts = 1;
+        // db44772 used six samples per chunk. Its old non-forest rates were
+        // 1/5 in plains and 1/8 in hills. Keep those rates as the reference:
+        // forests use the old plains rate, while other biomes use one fifth
+        // of their old non-forest rate.
+        int treeAttempts = 6;
         for (int i = 0; i < treeAttempts; i++) {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
-            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 64
-                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 43
-                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 54
-                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 64 : 0;
+            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 5
+                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 25
+                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 40
+                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 40 : 0;
             if (chance > 0 && random.nextInt(chance) == 0
-                    && !hasNearbyDreamwood(world, x, z, 10)) {
+                    && !hasNearbyDreamwood(world, x, z, 6)) {
                 generateDreamwoodTree(world, random, x, z);
             }
         }
@@ -135,9 +141,14 @@ public class ModWorldGenerator implements IWorldGenerator {
             generateLakePlants(world, random, chunkX, chunkZ);
         }
 
-        if (random.nextInt(biome == AlfheimBiomes.DREAMWOOD_FOREST ? 18 : 28) == 0) {
-            generateAbandonedApothecary(world, random, chunkX * 16 + random.nextInt(16),
-                    chunkZ * 16 + random.nextInt(16));
+        if (random.nextInt(20) == 0) {
+            for (int attempt = 0; attempt < 4; attempt++) {
+                if (generateAbandonedApothecary(world, random,
+                        chunkX * 16 + random.nextInt(16),
+                        chunkZ * 16 + random.nextInt(16))) {
+                    break;
+                }
+            }
         }
     }
 
@@ -283,11 +294,10 @@ public class ModWorldGenerator implements IWorldGenerator {
         }
         world.setBlockState(origin, pool, 2);
         TileEntity tile = world.getTileEntity(origin);
-        if (!(tile instanceof IManaPool)) {
+        if (!initializeDilutedManaPool(tile, 10 + random.nextInt(490))) {
             world.setBlockToAir(origin);
             return false;
         }
-        ((IManaPool) tile).recieveMana(10 + random.nextInt(490));
 
         IBlockState crystal = vazkii.botania.common.block.ModBlocks.bifrostPerm.getDefaultState();
         for (BlockPos pos : crystalBlocks) {
@@ -335,10 +345,23 @@ public class ModWorldGenerator implements IWorldGenerator {
 
         world.setBlockState(pos, getDilutedPoolState(), 3);
         TileEntity newTile = world.getTileEntity(pos);
-        if (newTile instanceof IManaPool) {
-            int mana = Math.max(10, Math.min(490, existingMana));
-            ((IManaPool) newTile).recieveMana(mana);
+        int mana = Math.max(10, Math.min(490, existingMana));
+        initializeDilutedManaPool(newTile, mana);
+    }
+
+    /** Initialize the diluted pool's cap before receiving mana. TilePool
+     * normally fills this field during its first tick, which is too late for
+     * worldgen: recieveMana would otherwise clamp against -1 and store zero. */
+    private static boolean initializeDilutedManaPool(TileEntity tile, int mana) {
+        if (!(tile instanceof TilePool) || !(tile instanceof IManaPool)) {
+            return false;
         }
+        NBTTagCompound data = new NBTTagCompound();
+        data.setInteger("manaCap", TilePool.MAX_MANA_DILLUTED);
+        data.setInteger("mana", 0);
+        ((TilePool) tile).readPacketNBT(data);
+        ((IManaPool) tile).recieveMana(Math.max(1, mana));
+        return ((IManaPool) tile).getCurrentMana() > 0;
     }
 
     private boolean hasNearbyDreamwood(World world, int x, int z, int radius) {
@@ -518,11 +541,10 @@ public class ModWorldGenerator implements IWorldGenerator {
         }
     }
 
-    private void generateAbandonedApothecary(World world, Random random, int x, int z) {
-        BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
-        if (!world.getBlockState(surface).getMaterial().isSolid()
-                || !world.isAirBlock(surface.up())) {
-            return;
+    private boolean generateAbandonedApothecary(World world, Random random, int x, int z) {
+        BlockPos surface = findGroundSurface(world, x, z);
+        if (surface == null || !world.isAirBlock(surface.up())) {
+            return false;
         }
         BlockPos base = surface.up();
         vazkii.botania.api.state.enums.AltarVariant variant =
@@ -545,10 +567,13 @@ public class ModWorldGenerator implements IWorldGenerator {
 
         TileEntity tile = world.getTileEntity(base);
         if (!(tile instanceof vazkii.botania.common.block.tile.TileAltar)) {
-            return;
+            return false;
         }
         vazkii.botania.common.block.tile.TileAltar altar =
                 (vazkii.botania.common.block.tile.TileAltar) tile;
+        if (variant == vazkii.botania.api.state.enums.AltarVariant.MOSSY) {
+            altar.isMossy = true;
+        }
         if (random.nextInt(30) == 0) {
             altar.setLava(true);
         } else if (random.nextInt(4) != 0) {
@@ -558,8 +583,10 @@ public class ModWorldGenerator implements IWorldGenerator {
                 altar.getItemHandler().setStackInSlot(slot,
                         new net.minecraft.item.ItemStack(
                                 vazkii.botania.common.item.ModItems.petal, 1,
-                                random.nextInt(16)));
+                        random.nextInt(16)));
             }
         }
+        altar.markDirty();
+        return true;
     }
 }

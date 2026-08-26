@@ -1,6 +1,5 @@
 package mythicbotany.dimension;
 
-import mythicbotany.item.ItemKvasirMead;
 import mythicbotany.block.BlockReturnPortal;
 import mythicbotany.registry.ModBlocks;
 import net.minecraft.entity.player.EntityPlayer;
@@ -43,8 +42,7 @@ public final class AlfheimPortalHandler {
 
         List<EntityPlayerMP> players = source.getEntitiesWithinAABB(EntityPlayerMP.class, event.aabb);
         for (EntityPlayerMP player : players) {
-            if (!player.getEntityData().getBoolean(ItemKvasirMead.KNOWLEDGE_TAG)
-                    || player.isRiding()) {
+            if (player.isRiding()) {
                 continue;
             }
             if (advancePortalTime(player)) {
