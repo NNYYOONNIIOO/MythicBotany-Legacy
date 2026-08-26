@@ -4,6 +4,7 @@ import mythicbotany.item.ItemFadedNetherStar;
 
 import mythicbotany.registry.ModItems;
 import mythicbotany.rune.TileCentralRuneHolder;
+import mythicbotany.rune.TileCentralRuneHolder;
 import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
@@ -481,9 +482,35 @@ public final class MythicFlowerSubTiles {
         @Override public int getColor() { return 0x45FFAC; }
     }
 
-    /** The central holder requests ritual mana from the activating player. */
+    /** Supplies mana to and activates a nearby central rune holder. */
     public static class Petrunia extends SubTileFunctional {
-        @Override public int getMaxMana() { return 300; }
+        private static final int RANGE = 6;
+
+        @Override
+        public void onUpdate() {
+            super.onUpdate();
+            if (getWorld().isRemote || mana <= 0 || ticksExisted % 5 != 0) {
+                return;
+            }
+            for (int x = -RANGE; x <= RANGE; x++) {
+                for (int y = -RANGE; y <= RANGE; y++) {
+                    for (int z = -RANGE; z <= RANGE; z++) {
+                        TileEntity tile = getWorld().getTileEntity(getPos().add(x, y, z));
+                        if (!(tile instanceof TileCentralRuneHolder)) {
+                            continue;
+                        }
+                        int spent = ((TileCentralRuneHolder) tile).tryStartRitualWithMana(mana);
+                        if (spent >= 0) {
+                            mana = Math.max(0, mana - spent);
+                            sync();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override public int getMaxMana() { return 1000000; }
         @Override public int getColor() { return 0xB71A1A; }
     }
 }

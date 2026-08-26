@@ -174,17 +174,26 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
 
     /** Starts a matching ritual and consumes its mana and dropped ingredients from the player/world. */
     public boolean tryStartRitual(EntityPlayer player) {
-        if (world == null || world.isRemote || player == null) {
-            return false;
+        return tryStartRitualInternal(player, -1) >= 0;
+    }
+
+    /** Starts a matching ritual using mana supplied by a functional flower. */
+    public int tryStartRitualWithMana(int availableMana) {
+        return tryStartRitualInternal(null, availableMana);
+    }
+
+    private int tryStartRitualInternal(EntityPlayer player, int availableMana) {
+        if (world == null || world.isRemote || (player == null && availableMana < 0)) {
+            return -1;
         }
         if (activeRecipe != null) {
             lastStatusKey = "message.mythicbotany.ritual_running";
-            return false;
+            return -1;
         }
         if (center.isEmpty() || !output.isEmpty()) {
             lastStatusKey = center.isEmpty() ? "message.mythicbotany.insert_ritual_focus"
                     : "message.mythicbotany.ritual_complete";
-            return false;
+            return -1;
         }
 
         boolean foundCenterRecipe = false;
@@ -219,11 +228,14 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             InputSelection selection = findInputs(recipe);
             if (selection == null || !hasSpecialInputs(recipe.getSpecialInputs())) {
                 lastStatusKey = "message.mythicbotany.ritual_wrong_items";
-                return false;
+                return -1;
             }
-            if (!consumePlayerMana(player, recipe.getMana())) {
+            boolean hasMana = player != null
+                    ? consumePlayerMana(player, recipe.getMana())
+                    : availableMana >= recipe.getMana();
+            if (!hasMana) {
                 lastStatusKey = "message.mythicbotany.ritual_less_mana";
-                return false;
+                return -1;
             }
 
             consumeInputs(selection);
@@ -236,12 +248,12 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             markDirty();
             world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
             world.playSound(null, pos, ModSounds.runeAltarStart, SoundCategory.BLOCKS, 1.0F, 1.0F);
-            return true;
+            return recipe.getMana();
         }
         if (!foundCenterRecipe) {
             lastStatusKey = "message.mythicbotany.ritual_wrong_items";
         }
-        return false;
+        return -1;
     }
 
     private InputSelection findInputs(RuneRitualRecipe recipe) {
