@@ -50,14 +50,7 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
         }
 
         List<EntityItem> items = getItems();
-        if (activeRecipe == null) {
-            InfuserRecipe recipe = findRecipe(items);
-            if (recipe != null) {
-                activeRecipe = recipe;
-                mana = 0;
-                manaRequirement = recipe.getMana();
-                syncState();
-            }
+        if (ensureActiveRecipe(items) == null) {
             return;
         }
 
@@ -76,12 +69,8 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
     }
 
     private List<EntityItem> getItems() {
-        // Ingredients rest on top of the infuser. The old one-block-high box
-        // ended at the block's upper face, so dropped stacks whose entity
-        // origin was above that face were never seen by custom CRT recipes.
-        return world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(
-                pos.getX() - 0.25D, pos.getY(), pos.getZ() - 0.25D,
-                pos.getX() + 1.25D, pos.getY() + 2.0D, pos.getZ() + 1.25D));
+        return world.getEntitiesWithinAABB(EntityItem.class,
+                new AxisAlignedBB(pos, pos.add(1, 1, 1)));
     }
 
     private InfuserRecipe findRecipe(List<EntityItem> items) {
@@ -90,6 +79,38 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
 
     private boolean matchesRecipe(List<EntityItem> items, InfuserRecipe recipe) {
         return recipe != null && recipe.matches(items);
+    }
+
+    /**
+     * Resolve a recipe before the mana network asks this tile whether it is
+     * full or can receive mana. Spark transfer checks happen independently of
+     * the tile tick, so waiting for update() to assign activeRecipe leaves the
+     * infuser looking full and unavailable during the first transfer pass.
+     */
+    private InfuserRecipe ensureActiveRecipe(List<EntityItem> items) {
+        if (activeRecipe == null) {
+            InfuserRecipe recipe = findRecipe(items);
+            if (recipe != null) {
+                activeRecipe = recipe;
+                mana = 0;
+                manaRequirement = recipe.getMana();
+                syncState();
+            }
+        }
+        return activeRecipe;
+    }
+
+    private InfuserRecipe getRecipeForMana() {
+        if (world == null || !hasValidPlatform()) {
+            return null;
+        }
+        List<EntityItem> items = getItems();
+        InfuserRecipe recipe = ensureActiveRecipe(items);
+        if (recipe != null && !matchesRecipe(items, recipe)) {
+            clearRecipe();
+            return null;
+        }
+        return recipe;
     }
 
     private void receiveManaFromSparks() {
@@ -180,12 +201,18 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
 
     @Override
     public boolean isFull() {
-        return activeRecipe == null || mana >= manaRequirement;
+        InfuserRecipe recipe = getRecipeForMana();
+        return recipe == null || mana >= manaRequirement;
     }
 
     @Override
     public void recieveMana(int amount) {
-        if (activeRecipe == null || amount == 0 || !matchesRecipe(getItems(), activeRecipe)) {
+        if (amount == 0) {
+            return;
+        }
+        List<EntityItem> items = getItems();
+        InfuserRecipe recipe = ensureActiveRecipe(items);
+        if (recipe == null || !matchesRecipe(items, recipe)) {
             return;
         }
         mana = Math.max(0, Math.min(manaRequirement, mana + amount));
@@ -194,8 +221,8 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
 
     @Override
     public boolean canRecieveManaFromBursts() {
-        return activeRecipe != null && mana < manaRequirement
-                && matchesRecipe(getItems(), activeRecipe);
+        InfuserRecipe recipe = getRecipeForMana();
+        return recipe != null && mana < manaRequirement;
     }
 
     @Override
@@ -228,12 +255,12 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
 
     @Override
     public boolean areIncomingTranfersDone() {
-        return activeRecipe == null || !matchesRecipe(getItems(), activeRecipe);
+        return getRecipeForMana() == null;
     }
 
     @Override
     public int getAvailableSpaceForMana() {
-        return activeRecipe == null ? 0 : Math.max(0, manaRequirement - mana);
+        return getRecipeForMana() == null ? 0 : Math.max(0, manaRequirement - mana);
     }
 
     public double getProgress() {

@@ -217,9 +217,11 @@ public final class InfuserRecipe {
                 return null;
             }
         }
-        // The infuser may contain unrelated dropped stacks while the required
-        // ingredients are being assembled. Only consume the stacks selected
-        // for this recipe; unrelated items remain in place.
+        for (EntityItem entity : available.keySet()) {
+            if (!consumed.containsKey(entity)) {
+                return null;
+            }
+        }
         return consumed;
     }
 
