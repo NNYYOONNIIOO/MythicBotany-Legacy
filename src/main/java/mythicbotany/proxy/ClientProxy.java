@@ -13,6 +13,7 @@ import mythicbotany.rune.TileRuneHolder;
 import mythicbotany.client.RenderCentralRuneHolder;
 import mythicbotany.client.RenderRuneHolder;
 import mythicbotany.client.AlfheimBiomeOverlayHandler;
+import mythicbotany.client.AlfheimBiomeLocalization;
 import mythicbotany.tile.TileManaInfuser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
@@ -39,6 +40,7 @@ public final class ClientProxy extends CommonProxy {
     public void init() {
         registerEntityRenderers();
         registerDebugLocalization();
+        AlfheimBiomeLocalization.apply();
         ClientRegistry.bindTileEntitySpecialRenderer(TileAlfsteelPylon.class, new RenderAlfsteelPylon());
         ClientRegistry.bindTileEntitySpecialRenderer(TileRuneHolder.class, new RenderRuneHolder());
         ClientRegistry.bindTileEntitySpecialRenderer(TileCentralRuneHolder.class, new RenderCentralRuneHolder());

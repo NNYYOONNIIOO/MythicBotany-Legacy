@@ -12,7 +12,7 @@ import java.util.List;
 public final class AlfheimBiomeOverlayHandler {
     private static final String NAMESPACE = MythicBotany.MODID + ".";
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void localizeBiomeLine(RenderGameOverlayEvent.Text event) {
         localize(event.getLeft());
         localize(event.getRight());
@@ -33,12 +33,27 @@ public final class AlfheimBiomeOverlayHandler {
                 end++;
             }
             String id = line.substring(start, end);
-            String key = "biome." + id;
-            String localized = I18n.format(key);
-            if (!localized.equals(key)) {
+            String localized = translateBiomeId(id);
+            if (!localized.equals(id)) {
                 lines.set(i, line.substring(0, start) + localized + line.substring(end));
             }
         }
+    }
+
+    private static String translateBiomeId(String id) {
+        String normalized = id.replace(':', '.');
+        String[] keys = {
+                "biome." + normalized,
+                normalized,
+                "biome." + id
+        };
+        for (String key : keys) {
+            String translated = I18n.format(key);
+            if (!translated.equals(key)) {
+                return translated;
+            }
+        }
+        return id;
     }
 
     private static boolean isIdCharacter(char character) {
