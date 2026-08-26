@@ -109,7 +109,7 @@ public class ModWorldGenerator implements IWorldGenerator {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
-            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 22
+            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 64
                     : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 43
                     : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 54
                     : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 64 : 0;
