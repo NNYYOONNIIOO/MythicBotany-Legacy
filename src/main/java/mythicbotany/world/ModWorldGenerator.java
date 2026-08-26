@@ -6,7 +6,9 @@ import mythicbotany.dimension.ModDimensions;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.World;
@@ -18,6 +20,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.IWorldGenerator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /** Adds MythicBotany ores to the vanilla overworld generation pipeline. */
@@ -88,14 +92,19 @@ public class ModWorldGenerator implements IWorldGenerator {
 
     private void generateAlfheimFeatures(World world, Random random, int chunkX, int chunkZ) {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
-        int dreamwoodTreeCount = biome == AlfheimBiomes.DREAMWOOD_FOREST
-                ? 10 + random.nextInt(6)
-                : biome == AlfheimBiomes.ALFHEIM_PLAINS ? 3 + random.nextInt(3)
-                : biome == AlfheimBiomes.ALFHEIM_HILLS ? 2 + random.nextInt(2)
-                : biome == AlfheimBiomes.GOLDEN_FIELDS ? 1 + random.nextInt(2) : 0;
-        for (int i = 0; i < dreamwoodTreeCount; i++) {
-            generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
-                    chunkZ * 16 + random.nextInt(16));
+        // Sample each feature position independently. This prevents tree
+        // density from changing in square bands when a biome crosses a chunk.
+        for (int i = 0; i < 6; i++) {
+            int x = chunkX * 16 + random.nextInt(16);
+            int z = chunkZ * 16 + random.nextInt(16);
+            Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
+            if (treeBiome == AlfheimBiomes.DREAMWOOD_FOREST
+                    || (treeBiome == AlfheimBiomes.ALFHEIM_PLAINS
+                    && random.nextInt(5) == 0)
+                    || (treeBiome == AlfheimBiomes.ALFHEIM_HILLS
+                    && random.nextInt(8) == 0)) {
+                generateDreamwoodTree(world, random, x, z);
+            }
         }
         if (biome == AlfheimBiomes.DREAMWOOD_FOREST) {
             generateFlowers(world, random, chunkX, chunkZ, 7);
@@ -183,29 +192,114 @@ public class ModWorldGenerator implements IWorldGenerator {
 
     private void generateDreamwoodTree(World world, Random random, int x, int z) {
         BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
-        if (!world.getBlockState(surface).getMaterial().isSolid()) {
+        IBlockState ground = world.getBlockState(surface);
+        if (ground.getBlock() != Blocks.GRASS && ground.getBlock() != Blocks.DIRT) {
             return;
         }
-        int height = 4 + random.nextInt(4);
+        // Port of MythicBotany's ShatteredTrunkPlacer and RandomFoliagePlacer
+        // for the 1.12 generator: a tall trunk, hanging roots, broken limbs,
+        // and small irregular leaf clusters.
+        BlockPos base = surface.up();
+        int height = 7 + random.nextInt(5);
+        int straightTrunkSize = Math.max(3, height - 3);
         IBlockState log = vazkii.botania.common.block.ModBlocks.dreamwood.getDefaultState();
-        IBlockState leaves = ModBlocks.dreamwoodLeaves.getDefaultState();
-        for (int y = 1; y <= height; y++) {
-            BlockPos pos = surface.up(y);
-            if (!world.isAirBlock(pos)) {
+        for (int i = 0; i < straightTrunkSize; i++) {
+            if (!canReplaceDreamwood(world, base.up(i))) {
                 return;
             }
-            world.setBlockState(pos, log, 2);
         }
-        for (int y = height - 2; y <= height + 1; y++) {
-            int radius = y == height + 1 ? 1 : 2;
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.abs(dx) + Math.abs(dz) <= radius + 1) {
-                        BlockPos pos = surface.add(dx, y, dz);
-                        if (world.isAirBlock(pos)) {
-                            world.setBlockState(pos, leaves, 2);
-                        }
+        for (int i = 0; i < straightTrunkSize; i++) {
+            world.setBlockState(base.up(i), log, 2);
+        }
+
+        for (EnumFacing direction : EnumFacing.HORIZONTALS) {
+            if (random.nextInt(3) != 0) {
+                continue;
+            }
+            BlockPos root = base.offset(direction);
+            for (int i = 0; i < 3; i++) {
+                if (!placeDreamwoodLog(world, root, log)) {
+                    break;
+                }
+                root = root.down();
+            }
+        }
+
+        List<BlockPos> foliageAttachments = new ArrayList<>();
+        BlockPos branchTop = base.up(straightTrunkSize - 1);
+        int shatters = 3 + random.nextInt(3);
+        for (int branchIndex = 0; branchIndex < shatters; branchIndex++) {
+            int xDistance = random.nextInt(3);
+            int zDistance = random.nextInt(3);
+            int xSign = random.nextBoolean() ? 1 : -1;
+            int zSign = random.nextBoolean() ? 1 : -1;
+            BlockPos branch = branchTop;
+            boolean failed = false;
+            int branchSize = 3 + random.nextInt(4);
+            for (int segment = 0; segment < branchSize && !failed; segment++) {
+                int targetX = xDistance == 0 ? 0
+                        : xDistance / 2 + random.nextInt((xDistance + 1) / 2);
+                int targetZ = zDistance == 0 ? 0
+                        : zDistance / 2 + random.nextInt((zDistance + 1) / 2);
+                int movedX = 0;
+                int movedZ = 0;
+                while (movedX < targetX || movedZ < targetZ) {
+                    int stepX = movedX < targetX ? xSign : 0;
+                    int stepZ = movedZ < targetZ ? zSign : 0;
+                    int stepY = random.nextInt(3) != 0 ? 1 : 0;
+                    branch = branch.add(stepX, stepY, stepZ);
+                    movedX = Math.min(targetX, movedX + 1);
+                    movedZ = Math.min(targetZ, movedZ + 1);
+                    if (!placeDreamwoodLog(world, branch, log)) {
+                        failed = true;
+                        break;
                     }
+                    foliageAttachments.add(branch);
+                }
+            }
+        }
+
+        if (foliageAttachments.isEmpty()) {
+            foliageAttachments.add(branchTop);
+        }
+        IBlockState leaves = ModBlocks.dreamwoodLeaves.getDefaultState();
+        for (BlockPos attachment : foliageAttachments) {
+            placeDreamwoodFoliage(world, random, attachment, leaves);
+        }
+    }
+
+    private boolean canReplaceDreamwood(World world, BlockPos pos) {
+        IBlockState state = world.getBlockState(pos);
+        return world.isAirBlock(pos)
+                || state.getMaterial() == Material.LEAVES
+                || state.getMaterial() == Material.WATER
+                || state.getBlock() == ModBlocks.dreamwoodLeaves;
+    }
+
+    private boolean placeDreamwoodLog(World world, BlockPos pos, IBlockState log) {
+        if (!canReplaceDreamwood(world, pos)) {
+            return false;
+        }
+        world.setBlockState(pos, log, 2);
+        return true;
+    }
+
+    private void placeDreamwoodFoliage(World world, Random random, BlockPos attachment,
+                                       IBlockState leaves) {
+        int leafCount = 3 + random.nextInt(3);
+        for (int i = 0; i < leafCount; i++) {
+            int x = random.nextInt(5) - 2;
+            int y = random.nextInt(5) - 2;
+            int z = random.nextInt(5) - 2;
+            BlockPos leaf = attachment.add(x, y, z);
+            if (canReplaceDreamwood(world, leaf)) {
+                world.setBlockState(leaf, leaves, 2);
+                int nearX = x == 0 ? 0 : x > 0 ? x - 1 : x + 1;
+                int nearY = y == 0 ? 0 : y > 0 ? y - 1 : y + 1;
+                int nearZ = z == 0 ? 0 : z > 0 ? z - 1 : z + 1;
+                BlockPos nearbyLeaf = attachment.add(nearX, nearY, nearZ);
+                if (canReplaceDreamwood(world, nearbyLeaf)) {
+                    world.setBlockState(nearbyLeaf, leaves, 2);
                 }
             }
         }

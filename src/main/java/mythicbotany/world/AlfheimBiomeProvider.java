@@ -104,19 +104,31 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         // turning into straight chunk-sized strips.
         // Keep the climate regions broad. Low-frequency sampling prevents
         // different surface palettes from changing every few chunks.
-        double warpX = fractalNoise(x / 520.0D, z / 520.0D, 0x4D595448L);
-        double warpZ = fractalNoise(x / 520.0D, z / 520.0D, 0x59474744L);
-        double warpedX = x + warpX * 80.0D;
-        double warpedZ = z + warpZ * 80.0D;
+        // A second, smaller rotated field breaks up the circular contours of
+        // a single low-frequency noise field without creating tiny islands.
+        double warpX = fractalNoise(x / 520.0D, z / 520.0D, 0x4D595448L) * 0.72D
+                + fractalNoise((x + z * 0.37D) / 190.0D,
+                (z - x * 0.21D) / 190.0D, 0x1A2B3CL) * 0.28D;
+        double warpZ = fractalNoise(x / 520.0D, z / 520.0D, 0x59474744L) * 0.72D
+                + fractalNoise((x - z * 0.23D) / 190.0D,
+                (z + x * 0.31D) / 190.0D, 0x4D5E6FL) * 0.28D;
+        double warpedX = x + warpX * 120.0D;
+        double warpedZ = z + warpZ * 120.0D;
 
         // The fields are deliberately broad, but not so broad that a normal
         // exploration distance only exposes plains. All samples are in world
         // coordinates, so no value changes at a chunk edge.
-        double land = fractalNoise(warpedX / 850.0D, warpedZ / 850.0D, 0x31A7L);
-        double moisture = fractalNoise((warpedX - warpZ * 40.0D) / 600.0D,
-                (warpedZ + warpX * 40.0D) / 600.0D, 0x9E37L);
-        double climate = fractalNoise((warpedX + warpX * 48.0D) / 700.0D,
-                (warpedZ + warpZ * 48.0D) / 700.0D, 0xA17F5L);
+        double land = fractalNoise(warpedX / 1050.0D, warpedZ / 1050.0D, 0x31A7L) * 0.70D
+                + fractalNoise((warpedX + warpedZ * 0.35D) / 280.0D,
+                (warpedZ - warpedX * 0.20D) / 280.0D, 0x7B21L) * 0.30D;
+        double moisture = fractalNoise((warpedX - warpZ * 40.0D) / 720.0D,
+                (warpedZ + warpX * 40.0D) / 720.0D, 0x9E37L) * 0.72D
+                + fractalNoise((warpedX - warpedZ * 0.25D) / 240.0D,
+                (warpedZ + warpedX * 0.18D) / 240.0D, 0x8C42L) * 0.28D;
+        double climate = fractalNoise((warpedX + warpX * 48.0D) / 780.0D,
+                (warpedZ + warpZ * 48.0D) / 780.0D, 0xA17F5L) * 0.72D
+                + fractalNoise((warpedX + warpedZ * 0.22D) / 260.0D,
+                (warpedZ - warpedX * 0.27D) / 260.0D, 0xC391L) * 0.28D;
 
         // These thresholds intentionally give every climate a useful region.
         // The old values only selected the extreme tails of the noise fields,
