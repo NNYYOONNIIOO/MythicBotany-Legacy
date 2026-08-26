@@ -109,16 +109,18 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         double climate = fractalNoise((warpedX + warpX * 64.0D) / 420.0D,
                 (warpedZ + warpZ * 64.0D) / 420.0D, 0xA17F5L);
 
-        if (land < -0.42D) {
+        // Use wide, low-frequency regions. The previous thresholds made large
+        // terrain/surface changes meet abruptly and look like chunk seams.
+        if (land < -0.64D) {
             return AlfheimBiomes.ALFHEIM_LAKES;
         }
-        if (land > 0.54D) {
+        if (land > 0.68D) {
             return AlfheimBiomes.ALFHEIM_HILLS;
         }
-        if (climate > 0.54D && land > -0.10D && land < 0.42D) {
+        if (climate > 0.72D && land > -0.08D && land < 0.30D) {
             return AlfheimBiomes.GOLDEN_FIELDS;
         }
-        if (moisture > 0.10D && land > -0.20D) {
+        if (moisture > 0.24D && land > -0.12D) {
             return AlfheimBiomes.DREAMWOOD_FOREST;
         }
         return AlfheimBiomes.ALFHEIM_PLAINS;

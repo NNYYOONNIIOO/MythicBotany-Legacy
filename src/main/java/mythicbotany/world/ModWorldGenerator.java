@@ -110,7 +110,33 @@ public class ModWorldGenerator implements IWorldGenerator {
                 continue;
             }
             WorldGenTrees tree = new WorldGenTrees(false);
-            tree.generate(world, random, surface.up());
+            if (!tree.generate(world, random, surface.up())) {
+                generateSimpleOakTree(world, surface.up(), random);
+            }
+        }
+    }
+
+    private void generateSimpleOakTree(World world, BlockPos base, Random random) {
+        int height = 4 + random.nextInt(3);
+        for (int y = 0; y < height; y++) {
+            BlockPos log = base.up(y);
+            if (!world.isAirBlock(log)) {
+                return;
+            }
+            world.setBlockState(log, Blocks.LOG.getDefaultState(), 2);
+        }
+        for (int y = height - 2; y <= height; y++) {
+            int radius = y == height ? 1 : 2;
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.abs(dx) + Math.abs(dz) <= radius + 1) {
+                        BlockPos leaves = base.add(dx, y, dz);
+                        if (world.isAirBlock(leaves)) {
+                            world.setBlockState(leaves, Blocks.LEAVES.getDefaultState(), 2);
+                        }
+                    }
+                }
+            }
         }
     }
 

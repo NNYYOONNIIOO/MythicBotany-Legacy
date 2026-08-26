@@ -31,7 +31,13 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
                 int z = startZ + localZ;
                 for (int y = 1; y < 255; y++) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (chunk.getBlockState(pos).getBlock() == Blocks.STONE) {
+                    IBlockState state = chunk.getBlockState(pos);
+                    if (state.getBlock() == vazkii.botania.common.block.ModBlocks.altGrass
+                            && state.getBlock().getMetaFromState(state) != 1) {
+                        chunk.setBlockState(pos, Blocks.GRASS.getDefaultState());
+                        state = Blocks.GRASS.getDefaultState();
+                    }
+                    if (state.getBlock() == Blocks.STONE) {
                         chunk.setBlockState(pos, livingrock);
                     }
                 }
@@ -49,28 +55,21 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
 
         if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
             final int waterLevel = 63;
-            // Do not carve every lake column to one flat shelf. Only columns
-            // near sea level become water; higher terrain remains a grassy
-            // shoreline. Sand is limited to the actual seabed.
-            if (surface > waterLevel + 4) {
+            // Fill only genuine depressions. Do not carve a fixed shelf or
+            // create a horizontal sand strip at y=60/61.
+            if (isBiomeEdge(x, z, biome) || surface >= waterLevel) {
                 chunk.setBlockState(new BlockPos(x, surface, z), Blocks.GRASS.getDefaultState());
                 for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
                     chunk.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState());
                 }
                 return;
             }
-            if (surface >= waterLevel) {
-                for (int y = waterLevel; y <= surface; y++) {
-                    chunk.setBlockState(new BlockPos(x, y, z), Blocks.AIR.getDefaultState());
-                }
-                surface = waterLevel - 1;
-            }
             BlockPos seabed = new BlockPos(x, surface, z);
             IBlockState seabedState = chunk.getBlockState(seabed);
             if (seabedState.getBlock() == Blocks.STONE
                     || seabedState.getBlock() == Blocks.DIRT
                     || seabedState.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
-                chunk.setBlockState(seabed, Blocks.SAND.getDefaultState());
+                chunk.setBlockState(seabed, Blocks.DIRT.getDefaultState());
             }
             for (int y = surface + 1; y <= waterLevel; y++) {
                 chunk.setBlockState(new BlockPos(x, y, z), Blocks.WATER.getDefaultState());
@@ -78,7 +77,10 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
             return;
         }
 
-        chunk.setBlockState(new BlockPos(x, surface, z), biome.topBlock);
+        boolean biomeEdge = biome == AlfheimBiomes.GOLDEN_FIELDS
+                && isBiomeEdge(x, z, biome);
+        IBlockState top = biomeEdge ? Blocks.GRASS.getDefaultState() : biome.topBlock;
+        chunk.setBlockState(new BlockPos(x, surface, z), top);
         for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
             IBlockState current = chunk.getBlockState(new BlockPos(x, y, z));
             if (current.getMaterial() == Material.GROUND
@@ -97,5 +99,19 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
             }
         }
         return -1;
+    }
+
+    private boolean isBiomeEdge(int x, int z, Biome center) {
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+                if (alfheimWorld.getBiome(new BlockPos(x + dx, 0, z + dz)) != center) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -18,19 +18,19 @@ import vazkii.botania.common.block.ModBlocks;
 /** The large-scale biome palette used by the Alfheim dimension. */
 public final class AlfheimBiomes {
     public static final Biome ALFHEIM_LAKES = create(
-            "alfheim_lakes", -0.55F, 0.08F, 0.7F, 0.9F,
+            "alfheim_lakes", -0.08F, 0.06F, 0.7F, 0.9F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome ALFHEIM_PLAINS = create(
             "alfheim_plains", 0.1F, 0.05F, 0.8F, 0.7F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome DREAMWOOD_FOREST = create(
-            "dreamwood_forest", 0.3F, 0.25F, 0.75F, 0.8F,
+            "dreamwood_forest", 0.12F, 0.08F, 0.75F, 0.8F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome GOLDEN_FIELDS = create(
-            "golden_fields", 0.05F, 0.04F, 0.9F, 0.5F,
+            "golden_fields", 0.08F, 0.06F, 0.9F, 0.5F,
             ModBlocks.altGrass.getStateFromMeta(1), Blocks.DIRT.getDefaultState());
     public static final Biome ALFHEIM_HILLS = create(
-            "alfheim_hills", 0.9F, 0.65F, 0.65F, 0.7F,
+            "alfheim_hills", 0.20F, 0.14F, 0.65F, 0.7F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
 
     public static final Biome[] ALL = {
