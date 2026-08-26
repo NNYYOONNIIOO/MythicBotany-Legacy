@@ -95,15 +95,10 @@ public final class MythicBotanyCraftTweaker {
         }
 
         List<RuneRitualRecipe.RunePosition> positions = new ArrayList<>();
-        if (runes != null) {
-            for (Object rune : runes) {
-                RuneRitualRecipe.RunePosition position = readRune(rune);
-                if (position == null) {
-                    error("Invalid rune ritual position: " + rune);
-                    return;
-                }
-                positions.add(position);
-            }
+        if (!readRunes(runes, positions)) {
+            error("Invalid rune ritual positions; use flat triples such as "
+                    + "[1, 1, <botania:rune>, 1, 0, <mythicbotany:helheim_rune>]");
+            return;
         }
 
         RuneRitualRegistry.register(new RuneRitualRecipe(centerStack,
@@ -185,6 +180,38 @@ public final class MythicBotanyCraftTweaker {
                     ((Number) position[1]).intValue(), entry[1]);
         }
         return null;
+    }
+
+    /**
+     * Reads the rune list in a form that CraftTweaker 1.12 can actually pass
+     * to Java. Nested any[] values and tuple literals are not supported by
+     * that ZenScript runtime, so each position is represented by three
+     * consecutive values: x, z and the rune item stack.
+     */
+    private static boolean readRunes(Object[] values,
+                                     List<RuneRitualRecipe.RunePosition> positions) {
+        if (values == null) {
+            return true;
+        }
+        int index = 0;
+        while (index < values.length) {
+            RuneRitualRecipe.RunePosition position;
+            if (index + 2 < values.length
+                    && values[index] instanceof Number
+                    && values[index + 1] instanceof Number) {
+                position = makeRune(((Number) values[index]).intValue(),
+                        ((Number) values[index + 1]).intValue(), values[index + 2]);
+                index += 3;
+            } else {
+                position = readRune(values[index]);
+                index++;
+            }
+            if (position == null) {
+                return false;
+            }
+            positions.add(position);
+        }
+        return true;
     }
 
     private static RuneRitualRecipe.RunePosition makeRune(int x, int z, Object value) {

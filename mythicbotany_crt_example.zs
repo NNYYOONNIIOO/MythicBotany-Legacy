@@ -18,12 +18,14 @@ mods.mythicbotany.addManaInfuserRecipe(
 
 # Rune ritual: center, extra item/entity inputs, output, positioned runes.
 # Item inputs use CT brackets; entity inputs are written by registry name.
+# CT 1.12 cannot pass tuple literals or nested any[] values to Java. Write
+# each rune position as a flat x, z, item triple instead.
 mods.mythicbotany.addRuneRitual(
     <minecraft:stone>,
     [<minecraft:stone:1>, mods.mythicbotany.entity("minecraft:zombie")],
     <minecraft:stone:1>,
-    [[1, 1, <botania:rune>],
-     [1, 0, <mythicbotany:helheim_rune>]],
+    [1, 1, <botania:rune>,
+     1, 0, <mythicbotany:helheim_rune>],
     5000,
     200
 );
