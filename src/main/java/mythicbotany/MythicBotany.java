@@ -12,6 +12,7 @@ import mythicbotany.tile.TileMjoellnir;
 import mythicbotany.pylon.TileAlfsteelPylon;
 import mythicbotany.world.ModWorldGenerator;
 import mythicbotany.dimension.ModDimensions;
+import mythicbotany.dimension.AlfheimPortalHandler;
 import mythicbotany.lexicon.MythicLexicon;
 import mythicbotany.network.NetworkHandler;
 import mythicbotany.item.AlfsteelArmorHandler;
@@ -58,6 +59,7 @@ public final class MythicBotany {
         MinecraftForge.EVENT_BUS.register(new mythicbotany.registry.ModRegistry());
         MinecraftForge.EVENT_BUS.register(new AlfsteelArmorHandler());
         MinecraftForge.EVENT_BUS.register(new MjoellnirHandler());
+        MinecraftForge.EVENT_BUS.register(new AlfheimPortalHandler());
     }
 
     @Mod.EventHandler

@@ -14,8 +14,15 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import mythicbotany.recipe.RecipeAlfsteelPickElementium;
 import mythicbotany.recipe.ModRecipes;
+import mythicbotany.world.AlfheimBiomes;
+import net.minecraft.world.biome.Biome;
 
 public final class ModRegistry {
+    @SubscribeEvent
+    public void registerBiomes(RegistryEvent.Register<Biome> event) {
+        event.getRegistry().registerAll(AlfheimBiomes.ALL);
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void registerBlocks(RegistryEvent.Register<Block> event) {
         ModRecipes.registerSpecialFlowerSubTiles();
