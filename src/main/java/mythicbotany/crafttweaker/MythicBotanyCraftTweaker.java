@@ -118,10 +118,14 @@ public final class MythicBotanyCraftTweaker {
         return registryName;
     }
 
-    /** Builds a positioned rune entry without relying on tuple conversion. */
+    /**
+     * Legacy helper for scripts that build rune entries programmatically.
+     * Direct tuple syntax is also supported, so this helper is not required:
+     * [(1, 1, <botania:rune>), (1, 0, <mythicbotany:helheim_rune>)]
+     */
     @ZenMethod
     public static Object[] rune(int x, int z, IItemStack rune) {
-        return new Object[]{new Object[]{x, z}, rune};
+        return new Object[]{x, z, rune};
     }
 
     private static ItemStack stack(IItemStack value) {
@@ -165,15 +169,20 @@ public final class MythicBotanyCraftTweaker {
         if (entry == null || entry.length < 2) {
             return null;
         }
+
+        // ZenScript tuples such as (1, 0, <mythicbotany:helheim_rune>) arrive
+        // as a flat three-element array. This is the preferred public form.
+        if (entry.length >= 3 && entry[0] instanceof Number && entry[1] instanceof Number) {
+            return makeRune(((Number) entry[0]).intValue(),
+                    ((Number) entry[1]).intValue(), entry[2]);
+        }
+
+        // Keep accepting the original nested representation for old scripts.
         Object[] position = array(entry[0]);
         if (position != null && position.length >= 2
                 && position[0] instanceof Number && position[1] instanceof Number) {
             return makeRune(((Number) position[0]).intValue(),
                     ((Number) position[1]).intValue(), entry[1]);
-        }
-        if (entry.length >= 3 && entry[0] instanceof Number && entry[1] instanceof Number) {
-            return makeRune(((Number) entry[0]).intValue(),
-                    ((Number) entry[1]).intValue(), entry[2]);
         }
         return null;
     }
