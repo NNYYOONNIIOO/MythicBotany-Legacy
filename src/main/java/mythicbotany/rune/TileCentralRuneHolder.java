@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -315,7 +316,10 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         for (String specialInput : specialInputs) {
             Entity match = null;
             for (Entity entity : world.getEntitiesWithinAABB(Entity.class, bounds)) {
-                String id = EntityList.getEntityString(entity);
+                if (entity.isDead) {
+                    continue;
+                }
+                String id = getEntityId(entity);
                 if (!used.contains(entity) && matchesEntityId(specialInput, id)) {
                     match = entity;
                     break;
@@ -338,7 +342,10 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
                 pos.getX() - 2.0D, pos.getY() - 2.0D, pos.getZ() - 2.0D,
                 pos.getX() + 3.0D, pos.getY() + 3.0D, pos.getZ() + 3.0D);
         for (Entity entity : world.getEntitiesWithinAABB(Entity.class, bounds)) {
-            String id = EntityList.getEntityString(entity);
+            if (entity.isDead) {
+                continue;
+            }
+            String id = getEntityId(entity);
             if (matchesEntityId(specialInput, id)) {
                 return entity;
             }
@@ -350,14 +357,35 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         if (expected == null || actual == null) {
             return false;
         }
-        if (expected.equals(actual)) {
-            return true;
+        return normalizeEntityId(expected).equals(normalizeEntityId(actual));
+    }
+
+    private String normalizeEntityId(String id) {
+        String normalized = id.trim().toLowerCase(Locale.ROOT);
+        while (normalized.startsWith("entity:")) {
+            normalized = normalized.substring("entity:".length());
         }
-        int separator = expected.indexOf(':');
-        String path = separator < 0 ? expected : expected.substring(separator + 1);
-        String normalizedPath = path.replace("_", "").toLowerCase(java.util.Locale.ROOT);
-        String normalizedActual = actual.replace("_", "").toLowerCase(java.util.Locale.ROOT);
-        return normalizedPath.equals(normalizedActual);
+        int separator = normalized.lastIndexOf(':');
+        if (separator >= 0) {
+            normalized = normalized.substring(separator + 1);
+        }
+        if (normalized.startsWith("entity") && normalized.length() > "entity".length()) {
+            normalized = normalized.substring("entity".length());
+        }
+        return normalized.replace("_", "").replace("-", "");
+    }
+
+    private String getEntityId(Entity entity) {
+        try {
+            java.lang.reflect.Method getKey = EntityList.class.getMethod("getKey", Entity.class);
+            Object key = getKey.invoke(null, entity);
+            if (key != null) {
+                return key.toString();
+            }
+        } catch (Exception ignored) {
+            // Older Forge mappings do not expose EntityList#getKey(Entity).
+        }
+        return EntityList.getEntityString(entity);
     }
 
     private void consumeSpecialInputs(List<String> specialInputs) {

@@ -24,6 +24,7 @@ import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.EntityList;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -32,6 +33,7 @@ import net.minecraft.util.text.TextFormatting;
 import vazkii.botania.client.core.handler.HUDHandler;
 import vazkii.botania.common.block.tile.mana.TilePool;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -229,11 +231,10 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         int entitySlot = hoveredSlot - entityStart;
                         if (entitySlot >= 0 && entitySlot < wrapper.recipe.getSpecialInputs().size()) {
                             ResourceLocation entityId = new ResourceLocation(
-                                    wrapper.recipe.getSpecialInputs().get(entitySlot));
+                                    stripEntityMarker(wrapper.recipe.getSpecialInputs().get(entitySlot)));
                             String entityName = entityDisplayName(entityId);
-                            tooltip.add(entityName + "\u751f\u7269");
-                            tooltip.add(I18n.format("tooltip.mythicbotany.sacrifice_entity1"));
-                            tooltip.add(I18n.format("tooltip.mythicbotany.sacrifice_entity2"));
+                            tooltip.add(entityName);
+                            tooltip.add(I18n.format("tooltip.mythicbotany.sacrifice_entity"));
                         }
                     }
                 }
@@ -257,13 +258,37 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
-            ItemStack stack = new ItemStack(Items.SPAWN_EGG);
+            String registryName = stripEntityMarker(entityId);
+            ItemStack stack = new ItemStack(Items.SPAWN_EGG, 1,
+                    spawnEggMetadata(registryName));
             NBTTagCompound entityTag = new NBTTagCompound();
-            entityTag.setString("id", entityId);
+            entityTag.setString("id", registryName);
             NBTTagCompound tag = new NBTTagCompound();
             tag.setTag("EntityTag", entityTag);
             stack.setTagCompound(tag);
             return stack;
+        }
+
+        private static String stripEntityMarker(String entityId) {
+            if (entityId == null) {
+                return "";
+            }
+            String value = entityId.trim();
+            return value.regionMatches(true, 0, "entity:", 0, "entity:".length())
+                    ? value.substring("entity:".length()) : value;
+        }
+
+        private static int spawnEggMetadata(String entityId) {
+            try {
+                Method getId = EntityList.class.getMethod("getIDFromString", String.class);
+                Object id = getId.invoke(null, entityId);
+                if (id instanceof Number) {
+                    return ((Number) id).intValue();
+                }
+            } catch (Exception ignored) {
+                // Custom entities may not have a vanilla spawn-egg metadata value.
+            }
+            return 0;
         }
 
         private static String entityDisplayName(ResourceLocation entityId) {
