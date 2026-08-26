@@ -69,7 +69,7 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
             if (seabedState.getBlock() == Blocks.STONE
                     || seabedState.getBlock() == Blocks.DIRT
                     || seabedState.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
-                chunk.setBlockState(seabed, Blocks.DIRT.getDefaultState());
+                chunk.setBlockState(seabed, Blocks.SAND.getDefaultState());
             }
             for (int y = surface + 1; y <= waterLevel; y++) {
                 chunk.setBlockState(new BlockPos(x, y, z), Blocks.WATER.getDefaultState());
@@ -77,8 +77,7 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
             return;
         }
 
-        boolean biomeEdge = biome == AlfheimBiomes.GOLDEN_FIELDS
-                && isBiomeEdge(x, z, biome);
+        boolean biomeEdge = isBiomeEdge(x, z, biome);
         IBlockState top = biomeEdge ? Blocks.GRASS.getDefaultState() : biome.topBlock;
         chunk.setBlockState(new BlockPos(x, surface, z), top);
         for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
@@ -102,8 +101,8 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
     }
 
     private boolean isBiomeEdge(int x, int z, Biome center) {
-        for (int dx = -4; dx <= 4; dx++) {
-            for (int dz = -4; dz <= 4; dz++) {
+        for (int dx = -8; dx <= 8; dx += 2) {
+            for (int dz = -8; dz <= 8; dz += 2) {
                 if (dx == 0 && dz == 0) {
                     continue;
                 }
