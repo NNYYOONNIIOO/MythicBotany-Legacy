@@ -2,14 +2,14 @@ package mythicbotany.world;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.storage.WorldInfo;
 import net.minecraft.world.biome.BiomeProvider;
+import net.minecraft.world.storage.WorldInfo;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-/** Deterministic, low-frequency biome regions for Alfheim. */
+/** Continuous, domain-warped biome source for Alfheim. */
 public final class AlfheimBiomeProvider extends BiomeProvider {
     private final long seed;
 
@@ -24,15 +24,14 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
     }
 
     @Override
-    public Biome[] getBiomesForGeneration(Biome[] reuse,
-                                                  int x, int z,
-                                                  int width, int height) {
+    public Biome[] getBiomesForGeneration(Biome[] reuse, int x, int z,
+                                          int width, int height) {
         return fill(reuse, x, z, width, height);
     }
 
     @Override
     public Biome[] getBiomes(Biome[] reuse, int x, int z,
-                                    int width, int height, boolean cacheFlag) {
+                             int width, int height, boolean cacheFlag) {
         return fill(reuse, x, z, width, height);
     }
 
@@ -82,8 +81,7 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         return temperature;
     }
 
-    private Biome[] fill(Biome[] reuse, int x, int z,
-                                int width, int height) {
+    private Biome[] fill(Biome[] reuse, int x, int z, int width, int height) {
         int size = width * height;
         if (reuse == null || reuse.length < size) {
             reuse = new Biome[size];
@@ -98,50 +96,83 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
     }
 
     private Biome getBiomeAt(int x, int z) {
-        // Sample continuous value noise instead of floor-dividing coordinates. The
-        // old implementation changed biome exactly at 192/256-block boundaries,
-        // which made every boundary line up with a chunk edge.
-        double continentalness = smoothNoise(x / 256.0D, z / 256.0D, 0x31A7L);
-        double weirdness = smoothNoise(x / 192.0D, z / 192.0D, 0x9E37L);
-        if (continentalness < -0.35D) {
+        // Several smooth octaves plus a small coordinate warp keep boundaries
+        // curved and independent of chunk coordinates.
+        double warpX = fractalNoise(x / 320.0D, z / 320.0D, 0x4D595448L);
+        double warpZ = fractalNoise(x / 320.0D, z / 320.0D, 0x59474744L);
+        double warpedX = x + warpX * 96.0D;
+        double warpedZ = z + warpZ * 96.0D;
+
+        double land = fractalNoise(warpedX / 640.0D, warpedZ / 640.0D, 0x31A7L);
+        double moisture = fractalNoise((warpedX - warpZ * 48.0D) / 360.0D,
+                (warpedZ + warpX * 48.0D) / 360.0D, 0x9E37L);
+        double climate = fractalNoise((warpedX + warpX * 64.0D) / 420.0D,
+                (warpedZ + warpZ * 64.0D) / 420.0D, 0xA17F5L);
+
+        if (land < -0.42D) {
             return AlfheimBiomes.ALFHEIM_LAKES;
         }
-        if (continentalness < -0.05D) {
-            return AlfheimBiomes.ALFHEIM_PLAINS;
+        if (land > 0.54D) {
+            return AlfheimBiomes.ALFHEIM_HILLS;
         }
-        if (continentalness < 0.35D) {
-            return weirdness < 0.0D
-                    ? AlfheimBiomes.DREAMWOOD_FOREST : AlfheimBiomes.GOLDEN_FIELDS;
+        if (climate > 0.54D && land > -0.10D && land < 0.42D) {
+            return AlfheimBiomes.GOLDEN_FIELDS;
         }
-        return AlfheimBiomes.ALFHEIM_HILLS;
+        if (moisture > 0.10D && land > -0.20D) {
+            return AlfheimBiomes.DREAMWOOD_FOREST;
+        }
+        return AlfheimBiomes.ALFHEIM_PLAINS;
     }
 
-    private double smoothNoise(double x, double z, long salt) {
+    private double fractalNoise(double x, double z, long salt) {
+        double value = 0.0D;
+        double amplitude = 1.0D;
+        double amplitudeSum = 0.0D;
+        double frequency = 1.0D;
+        for (int octave = 0; octave < 4; octave++) {
+            value += gradientNoise(x * frequency, z * frequency,
+                    salt + octave * 0x632BE59BD9B4E019L) * amplitude;
+            amplitudeSum += amplitude;
+            amplitude *= 0.5D;
+            frequency *= 2.0D;
+        }
+        return value / amplitudeSum;
+    }
+
+    private double gradientNoise(double x, double z, long salt) {
         int x0 = (int) Math.floor(x);
         int z0 = (int) Math.floor(z);
         double tx = fade(x - x0);
         double tz = fade(z - z0);
-        double n00 = hash(x0, z0, salt);
-        double n10 = hash(x0 + 1, z0, salt);
-        double n01 = hash(x0, z0 + 1, salt);
-        double n11 = hash(x0 + 1, z0 + 1, salt);
-        double nx0 = lerp(n00, n10, tx);
-        double nx1 = lerp(n01, n11, tx);
-        return lerp(nx0, nx1, tz);
+        double n00 = gradientDot(x0, z0, x - x0, z - z0, salt);
+        double n10 = gradientDot(x0 + 1, z0, x - x0 - 1.0D, z - z0, salt);
+        double n01 = gradientDot(x0, z0 + 1, x - x0, z - z0 - 1.0D, salt);
+        double n11 = gradientDot(x0 + 1, z0 + 1,
+                x - x0 - 1.0D, z - z0 - 1.0D, salt);
+        return lerp(lerp(n00, n10, tx), lerp(n01, n11, tx), tz) * 1.6D;
     }
 
-    private double hash(int x, int z, long salt) {
+    private double gradientDot(int x, int z, double dx, double dz, long salt) {
         long value = seed ^ salt;
         value ^= (long) x * 341873128712L;
         value ^= (long) z * 132897987541L;
         value = (value ^ (value >>> 33)) * 0xff51afd7ed558ccdL;
         value = (value ^ (value >>> 33)) * 0xc4ceb9fe1a85ec53L;
         value ^= value >>> 33;
-        return ((value & 0x1FFFFFFFFFFFFFL) / (double) 0x20000000000000L) * 2.0D - 1.0D;
+        switch ((int) (value & 7L)) {
+            case 0: return dx + dz;
+            case 1: return -dx + dz;
+            case 2: return dx - dz;
+            case 3: return -dx - dz;
+            case 4: return dx;
+            case 5: return -dx;
+            case 6: return dz;
+            default: return -dz;
+        }
     }
 
     private static double fade(double value) {
-        return value * value * (3.0D - 2.0D * value);
+        return value * value * value * (value * (value * 6.0D - 15.0D) + 10.0D);
     }
 
     private static double lerp(double first, double second, double amount) {

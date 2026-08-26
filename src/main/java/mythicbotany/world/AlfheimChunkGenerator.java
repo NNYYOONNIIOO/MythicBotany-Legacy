@@ -9,10 +9,6 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkGeneratorOverworld;
 
-import java.util.Random;
-
-import vazkii.botania.common.block.ModFluffBlocks;
-
 /** Overworld terrain with Alfheim biomes and a livingrock underground. */
 public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
     private final World alfheimWorld;
@@ -27,8 +23,6 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
     public Chunk generateChunk(int chunkX, int chunkZ) {
         Chunk chunk = super.generateChunk(chunkX, chunkZ);
         IBlockState livingrock = vazkii.botania.common.block.ModBlocks.livingrock.getDefaultState();
-        Random random = new Random(alfheimWorld.getSeed() ^ (chunkX * 341873128712L)
-                ^ (chunkZ * 132897987541L));
         int startX = chunkX * 16;
         int startZ = chunkZ * 16;
         for (int localX = 0; localX < 16; localX++) {
@@ -39,10 +33,6 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
                     BlockPos pos = new BlockPos(x, y, z);
                     if (chunk.getBlockState(pos).getBlock() == Blocks.STONE) {
                         chunk.setBlockState(pos, livingrock);
-                        if (y < 55 && random.nextInt(180) == 0) {
-                            chunk.setBlockState(pos, ModFluffBlocks.biomeStoneA
-                                    .getStateFromMeta(random.nextInt(16)));
-                        }
                     }
                 }
                 applyBiomeSurface(chunk, x, z, alfheimWorld.getBiome(new BlockPos(x, 0, z)));
@@ -59,22 +49,28 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
 
         if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
             final int waterLevel = 63;
-            // Keep the seabed at its generated height. Sand belongs on the
-            // seabed, not at fixed y=60/61 across every lake column.
+            // Do not carve every lake column to one flat shelf. Only columns
+            // near sea level become water; higher terrain remains a grassy
+            // shoreline. Sand is limited to the actual seabed.
+            if (surface > waterLevel + 4) {
+                chunk.setBlockState(new BlockPos(x, surface, z), Blocks.GRASS.getDefaultState());
+                for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
+                    chunk.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState());
+                }
+                return;
+            }
             if (surface >= waterLevel) {
                 for (int y = waterLevel; y <= surface; y++) {
                     chunk.setBlockState(new BlockPos(x, y, z), Blocks.AIR.getDefaultState());
                 }
                 surface = waterLevel - 1;
             }
-            for (int y = surface; y >= Math.max(1, surface - 2); y--) {
-                BlockPos pos = new BlockPos(x, y, z);
-                IBlockState state = chunk.getBlockState(pos);
-                if (state.getBlock() == Blocks.STONE
-                        || state.getBlock() == Blocks.DIRT
-                        || state.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
-                    chunk.setBlockState(pos, Blocks.SAND.getDefaultState());
-                }
+            BlockPos seabed = new BlockPos(x, surface, z);
+            IBlockState seabedState = chunk.getBlockState(seabed);
+            if (seabedState.getBlock() == Blocks.STONE
+                    || seabedState.getBlock() == Blocks.DIRT
+                    || seabedState.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
+                chunk.setBlockState(seabed, Blocks.SAND.getDefaultState());
             }
             for (int y = surface + 1; y <= waterLevel; y++) {
                 chunk.setBlockState(new BlockPos(x, y, z), Blocks.WATER.getDefaultState());

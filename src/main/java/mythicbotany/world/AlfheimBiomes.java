@@ -13,27 +13,25 @@ import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.biome.Biome;
-import vazkii.botania.api.state.BotaniaStateProps;
-import vazkii.botania.api.state.enums.AltGrassVariant;
 import vazkii.botania.common.block.ModBlocks;
 
 /** The large-scale biome palette used by the Alfheim dimension. */
 public final class AlfheimBiomes {
     public static final Biome ALFHEIM_LAKES = create(
             "alfheim_lakes", -0.55F, 0.08F, 0.7F, 0.9F,
-            Blocks.SAND.getDefaultState(), Blocks.SAND.getDefaultState(), 0);
+            Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome ALFHEIM_PLAINS = create(
             "alfheim_plains", 0.1F, 0.05F, 0.8F, 0.7F,
-            Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState(), 2);
+            Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome DREAMWOOD_FOREST = create(
             "dreamwood_forest", 0.3F, 0.25F, 0.75F, 0.8F,
-            Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState(), 4);
+            Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome GOLDEN_FIELDS = create(
             "golden_fields", 0.05F, 0.04F, 0.9F, 0.5F,
-            altGrass(AltGrassVariant.GOLDEN), Blocks.DIRT.getDefaultState(), 0);
+            ModBlocks.altGrass.getStateFromMeta(1), Blocks.DIRT.getDefaultState());
     public static final Biome ALFHEIM_HILLS = create(
             "alfheim_hills", 0.9F, 0.65F, 0.65F, 0.7F,
-            Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState(), 1);
+            Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
 
     public static final Biome[] ALL = {
             ALFHEIM_LAKES, ALFHEIM_PLAINS, DREAMWOOD_FOREST,
@@ -46,7 +44,7 @@ public final class AlfheimBiomes {
     private static Biome create(String name, float baseHeight,
                                 float heightVariation, float temperature,
                                 float rainfall, IBlockState top,
-                                IBlockState filler, int vanillaTreesPerChunk) {
+                                IBlockState filler) {
         Biome biome = new Biome(new Biome.BiomeProperties(
                 "mythicbotany." + name)
                 .setBaseHeight(baseHeight)
@@ -56,7 +54,9 @@ public final class AlfheimBiomes {
         };
         biome.topBlock = top;
         biome.fillerBlock = filler;
-        biome.decorator.treesPerChunk = vanillaTreesPerChunk;
+        // Vanilla trees are placed explicitly by ModWorldGenerator so they
+        // remain present even though this dimension has a custom generator.
+        biome.decorator.treesPerChunk = 0;
         biome.getSpawnableList(EnumCreatureType.CREATURE).add(new Biome.SpawnListEntry(
                 EntityAlfPixie.class, 5, 4, 10));
         biome.getSpawnableList(EnumCreatureType.CREATURE).add(new Biome.SpawnListEntry(
@@ -75,9 +75,4 @@ public final class AlfheimBiomes {
         return biome;
     }
 
-    /** Botania's enum order makes GOLDEN the only permitted altgrass:1 variant. */
-    private static IBlockState altGrass(AltGrassVariant variant) {
-        return ModBlocks.altGrass.getDefaultState()
-                .withProperty(BotaniaStateProps.ALTGRASS_VARIANT, variant);
-    }
 }

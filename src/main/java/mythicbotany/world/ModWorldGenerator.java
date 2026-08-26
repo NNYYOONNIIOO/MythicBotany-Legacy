@@ -12,6 +12,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.feature.WorldGenMinable;
+import net.minecraft.world.gen.feature.WorldGenTrees;
 import net.minecraftforge.fml.common.IWorldGenerator;
 
 import java.util.Random;
@@ -60,6 +61,10 @@ public class ModWorldGenerator implements IWorldGenerator {
 
     private void generateAlfheimFeatures(World world, Random random, int chunkX, int chunkZ) {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
+        int vanillaTreeCount = biome == AlfheimBiomes.DREAMWOOD_FOREST ? 2
+                : biome == AlfheimBiomes.ALFHEIM_PLAINS ? 2
+                : biome == AlfheimBiomes.ALFHEIM_HILLS ? 1 : 0;
+        generateVanillaTrees(world, random, chunkX, chunkZ, biome, vanillaTreeCount);
         if (biome == AlfheimBiomes.DREAMWOOD_FOREST) {
             for (int i = 0; i < 4 + random.nextInt(4); i++) {
                 generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
@@ -87,6 +92,25 @@ public class ModWorldGenerator implements IWorldGenerator {
         if (random.nextInt(biome == AlfheimBiomes.DREAMWOOD_FOREST ? 18 : 28) == 0) {
             generateAbandonedApothecary(world, random, chunkX * 16 + random.nextInt(16),
                     chunkZ * 16 + random.nextInt(16));
+        }
+    }
+
+    private void generateVanillaTrees(World world, Random random, int chunkX, int chunkZ,
+                                      Biome biome, int count) {
+        if (count <= 0) {
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            int x = chunkX * 16 + random.nextInt(16);
+            int z = chunkZ * 16 + random.nextInt(16);
+            BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
+            IBlockState ground = world.getBlockState(surface);
+            if ((ground.getBlock() != Blocks.GRASS && ground.getBlock() != Blocks.DIRT)
+                    || !world.isAirBlock(surface.up())) {
+                continue;
+            }
+            WorldGenTrees tree = new WorldGenTrees(false);
+            tree.generate(world, random, surface.up());
         }
     }
 
