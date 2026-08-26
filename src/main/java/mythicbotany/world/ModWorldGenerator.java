@@ -21,12 +21,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.IWorldGenerator;
 import vazkii.botania.api.mana.IManaPool;
+import vazkii.botania.api.state.BotaniaStateProps;
+import vazkii.botania.api.state.enums.PoolVariant;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 /** Adds MythicBotany ores to the vanilla overworld generation pipeline. */
 @Mod.EventBusSubscriber(modid = MythicBotany.MODID)
@@ -98,20 +98,20 @@ public class ModWorldGenerator implements IWorldGenerator {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
         // Sample each feature position independently. This prevents tree
         // density from changing in square bands when a biome crosses a chunk.
-        // Keep the forest denser than the other biomes without filling every
-        // chunk with overlapping trees.
-        int treeAttempts = biome == AlfheimBiomes.DREAMWOOD_FOREST ? 3 : 2;
+        // The 1.20 reference uses a rare loose placement and a denser forest
+        // placement. These trees are much larger in 1.12, so use a lower
+        // probability here to keep the forest readable instead of filling
+        // every chunk with overlapping canopies.
+        int treeAttempts = 1;
         for (int i = 0; i < treeAttempts; i++) {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
-            if (treeBiome == AlfheimBiomes.DREAMWOOD_FOREST
-                    || (treeBiome == AlfheimBiomes.ALFHEIM_PLAINS
-                    && random.nextInt(4) == 0)
-                    || (treeBiome == AlfheimBiomes.ALFHEIM_HILLS
-                    && random.nextInt(8) == 0)
-                    || (treeBiome == AlfheimBiomes.GOLDEN_FIELDS
-                    && random.nextInt(10) == 0)) {
+            int chance = treeBiome == AlfheimBiomes.DREAMWOOD_FOREST ? 4
+                    : treeBiome == AlfheimBiomes.ALFHEIM_PLAINS ? 12
+                    : treeBiome == AlfheimBiomes.ALFHEIM_HILLS ? 16
+                    : treeBiome == AlfheimBiomes.GOLDEN_FIELDS ? 20 : 0;
+            if (chance > 0 && random.nextInt(chance) == 0) {
                 generateDreamwoodTree(world, random, x, z);
             }
         }
@@ -215,19 +215,27 @@ public class ModWorldGenerator implements IWorldGenerator {
         int centerX = chunkX * 16 + random.nextInt(12) + 2;
         int centerZ = chunkZ * 16 + random.nextInt(12) + 2;
         int wheatCount = 3 + random.nextInt(6);
-        Set<BlockPos> planted = new HashSet<>();
+        int planted = 0;
         int attempts = wheatCount * 8;
-        while (planted.size() < wheatCount && attempts-- > 0) {
+        while (planted < wheatCount && attempts-- > 0) {
             int x = centerX + random.nextInt(5) - 2;
             int z = centerZ + random.nextInt(5) - 2;
             BlockPos surface = findGroundSurface(world, x, z);
             if (surface != null && world.isAirBlock(surface.up())
-                    && planted.add(surface)) {
+                    && isValidWheatGround(world, surface)) {
                 world.setBlockState(surface, Blocks.FARMLAND.getDefaultState(), 2);
                 world.setBlockState(surface.up(), Blocks.WHEAT.getDefaultState()
                         .withProperty(BlockCrops.AGE, 7), 2);
+                planted++;
             }
         }
+    }
+
+    private boolean isValidWheatGround(World world, BlockPos surface) {
+        IBlockState state = world.getBlockState(surface);
+        return state.getBlock() == Blocks.GRASS || state.getBlock() == Blocks.DIRT
+                || (state.getBlock() == vazkii.botania.common.block.ModBlocks.altGrass
+                && state.getBlock().getMetaFromState(state) == 1);
     }
 
     private boolean generateManaCrystal(World world, Random random, int x, int z) {
@@ -283,13 +291,13 @@ public class ModWorldGenerator implements IWorldGenerator {
     /** Resolve the diluted variant by its state name instead of assuming that
      * every Botania 1.12 build uses the same metadata ordering. */
     private IBlockState getDilutedPoolState() {
-        for (int meta = 0; meta < 4; meta++) {
-            IBlockState state = vazkii.botania.common.block.ModBlocks.pool
-                    .getStateFromMeta(meta);
-            if (state.toString().toLowerCase(java.util.Locale.ROOT).contains("diluted")) {
-                return state;
+        for (PoolVariant variant : PoolVariant.values()) {
+            if (variant.name().toLowerCase(java.util.Locale.ROOT).contains("dilut")) {
+                return vazkii.botania.common.block.ModBlocks.pool.getDefaultState()
+                        .withProperty(BotaniaStateProps.POOL_VARIANT, variant);
             }
         }
+        // Compatibility fallback for Botania builds without a named variant.
         return vazkii.botania.common.block.ModBlocks.pool.getStateFromMeta(1);
     }
 
