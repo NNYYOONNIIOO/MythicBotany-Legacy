@@ -1,3 +1,6 @@
 {
-  "parent": "mythicbotany:block/return_portal"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "botania:blocks/alfheim_portal_swirl"
+  }
 }

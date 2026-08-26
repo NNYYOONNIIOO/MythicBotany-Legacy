@@ -1,12 +1,18 @@
 package mythicbotany.dimension;
 
 import mythicbotany.item.ItemKvasirMead;
+import mythicbotany.block.BlockReturnPortal;
+import mythicbotany.registry.ModBlocks;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.EntityPlayer.SleepResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import vazkii.botania.api.recipe.ElvenPortalUpdateEvent;
@@ -55,6 +61,48 @@ public final class AlfheimPortalHandler {
         }
         if (advancePortalTime(player)) {
             teleportToOverworld(player, portalPos);
+        }
+    }
+
+    /** Beds set a spawn point in Alfheim, but never advance the night. */
+    @SubscribeEvent
+    public void onPlayerSleep(PlayerSleepInBedEvent event) {
+        EntityPlayer player = event.getEntityPlayer();
+        if (player.world.provider.getDimension() != ModDimensions.ALFHEIM_DIMENSION_ID
+                || player.world.isRemote) {
+            return;
+        }
+        player.setSpawnPoint(event.getPos(), false);
+        event.setResult(SleepResult.NOT_POSSIBLE_NOW);
+    }
+
+    /** Nether portals are not valid in Alfheim; End portals are unaffected. */
+    @SubscribeEvent
+    public void denyNetherPortal(BlockEvent.PortalSpawnEvent event) {
+        if (event.getWorld().provider.getDimension() == ModDimensions.ALFHEIM_DIMENSION_ID) {
+            event.setCanceled(true);
+        }
+    }
+
+    /** Breaking any part of a return portal's frame removes its surface. */
+    @SubscribeEvent
+    public void removeReturnPortalOnFrameBreak(BlockEvent.BreakEvent event) {
+        World world = event.getWorld();
+        if (event.isCanceled()
+                || world.provider.getDimension() != ModDimensions.ALFHEIM_DIMENSION_ID
+                || !BlockReturnPortal.isFrameBlock(event.getState())) {
+            return;
+        }
+        BlockPos broken = event.getPos();
+        for (int x = -2; x <= 2; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -2; z <= 2; z++) {
+                    BlockPos candidate = broken.add(x, y, z);
+                    if (world.getBlockState(candidate).getBlock() == ModBlocks.returnPortal) {
+                        world.setBlockToAir(candidate);
+                    }
+                }
+            }
         }
     }
 

@@ -46,7 +46,17 @@ public class TeleporterAlfheim extends Teleporter {
         BlockPos source = sourcePos == null ? world.getSpawnPoint() : sourcePos;
         BlockPos surface = world.getTopSolidOrLiquidBlock(
                 new BlockPos(source.getX(), 0, source.getZ()));
-        BlockPos center = surface.up();
+        // Put the return platform three blocks below the old destination and
+        // open a three-block-high shaft above it.
+        BlockPos currentCenter = surface.up();
+        BlockPos center = currentCenter.down(3);
+        for (int y = 1; y <= 3; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    world.setBlockToAir(center.add(x, y, z));
+                }
+            }
+        }
         IBlockState livingwood = vazkii.botania.common.block.ModBlocks.livingwood
                 .getDefaultState()
                 .withProperty(BotaniaStateProps.LIVINGWOOD_VARIANT, LivingWoodVariant.DEFAULT);

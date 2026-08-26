@@ -1,6 +1,19 @@
 {
-  "parent": "block/cross",
+  "ambientocclusion": false,
   "textures": {
-    "cross": "botania:blocks/alfheim_portal"
-  }
+    "particle": "botania:blocks/alfheim_portal_swirl",
+    "portal": "botania:blocks/alfheim_portal_swirl"
+  },
+  "elements": [
+    {
+      "from": [0, 0.01, 0],
+      "to": [16, 0.02, 16],
+      "faces": {
+        "up": {
+          "uv": [0, 0, 16, 16],
+          "texture": "#portal"
+        }
+      }
+    }
+  ]
 }

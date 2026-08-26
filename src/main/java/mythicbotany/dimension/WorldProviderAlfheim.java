@@ -3,6 +3,7 @@ package mythicbotany.dimension;
 import net.minecraft.world.DimensionType;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.biome.BiomeProvider;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.gen.IChunkGenerator;
 import mythicbotany.world.AlfheimChunkGenerator;
 import mythicbotany.world.VanillaTransitionAlfheimBiomeProvider;
@@ -34,7 +35,16 @@ public class WorldProviderAlfheim extends WorldProvider {
 
     @Override
     public boolean canRespawnHere() {
-        return false;
+        return true;
+    }
+
+    @Override
+    public int getRespawnDimension(EntityPlayerMP player) {
+        if (player != null && player.getBedLocation() != null
+                && player.getSpawnDimension() == getDimension()) {
+            return getDimension();
+        }
+        return 0;
     }
 
 }

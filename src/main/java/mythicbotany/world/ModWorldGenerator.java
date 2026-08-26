@@ -23,8 +23,10 @@ import net.minecraftforge.fml.common.IWorldGenerator;
 import vazkii.botania.api.mana.IManaPool;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /** Adds MythicBotany ores to the vanilla overworld generation pipeline. */
 @Mod.EventBusSubscriber(modid = MythicBotany.MODID)
@@ -96,18 +98,20 @@ public class ModWorldGenerator implements IWorldGenerator {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
         // Sample each feature position independently. This prevents tree
         // density from changing in square bands when a biome crosses a chunk.
-        int treeAttempts = biome == AlfheimBiomes.DREAMWOOD_FOREST ? 10 : 7;
+        // Keep the forest denser than the other biomes without filling every
+        // chunk with overlapping trees.
+        int treeAttempts = biome == AlfheimBiomes.DREAMWOOD_FOREST ? 3 : 2;
         for (int i = 0; i < treeAttempts; i++) {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
             if (treeBiome == AlfheimBiomes.DREAMWOOD_FOREST
                     || (treeBiome == AlfheimBiomes.ALFHEIM_PLAINS
-                    && random.nextInt(3) == 0)
+                    && random.nextInt(4) == 0)
                     || (treeBiome == AlfheimBiomes.ALFHEIM_HILLS
-                    && random.nextInt(6) == 0)
+                    && random.nextInt(8) == 0)
                     || (treeBiome == AlfheimBiomes.GOLDEN_FIELDS
-                    && random.nextInt(8) == 0)) {
+                    && random.nextInt(10) == 0)) {
                 generateDreamwoodTree(world, random, x, z);
             }
         }
@@ -160,11 +164,41 @@ public class ModWorldGenerator implements IWorldGenerator {
         return null;
     }
 
+    /**
+     * Finds actual terrain below a tree canopy. The old top-solid lookup
+     * returned leaves/logs after tree generation, so flowers and wheat were
+     * occasionally placed on top of a newly generated tree.
+     */
+    private BlockPos findGroundSurface(World world, int x, int z) {
+        BlockPos top = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
+        for (int y = Math.min(world.getActualHeight() - 1, top.getY()); y > 0; y--) {
+            BlockPos pos = new BlockPos(x, y, z);
+            IBlockState state = world.getBlockState(pos);
+            Block block = state.getBlock();
+            if (block == Blocks.GRASS || block == Blocks.DIRT
+                    || block == Blocks.FARMLAND || block == Blocks.GRASS_PATH
+                    || (block == vazkii.botania.common.block.ModBlocks.altGrass
+                    && block.getMetaFromState(state) == 1)) {
+                return pos;
+            }
+            if (block == vazkii.botania.common.block.ModBlocks.dreamwood
+                    || block == ModBlocks.dreamwoodLeaves
+                    || state.getMaterial() == Material.LEAVES
+                    || state.getMaterial() == Material.PLANTS
+                    || state.getMaterial() == Material.AIR) {
+                continue;
+            }
+            // Do not tunnel through arbitrary terrain or player structures.
+            return null;
+        }
+        return null;
+    }
+
     private void generateFlowers(World world, Random random, int chunkX, int chunkZ, int count) {
         for (int i = 0; i < count; i++) {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
-            BlockPos surface = findSolidSurface(world, x, z);
+            BlockPos surface = findGroundSurface(world, x, z);
             if (surface != null
                     && world.isAirBlock(surface.up())) {
                 world.setBlockState(surface.up(), (i & 1) == 0
@@ -180,21 +214,24 @@ public class ModWorldGenerator implements IWorldGenerator {
         }
         int centerX = chunkX * 16 + random.nextInt(12) + 2;
         int centerZ = chunkZ * 16 + random.nextInt(12) + 2;
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dz = -2; dz <= 2; dz++) {
-                BlockPos surface = findSolidSurface(world, centerX + dx, centerZ + dz);
-                if (surface != null
-                        && world.isAirBlock(surface.up())) {
-                    world.setBlockState(surface, Blocks.FARMLAND.getDefaultState(), 2);
-                    world.setBlockState(surface.up(), Blocks.WHEAT.getDefaultState()
-                            .withProperty(BlockCrops.AGE, 7), 2);
-                }
+        int wheatCount = 3 + random.nextInt(6);
+        Set<BlockPos> planted = new HashSet<>();
+        int attempts = wheatCount * 8;
+        while (planted.size() < wheatCount && attempts-- > 0) {
+            int x = centerX + random.nextInt(5) - 2;
+            int z = centerZ + random.nextInt(5) - 2;
+            BlockPos surface = findGroundSurface(world, x, z);
+            if (surface != null && world.isAirBlock(surface.up())
+                    && planted.add(surface)) {
+                world.setBlockState(surface, Blocks.FARMLAND.getDefaultState(), 2);
+                world.setBlockState(surface.up(), Blocks.WHEAT.getDefaultState()
+                        .withProperty(BlockCrops.AGE, 7), 2);
             }
         }
     }
 
     private boolean generateManaCrystal(World world, Random random, int x, int z) {
-        BlockPos surface = findSolidSurface(world, x, z);
+        BlockPos surface = findGroundSurface(world, x, z);
         if (surface == null) {
             return false;
         }
@@ -229,7 +266,7 @@ public class ModWorldGenerator implements IWorldGenerator {
         // This is the 1.12 equivalent of MythicBotany's diluted mana pool
         // crystal: a diluted pool stores the generated mana while bifrost
         // pillars form the visible crystal around it.
-        IBlockState pool = vazkii.botania.common.block.ModBlocks.pool.getStateFromMeta(1);
+        IBlockState pool = getDilutedPoolState();
         world.setBlockState(origin, pool, 2);
         TileEntity tile = world.getTileEntity(origin);
         if (tile instanceof IManaPool) {
@@ -241,6 +278,19 @@ public class ModWorldGenerator implements IWorldGenerator {
             world.setBlockState(pos, crystal, 2);
         }
         return true;
+    }
+
+    /** Resolve the diluted variant by its state name instead of assuming that
+     * every Botania 1.12 build uses the same metadata ordering. */
+    private IBlockState getDilutedPoolState() {
+        for (int meta = 0; meta < 4; meta++) {
+            IBlockState state = vazkii.botania.common.block.ModBlocks.pool
+                    .getStateFromMeta(meta);
+            if (state.toString().toLowerCase(java.util.Locale.ROOT).contains("diluted")) {
+                return state;
+            }
+        }
+        return vazkii.botania.common.block.ModBlocks.pool.getStateFromMeta(1);
     }
 
     private boolean canReplaceCrystalBlock(World world, BlockPos pos) {
@@ -264,7 +314,7 @@ public class ModWorldGenerator implements IWorldGenerator {
     }
 
     private void generateDreamwoodTree(World world, Random random, int x, int z) {
-        BlockPos surface = findSolidSurface(world, x, z);
+        BlockPos surface = findGroundSurface(world, x, z);
         if (surface == null) {
             return;
         }

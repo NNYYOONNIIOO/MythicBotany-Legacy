@@ -11,6 +11,7 @@ import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.monster.EntityEnderman;
 import net.minecraft.entity.monster.EntityEndermite;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -86,9 +87,27 @@ public class EntityAlfPixie extends EntityMob {
 
     public void travel(Vec3d travelVector) {
         move(MoverType.SELF, motionX, motionY, motionZ);
+        updateFlightRotation();
         motionX *= 0.91D;
         motionY *= 0.91D;
         motionZ *= 0.91D;
+    }
+
+    /** Keep the rendered body aligned with the direction the pixie is flying. */
+    private void updateFlightRotation() {
+        double horizontalSpeed = Math.sqrt(motionX * motionX + motionZ * motionZ);
+        if (horizontalSpeed < 1.0E-4D && Math.abs(motionY) < 1.0E-4D) {
+            return;
+        }
+
+        float yaw = (float) (MathHelper.atan2(motionZ, motionX) * 180.0D / Math.PI)
+                - 90.0F;
+        float pitch = (float) (-MathHelper.atan2(motionY, horizontalSpeed)
+                * 180.0D / Math.PI);
+        rotationYaw = yaw;
+        rotationYawHead = yaw;
+        renderYawOffset = yaw;
+        rotationPitch = pitch;
     }
 
     public void fall(float distance, float damageMultiplier) {
