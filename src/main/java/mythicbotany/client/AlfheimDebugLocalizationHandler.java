@@ -27,17 +27,22 @@ public final class AlfheimDebugLocalizationHandler {
     private static void localize(List<String> lines) {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
-            if (line == null || !line.startsWith(BIOME_PREFIX)) {
+            if (line == null) {
                 continue;
             }
-            String biomeId = line.substring(BIOME_PREFIX.length());
+
+            // Forge's debug overlay has two 1.12 layouts: some versions add
+            // "Biome: ", while GuiOverlayDebugForge can emit the registry id
+            // as a bare line. Handle both forms.
+            boolean hasPrefix = line.startsWith(BIOME_PREFIX);
+            String biomeId = hasPrefix ? line.substring(BIOME_PREFIX.length()) : line;
             if (!biomeId.startsWith(MythicBotany.MODID + ".")) {
                 continue;
             }
             String key = "biome." + biomeId;
             String localized = I18n.format(key);
             if (!localized.equals(key)) {
-                lines.set(i, BIOME_PREFIX + localized);
+                lines.set(i, hasPrefix ? BIOME_PREFIX + localized : localized);
             }
         }
     }
