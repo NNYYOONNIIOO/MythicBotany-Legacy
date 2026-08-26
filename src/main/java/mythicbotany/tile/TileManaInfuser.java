@@ -76,8 +76,12 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
     }
 
     private List<EntityItem> getItems() {
-        return world.getEntitiesWithinAABB(EntityItem.class,
-                new AxisAlignedBB(pos, pos.add(1, 1, 1)));
+        // Ingredients rest on top of the infuser. The old one-block-high box
+        // ended at the block's upper face, so dropped stacks whose entity
+        // origin was above that face were never seen by custom CRT recipes.
+        return world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(
+                pos.getX() - 0.25D, pos.getY(), pos.getZ() - 0.25D,
+                pos.getX() + 1.25D, pos.getY() + 2.0D, pos.getZ() + 1.25D));
     }
 
     private InfuserRecipe findRecipe(List<EntityItem> items) {
