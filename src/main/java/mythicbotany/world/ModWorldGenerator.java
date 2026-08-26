@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
@@ -19,6 +20,7 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.IWorldGenerator;
+import vazkii.botania.api.mana.IManaPool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,14 +96,17 @@ public class ModWorldGenerator implements IWorldGenerator {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
         // Sample each feature position independently. This prevents tree
         // density from changing in square bands when a biome crosses a chunk.
-        for (int i = 0; i < 6; i++) {
+        int treeAttempts = biome == AlfheimBiomes.DREAMWOOD_FOREST ? 10 : 7;
+        for (int i = 0; i < treeAttempts; i++) {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
             Biome treeBiome = world.getBiome(new BlockPos(x, 0, z));
             if (treeBiome == AlfheimBiomes.DREAMWOOD_FOREST
                     || (treeBiome == AlfheimBiomes.ALFHEIM_PLAINS
-                    && random.nextInt(5) == 0)
+                    && random.nextInt(3) == 0)
                     || (treeBiome == AlfheimBiomes.ALFHEIM_HILLS
+                    && random.nextInt(6) == 0)
+                    || (treeBiome == AlfheimBiomes.GOLDEN_FIELDS
                     && random.nextInt(8) == 0)) {
                 generateDreamwoodTree(world, random, x, z);
             }
@@ -113,9 +118,15 @@ public class ModWorldGenerator implements IWorldGenerator {
         } else if (biome == AlfheimBiomes.GOLDEN_FIELDS) {
             generateGoldenField(world, random, chunkX, chunkZ);
         } else if (biome == AlfheimBiomes.ALFHEIM_HILLS) {
-            if (random.nextInt(24) == 0) {
-                generateManaCrystal(world, random, chunkX * 16 + random.nextInt(16),
-                        chunkZ * 16 + random.nextInt(16));
+            if (random.nextInt(2) == 0) {
+                int crystalAttempts = 1 + random.nextInt(2);
+                for (int i = 0; i < crystalAttempts; i++) {
+                    if (generateManaCrystal(world, random,
+                            chunkX * 16 + random.nextInt(16),
+                            chunkZ * 16 + random.nextInt(16))) {
+                        break;
+                    }
+                }
             }
             generateFlowers(world, random, chunkX, chunkZ, 3);
         } else if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
@@ -128,12 +139,33 @@ public class ModWorldGenerator implements IWorldGenerator {
         }
     }
 
+    private BlockPos findSolidSurface(World world, int x, int z) {
+        BlockPos top = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
+        if (top.getY() <= 0) {
+            return null;
+        }
+        IBlockState topState = world.getBlockState(top);
+        // Do not grow land features on top of an ocean or a liquid column.
+        if (topState.getMaterial() == Material.WATER
+                || topState.getMaterial() == Material.LAVA) {
+            return null;
+        }
+        BlockPos candidate = topState.getMaterial().isSolid() ? top : top.down();
+        while (candidate.getY() > 0) {
+            if (world.getBlockState(candidate).getMaterial().isSolid()) {
+                return candidate;
+            }
+            candidate = candidate.down();
+        }
+        return null;
+    }
+
     private void generateFlowers(World world, Random random, int chunkX, int chunkZ, int count) {
         for (int i = 0; i < count; i++) {
             int x = chunkX * 16 + random.nextInt(16);
             int z = chunkZ * 16 + random.nextInt(16);
-            BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
-            if (world.getBlockState(surface).getMaterial().isSolid()
+            BlockPos surface = findSolidSurface(world, x, z);
+            if (surface != null
                     && world.isAirBlock(surface.up())) {
                 world.setBlockState(surface.up(), (i & 1) == 0
                         ? Blocks.RED_FLOWER.getDefaultState()
@@ -150,9 +182,8 @@ public class ModWorldGenerator implements IWorldGenerator {
         int centerZ = chunkZ * 16 + random.nextInt(12) + 2;
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                BlockPos surface = world.getTopSolidOrLiquidBlock(
-                        new BlockPos(centerX + dx, 0, centerZ + dz));
-                if (world.getBlockState(surface).getMaterial().isSolid()
+                BlockPos surface = findSolidSurface(world, centerX + dx, centerZ + dz);
+                if (surface != null
                         && world.isAirBlock(surface.up())) {
                     world.setBlockState(surface, Blocks.FARMLAND.getDefaultState(), 2);
                     world.setBlockState(surface.up(), Blocks.WHEAT.getDefaultState()
@@ -162,20 +193,62 @@ public class ModWorldGenerator implements IWorldGenerator {
         }
     }
 
-    private void generateManaCrystal(World world, Random random, int x, int z) {
-        BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
-        if (!world.getBlockState(surface).getMaterial().isSolid()) {
-            return;
+    private boolean generateManaCrystal(World world, Random random, int x, int z) {
+        BlockPos surface = findSolidSurface(world, x, z);
+        if (surface == null) {
+            return false;
         }
-        int height = 2 + random.nextInt(3);
-        IBlockState crystal = vazkii.botania.common.block.ModBlocks.bifrostPerm.getDefaultState();
-        for (int y = 1; y <= height; y++) {
-            BlockPos pos = surface.up(y);
-            if (!world.isAirBlock(pos)) {
-                return;
+        for (EnumFacing direction : EnumFacing.HORIZONTALS) {
+            if (!world.getBlockState(surface.offset(direction)).getMaterial().isSolid()) {
+                return false;
             }
+        }
+
+        BlockPos origin = surface.up();
+        int mainHeight = 5 + random.nextInt(5);
+        List<BlockPos> crystalBlocks = new ArrayList<>();
+        for (int y = 2; y < mainHeight; y++) {
+            crystalBlocks.add(origin.up(y));
+        }
+        for (EnumFacing direction : EnumFacing.HORIZONTALS) {
+            BlockPos branch = origin.offset(direction);
+            int height = 2 + random.nextInt(Math.max(1, mainHeight - 4));
+            for (int y = 0; y < height; y++) {
+                crystalBlocks.add(branch.up(y));
+            }
+        }
+        if (!world.isAirBlock(origin)) {
+            return false;
+        }
+        for (BlockPos pos : crystalBlocks) {
+            if (!canReplaceCrystalBlock(world, pos)) {
+                return false;
+            }
+        }
+
+        // This is the 1.12 equivalent of MythicBotany's diluted mana pool
+        // crystal: a diluted pool stores the generated mana while bifrost
+        // pillars form the visible crystal around it.
+        IBlockState pool = vazkii.botania.common.block.ModBlocks.pool.getStateFromMeta(1);
+        world.setBlockState(origin, pool, 2);
+        TileEntity tile = world.getTileEntity(origin);
+        if (tile instanceof IManaPool) {
+            ((IManaPool) tile).recieveMana(10 + random.nextInt(490));
+        }
+
+        IBlockState crystal = vazkii.botania.common.block.ModBlocks.bifrostPerm.getDefaultState();
+        for (BlockPos pos : crystalBlocks) {
             world.setBlockState(pos, crystal, 2);
         }
+        return true;
+    }
+
+    private boolean canReplaceCrystalBlock(World world, BlockPos pos) {
+        IBlockState state = world.getBlockState(pos);
+        return world.isAirBlock(pos)
+                || state.getMaterial() == Material.LEAVES
+                || state.getMaterial() == Material.PLANTS
+                || state.getMaterial() == Material.WATER;
     }
 
     private void generateLakePlants(World world, Random random, int chunkX, int chunkZ) {
@@ -191,7 +264,10 @@ public class ModWorldGenerator implements IWorldGenerator {
     }
 
     private void generateDreamwoodTree(World world, Random random, int x, int z) {
-        BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
+        BlockPos surface = findSolidSurface(world, x, z);
+        if (surface == null) {
+            return;
+        }
         IBlockState ground = world.getBlockState(surface);
         if (ground.getBlock() != Blocks.GRASS && ground.getBlock() != Blocks.DIRT) {
             return;

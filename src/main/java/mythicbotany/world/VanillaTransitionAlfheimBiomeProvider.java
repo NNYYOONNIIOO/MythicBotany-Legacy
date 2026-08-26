@@ -31,13 +31,13 @@ public final class VanillaTransitionAlfheimBiomeProvider extends BiomeProvider {
     @Override
     public Biome[] getBiomesForGeneration(Biome[] reuse, int x, int z,
                                           int width, int height) {
-        return fill(reuse, x, z, width, height);
+        return fill(reuse, x, z, width, height, true);
     }
 
     @Override
     public Biome[] getBiomes(Biome[] reuse, int x, int z,
                              int width, int height, boolean cacheFlag) {
-        return fill(reuse, x, z, width, height);
+        return fill(reuse, x, z, width, height, false);
     }
 
     @Override
@@ -88,16 +88,24 @@ public final class VanillaTransitionAlfheimBiomeProvider extends BiomeProvider {
         return temperature;
     }
 
-    private Biome[] fill(Biome[] reuse, int x, int z, int width, int height) {
+    private Biome[] fill(Biome[] reuse, int x, int z, int width, int height,
+                         boolean generationLayer) {
         int size = width * height;
         if (reuse == null || reuse.length < size) {
             reuse = new Biome[size];
         }
+        // Keep the native GenLayer's scale and zoom transitions intact. A
+        // sequence of getBiome calls goes through the cache one cell at a
+        // time and loses the distinction between the generation and zoomed
+        // layers used by the vanilla chunk generator.
+        Biome[] vanilla = generationLayer
+                ? vanillaProvider.getBiomesForGeneration(null, x, z, width, height)
+                : vanillaProvider.getBiomes(null, x, z, width, height, false);
         int index = 0;
         for (int dz = 0; dz < height; dz++) {
             for (int dx = 0; dx < width; dx++) {
-                reuse[index++] = mapBiome(vanillaProvider.getBiome(
-                        new BlockPos(x + dx, 0, z + dz)));
+                reuse[index] = mapBiome(vanilla[index]);
+                index++;
             }
         }
         return reuse;

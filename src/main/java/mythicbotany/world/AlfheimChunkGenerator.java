@@ -60,8 +60,11 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
 
         // Golden grass is reserved for the center of golden fields. Every
         // other biome uses the vanilla grass block, including transition areas.
+        // Use a short local transition band. The old 32-block probe made
+        // every biome boundary look like a large rounded halo instead of the
+        // irregular, local transitions produced by vanilla's biome layers.
         boolean goldenCore = biome == AlfheimBiomes.GOLDEN_FIELDS
-                && !isBiomeEdge(x, z, biome, 32);
+                && !isBiomeEdge(x, z, biome, 8);
         IBlockState top = goldenCore ? biome.topBlock : Blocks.GRASS.getDefaultState();
         chunk.setBlockState(new BlockPos(x, surface, z), top);
         for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
@@ -79,7 +82,7 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
         // The overworld generator already gives us a continuous terrain height.
         // Water follows that terrain instead of carving a fixed sand shelf.
         final int seaLevel = 62;
-        if (surface >= seaLevel || isBiomeEdge(x, z, AlfheimBiomes.ALFHEIM_LAKES, 24)) {
+        if (surface >= seaLevel || isBiomeEdge(x, z, AlfheimBiomes.ALFHEIM_LAKES, 8)) {
             setGroundColumn(chunk, x, z, surface, Blocks.GRASS.getDefaultState(),
                     Blocks.DIRT.getDefaultState());
             return;
@@ -126,8 +129,9 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
     }
 
     private boolean isBiomeEdge(int x, int z, Biome center, int radius) {
-        for (int dx = -radius; dx <= radius; dx += 2) {
-            for (int dz = -radius; dz <= radius; dz += 2) {
+        int step = Math.max(2, radius / 2);
+        for (int dx = -radius; dx <= radius; dx += step) {
+            for (int dz = -radius; dz <= radius; dz += step) {
                 if (dx == 0 && dz == 0) {
                     continue;
                 }
