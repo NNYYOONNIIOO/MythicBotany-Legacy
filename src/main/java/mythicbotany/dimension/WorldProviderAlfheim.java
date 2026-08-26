@@ -10,7 +10,9 @@ import mythicbotany.world.AlfheimChunkGenerator;
 public class WorldProviderAlfheim extends WorldProvider {
     @Override
     protected void init() {
+        this.hasSkyLight = true;
         this.biomeProvider = new AlfheimBiomeProvider(this.world.getWorldInfo());
+        this.generateLightBrightnessTable();
     }
 
     @Override

@@ -4,6 +4,7 @@ import mythicbotany.registry.ModBlocks;
 import mythicbotany.dimension.ModDimensions;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockCrops;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
@@ -59,17 +60,95 @@ public class ModWorldGenerator implements IWorldGenerator {
 
     private void generateAlfheimFeatures(World world, Random random, int chunkX, int chunkZ) {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
-        if (biome == AlfheimBiomes.DREAMWOOD_FOREST && random.nextInt(2) == 0) {
-            generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
-                    chunkZ * 16 + random.nextInt(16));
+        if (biome == AlfheimBiomes.DREAMWOOD_FOREST) {
+            for (int i = 0; i < 2 + random.nextInt(3); i++) {
+                generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
+                        chunkZ * 16 + random.nextInt(16));
+            }
+            generateFlowers(world, random, chunkX, chunkZ, 7);
+        } else if (biome == AlfheimBiomes.ALFHEIM_PLAINS) {
+            if (random.nextInt(5) == 0) {
+                generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
+                        chunkZ * 16 + random.nextInt(16));
+            }
+            generateFlowers(world, random, chunkX, chunkZ, 4);
+        } else if (biome == AlfheimBiomes.GOLDEN_FIELDS) {
+            generateGoldenField(world, random, chunkX, chunkZ);
+        } else if (biome == AlfheimBiomes.ALFHEIM_HILLS) {
+            if (random.nextInt(8) == 0) {
+                generateManaCrystal(world, random, chunkX * 16 + random.nextInt(16),
+                        chunkZ * 16 + random.nextInt(16));
+            }
+            generateFlowers(world, random, chunkX, chunkZ, 3);
+        } else if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
+            generateLakePlants(world, random, chunkX, chunkZ);
         }
-        if (biome == AlfheimBiomes.GOLDEN_FIELDS && random.nextInt(32) == 0) {
+
+        if (random.nextInt(biome == AlfheimBiomes.DREAMWOOD_FOREST ? 18 : 28) == 0) {
             generateAbandonedApothecary(world, random, chunkX * 16 + random.nextInt(16),
                     chunkZ * 16 + random.nextInt(16));
         }
-        if (random.nextInt(48) == 0) {
-            generateAbandonedApothecary(world, random, chunkX * 16 + random.nextInt(16),
-                    chunkZ * 16 + random.nextInt(16));
+    }
+
+    private void generateFlowers(World world, Random random, int chunkX, int chunkZ, int count) {
+        for (int i = 0; i < count; i++) {
+            int x = chunkX * 16 + random.nextInt(16);
+            int z = chunkZ * 16 + random.nextInt(16);
+            BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
+            if (world.getBlockState(surface).getMaterial().isSolid()
+                    && world.isAirBlock(surface.up())) {
+                world.setBlockState(surface.up(), (i & 1) == 0
+                        ? Blocks.RED_FLOWER.getDefaultState()
+                        : Blocks.YELLOW_FLOWER.getDefaultState(), 2);
+            }
+        }
+    }
+
+    private void generateGoldenField(World world, Random random, int chunkX, int chunkZ) {
+        if (random.nextInt(4) != 0) {
+            return;
+        }
+        int centerX = chunkX * 16 + random.nextInt(12) + 2;
+        int centerZ = chunkZ * 16 + random.nextInt(12) + 2;
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                BlockPos surface = world.getTopSolidOrLiquidBlock(
+                        new BlockPos(centerX + dx, 0, centerZ + dz));
+                if (world.getBlockState(surface).getMaterial().isSolid()
+                        && world.isAirBlock(surface.up())) {
+                    world.setBlockState(surface, Blocks.FARMLAND.getDefaultState(), 2);
+                    world.setBlockState(surface.up(), Blocks.WHEAT.getDefaultState()
+                            .withProperty(BlockCrops.AGE, 7), 2);
+                }
+            }
+        }
+    }
+
+    private void generateManaCrystal(World world, Random random, int x, int z) {
+        BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
+        if (!world.getBlockState(surface).getMaterial().isSolid()) {
+            return;
+        }
+        int height = 2 + random.nextInt(3);
+        IBlockState crystal = vazkii.botania.common.block.ModBlocks.bifrostPerm.getDefaultState();
+        for (int y = 1; y <= height; y++) {
+            BlockPos pos = surface.up(y);
+            if (!world.isAirBlock(pos)) {
+                return;
+            }
+            world.setBlockState(pos, crystal, 2);
+        }
+    }
+
+    private void generateLakePlants(World world, Random random, int chunkX, int chunkZ) {
+        for (int i = 0; i < 3; i++) {
+            int x = chunkX * 16 + random.nextInt(16);
+            int z = chunkZ * 16 + random.nextInt(16);
+            BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
+            if (world.getBlockState(surface).getBlock() == Blocks.WATER
+                    && world.isAirBlock(surface.up())) {
+                world.setBlockState(surface.up(), Blocks.WATERLILY.getDefaultState(), 2);
+            }
         }
     }
 

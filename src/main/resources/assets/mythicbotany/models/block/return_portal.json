@@ -1,5 +1,6 @@
 {
+  "parent": "block/cross",
   "textures": {
-    "particle": "minecraft:blocks/glass"
+    "cross": "botania:blocks/alfheim_portal"
   }
 }
