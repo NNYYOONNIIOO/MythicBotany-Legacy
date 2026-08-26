@@ -58,12 +58,11 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
             return;
         }
 
-        // Keep the transition palette vanilla. Golden grass is reserved for
-        // the center of golden fields, never for a noisy/rectangular border.
-        boolean biomeEdge = isBiomeEdge(x, z, biome, 48);
-        IBlockState top = biomeEdge || biome.topBlock.getBlock()
-                == vazkii.botania.common.block.ModBlocks.altGrass
-                ? Blocks.GRASS.getDefaultState() : biome.topBlock;
+        // Golden grass is reserved for the center of golden fields. Every
+        // other biome uses the vanilla grass block, including transition areas.
+        boolean goldenCore = biome == AlfheimBiomes.GOLDEN_FIELDS
+                && !isBiomeEdge(x, z, biome, 32);
+        IBlockState top = goldenCore ? biome.topBlock : Blocks.GRASS.getDefaultState();
         chunk.setBlockState(new BlockPos(x, surface, z), top);
         for (int y = surface - 1; y >= Math.max(1, surface - 4); y--) {
             IBlockState current = chunk.getBlockState(new BlockPos(x, y, z));
@@ -78,27 +77,28 @@ public final class AlfheimChunkGenerator extends ChunkGeneratorOverworld {
 
     private void applyLakeSurface(Chunk chunk, int x, int z, int surface) {
         // The overworld generator already gives us a continuous terrain height.
-        // Only water-fill low terrain; never carve it down to a global y level.
+        // Water follows that terrain instead of carving a fixed sand shelf.
         final int seaLevel = 62;
-        final int maxWaterDepth = 8;
-        if (surface >= seaLevel || seaLevel - surface > maxWaterDepth) {
+        if (surface >= seaLevel || isBiomeEdge(x, z, AlfheimBiomes.ALFHEIM_LAKES, 24)) {
             setGroundColumn(chunk, x, z, surface, Blocks.GRASS.getDefaultState(),
                     Blocks.DIRT.getDefaultState());
             return;
         }
 
+        // Use dirt for the bed and its shallow subsoil. No sand layer is
+        // generated, so shorelines do not turn into an abrupt horizontal band.
+        chunk.setBlockState(new BlockPos(x, surface, z), Blocks.DIRT.getDefaultState());
+        for (int y = surface - 1; y >= Math.max(1, surface - 3); y--) {
+            IBlockState current = chunk.getBlockState(new BlockPos(x, y, z));
+            if (current.getMaterial() == Material.GROUND
+                    || current.getBlock() == Blocks.STONE
+                    || current.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
+                chunk.setBlockState(new BlockPos(x, y, z), Blocks.DIRT.getDefaultState());
+            }
+        }
         IBlockState water = Blocks.WATER.getDefaultState();
         for (int y = surface + 1; y <= seaLevel; y++) {
             chunk.setBlockState(new BlockPos(x, y, z), water);
-        }
-        // Keep the bed mostly natural and use at most one sand block at the
-        // shoreline. This avoids the conspicuous two-layer horizontal shelf.
-        if (surface >= seaLevel - 2 && surface > 1) {
-            IBlockState bed = chunk.getBlockState(new BlockPos(x, surface, z));
-            if (bed.getBlock() == Blocks.DIRT || bed.getBlock() == Blocks.STONE
-                    || bed.getBlock() == vazkii.botania.common.block.ModBlocks.livingrock) {
-                chunk.setBlockState(new BlockPos(x, surface, z), Blocks.SAND.getDefaultState());
-            }
         }
     }
 

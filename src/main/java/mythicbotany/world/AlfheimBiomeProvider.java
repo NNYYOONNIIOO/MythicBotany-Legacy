@@ -38,7 +38,8 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
     @Override
     public List<Biome> getBiomesToSpawnIn() {
         return Arrays.asList(AlfheimBiomes.ALFHEIM_PLAINS,
-                AlfheimBiomes.DREAMWOOD_FOREST, AlfheimBiomes.GOLDEN_FIELDS);
+                AlfheimBiomes.DREAMWOOD_FOREST, AlfheimBiomes.GOLDEN_FIELDS,
+                AlfheimBiomes.ALFHEIM_HILLS, AlfheimBiomes.ALFHEIM_LAKES);
     }
 
     @Override
@@ -103,29 +104,33 @@ public final class AlfheimBiomeProvider extends BiomeProvider {
         // turning into straight chunk-sized strips.
         // Keep the climate regions broad. Low-frequency sampling prevents
         // different surface palettes from changing every few chunks.
-        double warpX = fractalNoise(x / 720.0D, z / 720.0D, 0x4D595448L);
-        double warpZ = fractalNoise(x / 720.0D, z / 720.0D, 0x59474744L);
-        double warpedX = x + warpX * 40.0D;
-        double warpedZ = z + warpZ * 40.0D;
+        double warpX = fractalNoise(x / 520.0D, z / 520.0D, 0x4D595448L);
+        double warpZ = fractalNoise(x / 520.0D, z / 520.0D, 0x59474744L);
+        double warpedX = x + warpX * 80.0D;
+        double warpedZ = z + warpZ * 80.0D;
 
-        double land = fractalNoise(warpedX / 1500.0D, warpedZ / 1500.0D, 0x31A7L);
-        double moisture = fractalNoise((warpedX - warpZ * 24.0D) / 900.0D,
-                (warpedZ + warpX * 24.0D) / 900.0D, 0x9E37L);
-        double climate = fractalNoise((warpedX + warpX * 32.0D) / 1000.0D,
-                (warpedZ + warpZ * 32.0D) / 1000.0D, 0xA17F5L);
+        // The fields are deliberately broad, but not so broad that a normal
+        // exploration distance only exposes plains. All samples are in world
+        // coordinates, so no value changes at a chunk edge.
+        double land = fractalNoise(warpedX / 850.0D, warpedZ / 850.0D, 0x31A7L);
+        double moisture = fractalNoise((warpedX - warpZ * 40.0D) / 600.0D,
+                (warpedZ + warpX * 40.0D) / 600.0D, 0x9E37L);
+        double climate = fractalNoise((warpedX + warpX * 48.0D) / 700.0D,
+                (warpedZ + warpZ * 48.0D) / 700.0D, 0xA17F5L);
 
-        // Use wide, low-frequency regions. The previous thresholds made large
-        // terrain/surface changes meet abruptly and look like chunk seams.
-        if (land < -0.64D) {
+        // These thresholds intentionally give every climate a useful region.
+        // The old values only selected the extreme tails of the noise fields,
+        // which made almost the whole dimension plains.
+        if (land < -0.22D) {
             return AlfheimBiomes.ALFHEIM_LAKES;
         }
-        if (land > 0.68D) {
-            return AlfheimBiomes.ALFHEIM_HILLS;
-        }
-        if (climate > 0.62D && land > -0.08D && land < 0.30D) {
+        if (climate > 0.18D && land > -0.08D && land < 0.30D) {
             return AlfheimBiomes.GOLDEN_FIELDS;
         }
-        if (moisture > 0.24D && land > -0.12D) {
+        if (land > 0.24D) {
+            return AlfheimBiomes.ALFHEIM_HILLS;
+        }
+        if (moisture > 0.04D && land > -0.28D && land < 0.42D) {
             return AlfheimBiomes.DREAMWOOD_FOREST;
         }
         return AlfheimBiomes.ALFHEIM_PLAINS;

@@ -13,7 +13,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.feature.WorldGenMinable;
-import net.minecraft.world.gen.feature.WorldGenTrees;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -89,22 +88,18 @@ public class ModWorldGenerator implements IWorldGenerator {
 
     private void generateAlfheimFeatures(World world, Random random, int chunkX, int chunkZ) {
         Biome biome = world.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
-        int vanillaTreeCount = biome == AlfheimBiomes.DREAMWOOD_FOREST ? 4
-                : biome == AlfheimBiomes.ALFHEIM_PLAINS ? 3
-                : biome == AlfheimBiomes.ALFHEIM_HILLS ? 2
-                : biome == AlfheimBiomes.GOLDEN_FIELDS ? 1 : 0;
-        generateVanillaTrees(world, random, chunkX, chunkZ, biome, vanillaTreeCount);
+        int dreamwoodTreeCount = biome == AlfheimBiomes.DREAMWOOD_FOREST
+                ? 10 + random.nextInt(6)
+                : biome == AlfheimBiomes.ALFHEIM_PLAINS ? 3 + random.nextInt(3)
+                : biome == AlfheimBiomes.ALFHEIM_HILLS ? 2 + random.nextInt(2)
+                : biome == AlfheimBiomes.GOLDEN_FIELDS ? 1 + random.nextInt(2) : 0;
+        for (int i = 0; i < dreamwoodTreeCount; i++) {
+            generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
+                    chunkZ * 16 + random.nextInt(16));
+        }
         if (biome == AlfheimBiomes.DREAMWOOD_FOREST) {
-            for (int i = 0; i < 8 + random.nextInt(5); i++) {
-                generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
-                        chunkZ * 16 + random.nextInt(16));
-            }
             generateFlowers(world, random, chunkX, chunkZ, 7);
         } else if (biome == AlfheimBiomes.ALFHEIM_PLAINS) {
-            if (random.nextInt(5) == 0) {
-                generateDreamwoodTree(world, random, chunkX * 16 + random.nextInt(16),
-                        chunkZ * 16 + random.nextInt(16));
-            }
             generateFlowers(world, random, chunkX, chunkZ, 4);
         } else if (biome == AlfheimBiomes.GOLDEN_FIELDS) {
             generateGoldenField(world, random, chunkX, chunkZ);
@@ -121,51 +116,6 @@ public class ModWorldGenerator implements IWorldGenerator {
         if (random.nextInt(biome == AlfheimBiomes.DREAMWOOD_FOREST ? 18 : 28) == 0) {
             generateAbandonedApothecary(world, random, chunkX * 16 + random.nextInt(16),
                     chunkZ * 16 + random.nextInt(16));
-        }
-    }
-
-    private void generateVanillaTrees(World world, Random random, int chunkX, int chunkZ,
-                                      Biome biome, int count) {
-        if (count <= 0) {
-            return;
-        }
-        for (int i = 0; i < count; i++) {
-            int x = chunkX * 16 + random.nextInt(16);
-            int z = chunkZ * 16 + random.nextInt(16);
-            BlockPos surface = world.getTopSolidOrLiquidBlock(new BlockPos(x, 0, z));
-            IBlockState ground = world.getBlockState(surface);
-            if ((ground.getBlock() != Blocks.GRASS && ground.getBlock() != Blocks.DIRT)
-                    || !world.isAirBlock(surface.up())) {
-                continue;
-            }
-            WorldGenTrees tree = new WorldGenTrees(false);
-            if (!tree.generate(world, random, surface.up())) {
-                generateSimpleOakTree(world, surface.up(), random);
-            }
-        }
-    }
-
-    private void generateSimpleOakTree(World world, BlockPos base, Random random) {
-        int height = 4 + random.nextInt(3);
-        for (int y = 0; y < height; y++) {
-            BlockPos log = base.up(y);
-            if (!world.isAirBlock(log)) {
-                return;
-            }
-            world.setBlockState(log, Blocks.LOG.getDefaultState(), 2);
-        }
-        for (int y = height - 2; y <= height; y++) {
-            int radius = y == height ? 1 : 2;
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.abs(dx) + Math.abs(dz) <= radius + 1) {
-                        BlockPos leaves = base.add(dx, y, dz);
-                        if (world.isAirBlock(leaves)) {
-                            world.setBlockState(leaves, Blocks.LEAVES.getDefaultState(), 2);
-                        }
-                    }
-                }
-            }
         }
     }
 

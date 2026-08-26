@@ -18,19 +18,19 @@ import vazkii.botania.common.block.ModBlocks;
 /** The large-scale biome palette used by the Alfheim dimension. */
 public final class AlfheimBiomes {
     public static final Biome ALFHEIM_LAKES = create(
-            "alfheim_lakes", 0.10F, 0.05F, 0.7F, 0.9F,
+            "alfheim_lakes", -0.45F, 0.18F, 0.7F, 0.9F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome ALFHEIM_PLAINS = create(
-            "alfheim_plains", 0.1F, 0.05F, 0.8F, 0.7F,
+            "alfheim_plains", 0.10F, 0.18F, 0.8F, 0.7F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome DREAMWOOD_FOREST = create(
-            "dreamwood_forest", 0.10F, 0.05F, 0.75F, 0.8F,
+            "dreamwood_forest", 0.25F, 0.28F, 0.75F, 0.8F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
     public static final Biome GOLDEN_FIELDS = create(
-            "golden_fields", 0.10F, 0.05F, 0.9F, 0.5F,
+            "golden_fields", 0.12F, 0.20F, 0.9F, 0.5F,
             ModBlocks.altGrass.getStateFromMeta(1), Blocks.DIRT.getDefaultState());
     public static final Biome ALFHEIM_HILLS = create(
-            "alfheim_hills", 0.10F, 0.05F, 0.65F, 0.7F,
+            "alfheim_hills", 0.70F, 0.38F, 0.65F, 0.7F,
             Blocks.GRASS.getDefaultState(), Blocks.DIRT.getDefaultState());
 
     public static final Biome[] ALL = {
@@ -54,8 +54,8 @@ public final class AlfheimBiomes {
         };
         biome.topBlock = top;
         biome.fillerBlock = filler;
-        // Vanilla trees are placed explicitly by ModWorldGenerator so they
-        // remain present even though this dimension has a custom generator.
+        // Tree placement is handled by ModWorldGenerator so Alfheim only
+        // receives Dreamwood trees, with a higher density in its forest.
         biome.decorator.treesPerChunk = 0;
         biome.getSpawnableList(EnumCreatureType.CREATURE).add(new Biome.SpawnListEntry(
                 EntityAlfPixie.class, 5, 4, 10));
