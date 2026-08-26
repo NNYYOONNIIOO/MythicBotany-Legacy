@@ -119,6 +119,9 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
     private static final class InfuserCategory implements IRecipeCategory<InfuserWrapper> {
         private static final String UID = MythicBotany.MODID + ":infuser";
+        private static final int CENTER_X = 47;
+        private static final int CENTER_Y = 44;
+        private static final int INPUT_RADIUS = 31;
         private final IDrawable background;
         private final IDrawable overlay;
         private final IDrawable icon;
@@ -148,7 +151,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override
         public void setRecipe(IRecipeLayout layout, InfuserWrapper wrapper, IIngredients ingredients) {
             IGuiItemStackGroup stacks = layout.getItemStacks();
-            stacks.init(0, true, 47, 44);
+            stacks.init(0, true, CENTER_X, CENTER_Y);
             stacks.set(0, new ItemStack(ModBlocks.manaInfuser));
 
             List<ItemStack> inputs = wrapper.recipe.getInputs();
@@ -164,15 +167,13 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         }
 
         private static int inputSlotX(int index, int count) {
-            int columns = Math.min(4, Math.max(1, count));
-            int column = index % columns;
-            return 5 + column * 18;
+            double angle = -Math.PI / 2.0D + 2.0D * Math.PI * index / count;
+            return CENTER_X + (int) Math.round(Math.cos(angle) * INPUT_RADIUS);
         }
 
         private static int inputSlotY(int index, int count) {
-            int columns = Math.min(4, Math.max(1, count));
-            int row = index / columns;
-            return 4 + row * 18;
+            double angle = -Math.PI / 2.0D + 2.0D * Math.PI * index / count;
+            return CENTER_Y + (int) Math.round(Math.sin(angle) * INPUT_RADIUS);
         }
     }
 

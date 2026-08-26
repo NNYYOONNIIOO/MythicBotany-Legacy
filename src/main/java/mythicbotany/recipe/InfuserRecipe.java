@@ -166,6 +166,21 @@ public final class InfuserRecipe {
         return null;
     }
 
+    /** Finds a recipe that accepts the supplied stack as one of its inputs. */
+    public static InfuserRecipe findInput(ItemStack stack) {
+        loadResources();
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+        for (int i = RECIPES.size() - 1; i >= 0; i--) {
+            InfuserRecipe recipe = RECIPES.get(i);
+            if (!recipe.getMatchingInput(stack).isEmpty()) {
+                return recipe;
+            }
+        }
+        return null;
+    }
+
     public static InfuserRecipe find(List<EntityItem> entities) {
         loadResources();
         for (int i = RECIPES.size() - 1; i >= 0; i--) {
@@ -181,6 +196,19 @@ public final class InfuserRecipe {
         return inputs.size() == 1 && stack != null && !stack.isEmpty()
                 && matchesStack(inputs.get(0), stack)
                 && inputs.get(0).getCount() <= stack.getCount();
+    }
+
+    /** Returns the required input represented by the supplied stack. */
+    public ItemStack getMatchingInput(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        for (ItemStack input : inputs) {
+            if (matchesStack(input, stack) && input.getCount() <= stack.getCount()) {
+                return input.copy();
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     public boolean matches(List<EntityItem> entities) {

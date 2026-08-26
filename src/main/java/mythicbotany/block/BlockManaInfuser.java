@@ -52,10 +52,12 @@ public class BlockManaInfuser extends BlockContainer {
             return false;
         }
         ItemStack held = playerIn.getHeldItem(hand);
-        InfuserRecipe recipe = InfuserRecipe.find(held);
-        if (!held.isEmpty() && recipe != null) {
+        InfuserRecipe recipe = InfuserRecipe.findInput(held);
+        ItemStack requiredInput = recipe == null
+                ? ItemStack.EMPTY : recipe.getMatchingInput(held);
+        if (!held.isEmpty() && recipe != null && !requiredInput.isEmpty()) {
             if (!worldIn.isRemote) {
-                int inputCount = recipe.getInput().getCount();
+                int inputCount = requiredInput.getCount();
                 ItemStack target = held.copy();
                 target.setCount(inputCount);
                 if (!playerIn.capabilities.isCreativeMode) {
