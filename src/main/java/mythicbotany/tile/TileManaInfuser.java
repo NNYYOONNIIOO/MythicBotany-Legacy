@@ -22,6 +22,7 @@ import vazkii.botania.common.Botania;
 import vazkii.botania.common.core.handler.ModSounds;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A recipe-scoped mana receiver. It does not keep a general-purpose mana
@@ -68,7 +69,7 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
         receiveManaFromSparks();
         if (mana >= manaRequirement) {
             NetworkHandler.sendInfuserEffect(world, pos, manaRequirement, manaRequirement, true);
-            finishRecipe(items.get(0));
+            finishRecipe(items);
         } else if (mana > 0) {
             NetworkHandler.sendInfuserEffect(world, pos, mana, manaRequirement, false);
         }
@@ -80,14 +81,11 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
     }
 
     private InfuserRecipe findRecipe(List<EntityItem> items) {
-        if (items.size() != 1) {
-            return null;
-        }
-        return InfuserRecipe.find(items.get(0).getItem());
+        return InfuserRecipe.find(items);
     }
 
     private boolean matchesRecipe(List<EntityItem> items, InfuserRecipe recipe) {
-        return items.size() == 1 && recipe.matches(items.get(0).getItem());
+        return recipe != null && recipe.matches(items);
     }
 
     private void receiveManaFromSparks() {
@@ -107,25 +105,28 @@ public class TileManaInfuser extends TileEntity implements ITickable, ISparkAtta
         }
     }
 
-    private void finishRecipe(EntityItem ingredient) {
+    private void finishRecipe(List<EntityItem> items) {
         InfuserRecipe recipe = activeRecipe;
-        ItemStack remaining = ingredient.getItem().copy();
-        remaining.shrink(recipe.getInput().getCount());
-        ItemStack result = recipe.getOutput();
-        if (remaining.isEmpty()) {
-            // Reuse the ingredient entity, as Terra Plate does, so the output
-            // stays on the plate instead of receiving EntityItem's upward motion.
-            ingredient.setItem(result);
-            stopItemMotion(ingredient);
-        } else {
-            ingredient.setItem(remaining);
-            EntityItem output = new EntityItem(world, ingredient.posX, ingredient.posY,
-                    ingredient.posZ, result);
-            output.setPickupDelay(40);
-            stopItemMotion(output);
-            world.spawnEntity(output);
+        Map<EntityItem, Integer> consumption = recipe.getConsumption(items);
+        if (consumption == null) {
+            return;
         }
-        world.playSound(null, ingredient.posX, ingredient.posY, ingredient.posZ,
+        for (Map.Entry<EntityItem, Integer> entry : consumption.entrySet()) {
+            EntityItem ingredient = entry.getKey();
+            ItemStack remaining = ingredient.getItem().copy();
+            remaining.shrink(entry.getValue());
+            ingredient.setItem(remaining);
+            if (remaining.isEmpty()) {
+                ingredient.setDead();
+            }
+        }
+        ItemStack result = recipe.getOutput();
+        EntityItem output = new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D,
+                pos.getZ() + 0.5D, result);
+        output.setPickupDelay(40);
+        stopItemMotion(output);
+        world.spawnEntity(output);
+        world.playSound(null, output.posX, output.posY, output.posZ,
                 ModSounds.terrasteelCraft, SoundCategory.BLOCKS, 1.0F, 1.0F);
         clearRecipe();
     }

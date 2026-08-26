@@ -136,6 +136,9 @@ dependencies {
     // Optional integration: MythicBotany accesses Nether Backport through reflection,
     // so neither Nether Backport nor its Nether API dependency is required at runtime.
     compileOnly fg.deobf("curse.maven:unseens-nether-backport-1109447:7694245")
+    // Optional CraftTweaker 1.12 integration. Compile against the local API
+    // shims in src/compat/java; the shims are excluded from the distributable
+    // jar and the real CraftTweaker classes are used when the mod is installed.
     implementation files('libs/Baubles-1.12-1.5.2.jar')
 
     def mixinBooter = 'zone.rong:mixinbooter:11.13'
@@ -171,6 +174,8 @@ dependencies {
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
     exclude 'net/minecraftforge/fml/relauncher/Side.class'
+    exclude 'crafttweaker/**'
+    exclude 'stanhebben/**'
     manifest {
         attributes([
             "Specification-Title": "examplemod",

@@ -23,6 +23,7 @@ public final class ModRecipes {
         }
         registered = true;
         registerOreDictionary();
+        YggdrasilBranchRecipe.registerDefaults();
         InfuserRecipe.loadResources();
         RuneRitualRegistry.loadResources();
         SmeltingRecipeLoader.loadResources();

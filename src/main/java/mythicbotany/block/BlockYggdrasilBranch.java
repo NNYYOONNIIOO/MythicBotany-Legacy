@@ -1,6 +1,5 @@
 package mythicbotany.block;
 
-import mythicbotany.registry.ModItems;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockHorizontal;
@@ -159,8 +158,7 @@ public class BlockYggdrasilBranch extends BlockContainer implements IWandHUD {
             }
             return !stored.isEmpty();
         }
-        if (held.getItem() != ModItems.gjallarHornEmpty || held.getCount() != 1
-                || !branch.insertHorn(held)) {
+        if (held.getCount() != 1 || !branch.insertHorn(held)) {
             return false;
         }
         if (!worldIn.isRemote && !playerIn.capabilities.isCreativeMode) {

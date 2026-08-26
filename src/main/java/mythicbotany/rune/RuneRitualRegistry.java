@@ -124,7 +124,7 @@ public final class RuneRitualRegistry {
             register(new RuneRitualRecipe(center, outputs,
                     recipe.has("mana") ? recipe.get("mana").getAsInt() : 0,
                     recipe.has("ticks") ? recipe.get("ticks").getAsInt() : 200,
-                    inputs, property(recipe, "special_input"), specialOutput,
+                    inputs, readSpecialInputs(recipe), specialOutput,
                     runes.toArray(new RuneRitualRecipe.RunePosition[0])));
         } catch (Exception exception) {
             warn("Unable to load Rune Ritual recipe " + name + ": " + exception.getMessage());
@@ -133,6 +133,24 @@ public final class RuneRitualRegistry {
 
     private static String property(JsonObject object, String key) {
         return object.has(key) && !object.get(key).isJsonNull() ? object.get(key).getAsString() : null;
+    }
+
+    private static List<String> readSpecialInputs(JsonObject recipe) {
+        List<String> inputs = new ArrayList<>();
+        JsonElement element = recipe.get("special_input");
+        if (element == null || element.isJsonNull()) {
+            return inputs;
+        }
+        if (element.isJsonArray()) {
+            for (JsonElement value : element.getAsJsonArray()) {
+                if (value.isJsonPrimitive()) {
+                    inputs.add(value.getAsString());
+                }
+            }
+        } else if (element.isJsonPrimitive()) {
+            inputs.add(element.getAsString());
+        }
+        return inputs;
     }
 
     private static List<ItemStack> readAlternatives(JsonElement element) {

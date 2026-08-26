@@ -1,7 +1,7 @@
 package mythicbotany.tile;
 
 import mythicbotany.block.BlockYggdrasilBranch;
-import mythicbotany.registry.ModItems;
+import mythicbotany.recipe.YggdrasilBranchRecipe;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -23,13 +23,12 @@ import vazkii.botania.client.core.helper.RenderHelper;
 /** Stores and fills a Gjallar horn using mana supplied by a Mana Spreader. */
 public class TileYggdrasilBranch extends ManaTileEntity {
     private static final int MAX_MANA = 10000;
-    private static final int MANA_PER_TICK = 10;
-    private static final int TICKS_TO_FILL = 600;
     private static final int DRIP_INTERVAL_TICKS = 3;
     private static final double RESOURCE_PARTICLE_X = 0.5D;
     private static final double RESOURCE_PARTICLE_Y = 14.0D / 16.0D;
     private static final double RESOURCE_PARTICLE_Z = 7.0D / 16.0D;
     private ItemStack horn = ItemStack.EMPTY;
+    private YggdrasilBranchRecipe activeRecipe;
     private int progress;
     private int dripTicks;
 
@@ -42,18 +41,25 @@ public class TileYggdrasilBranch extends ManaTileEntity {
             updateWaterDrips();
             return;
         }
-        if (!horn.isEmpty() && horn.getItem() == ModItems.gjallarHornEmpty
-                && horn.getCount() == 1) {
-            if (mana >= MANA_PER_TICK) {
-                mana -= MANA_PER_TICK;
+        if (activeRecipe == null && !horn.isEmpty()) {
+            activeRecipe = YggdrasilBranchRecipe.find(horn);
+        }
+        if (activeRecipe != null && activeRecipe.matchesInput(horn)) {
+            int manaForTick = activeRecipe.getManaForProgress(progress);
+            if (manaForTick <= 0 || mana >= manaForTick) {
+                if (manaForTick > 0) {
+                    mana -= manaForTick;
+                }
                 progress++;
-                if (progress >= TICKS_TO_FILL) {
-                    horn = new ItemStack(ModItems.gjallarHornFull);
+                if (progress >= activeRecipe.getTicks()) {
+                    horn = activeRecipe.getOutput();
+                    activeRecipe = null;
                     progress = 0;
                 }
                 sync();
             }
-        } else if (progress != 0) {
+        } else if (progress != 0 || activeRecipe != null) {
+            activeRecipe = null;
             progress = 0;
             sync();
         }
@@ -103,10 +109,11 @@ public class TileYggdrasilBranch extends ManaTileEntity {
 
     private boolean isFilling() {
         return !horn.isEmpty()
-                && horn.getItem() == ModItems.gjallarHornEmpty
-                && horn.getCount() == 1
-                && progress < TICKS_TO_FILL
-                && mana >= MANA_PER_TICK;
+                && activeRecipe != null
+                && activeRecipe.matchesInput(horn)
+                && progress < activeRecipe.getTicks()
+                && (activeRecipe.getManaForProgress(progress) <= 0
+                || mana >= activeRecipe.getManaForProgress(progress));
     }
 
     @Override
@@ -115,14 +122,15 @@ public class TileYggdrasilBranch extends ManaTileEntity {
     }
 
     public boolean insertHorn(ItemStack stack) {
-        if (stack == null || stack.isEmpty() || stack.getItem() != ModItems.gjallarHornEmpty
-                || stack.getCount() != 1 || !horn.isEmpty()) {
+        YggdrasilBranchRecipe recipe = YggdrasilBranchRecipe.find(stack);
+        if (recipe == null || stack.getCount() != 1 || !horn.isEmpty()) {
             return false;
         }
         if (world != null && world.isRemote) {
             return true;
         }
         horn = stack.copy();
+        activeRecipe = recipe;
         progress = 0;
         sync();
         return true;
@@ -132,6 +140,7 @@ public class TileYggdrasilBranch extends ManaTileEntity {
         ItemStack result = horn.copy();
         if (world == null || !world.isRemote) {
             horn = ItemStack.EMPTY;
+            activeRecipe = null;
             progress = 0;
             sync();
         }
@@ -147,11 +156,11 @@ public class TileYggdrasilBranch extends ManaTileEntity {
     }
 
     public int getProgressRequired() {
-        return TICKS_TO_FILL;
+        return activeRecipe == null ? 1 : activeRecipe.getTicks();
     }
 
     public static int getManaRequired() {
-        return MANA_PER_TICK * TICKS_TO_FILL;
+        return YggdrasilBranchRecipe.DEFAULT_MANA;
     }
 
     @SideOnly(Side.CLIENT)
@@ -166,9 +175,11 @@ public class TileYggdrasilBranch extends ManaTileEntity {
 
         int centerX = res.getScaledWidth() / 2;
         int centerY = res.getScaledHeight() / 2 - 32;
-        boolean complete = stored.getItem() == ModItems.gjallarHornFull;
+        YggdrasilBranchRecipe recipe = activeRecipe;
+        boolean complete = recipe == null;
+        int required = recipe == null ? 1 : recipe.getTicks();
         float fraction = complete ? 1.0F
-                : Math.min(1.0F, Math.max(0.0F, (float) progress / (float) TICKS_TO_FILL));
+                : Math.min(1.0F, Math.max(0.0F, (float) progress / (float) required));
 
         GlStateManager.enableBlend();
         GlStateManager.enableRescaleNormal();
@@ -181,7 +192,7 @@ public class TileYggdrasilBranch extends ManaTileEntity {
         RenderHelper.drawTexturedModalRect(centerX + 33, centerY - 8, 0,
                 fraction >= 1.0F ? 0 : 22, 8, 22, 15);
         RenderHelper.renderProgressPie(centerX + 56, centerY - 8, fraction,
-                new ItemStack(ModItems.gjallarHornFull));
+                recipe == null ? stored : recipe.getOutput());
 
         net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
         GlStateManager.disableRescaleNormal();
@@ -196,6 +207,7 @@ public class TileYggdrasilBranch extends ManaTileEntity {
         world.spawnEntity(new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D,
                 pos.getZ() + 0.5D, horn.copy()));
         horn = ItemStack.EMPTY;
+        activeRecipe = null;
         progress = 0;
         sync();
     }
@@ -215,6 +227,7 @@ public class TileYggdrasilBranch extends ManaTileEntity {
             compound.setTag("Horn", horn.writeToNBT(new NBTTagCompound()));
         }
         compound.setInteger("Progress", progress);
+        compound.setInteger("Recipe", YggdrasilBranchRecipe.indexOf(activeRecipe));
         return compound;
     }
 
@@ -224,6 +237,11 @@ public class TileYggdrasilBranch extends ManaTileEntity {
         horn = compound.hasKey("Horn")
                 ? new ItemStack(compound.getCompoundTag("Horn")) : ItemStack.EMPTY;
         progress = Math.max(0, compound.getInteger("Progress"));
+        activeRecipe = YggdrasilBranchRecipe.getRecipe(
+                compound.hasKey("Recipe") ? compound.getInteger("Recipe") : -1);
+        if (activeRecipe == null && !horn.isEmpty()) {
+            activeRecipe = YggdrasilBranchRecipe.find(horn);
+        }
     }
 
     @Override

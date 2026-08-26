@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import mythicbotany.MythicBotany;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -15,26 +16,46 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class InfuserRecipe {
+    public static final int MAX_INPUTS = 16;
     private static final String RESOURCE_ROOT = "assets/mythicbotany/infusion_recipes/";
     private static final List<InfuserRecipe> RECIPES = new ArrayList<>();
     private static boolean resourcesLoaded;
-    private final ItemStack input;
+    private final List<ItemStack> inputs;
     private final ItemStack output;
     private final int mana;
 
-    private InfuserRecipe(ItemStack input, ItemStack output, int mana) {
-        this.input = input.copy();
+    private InfuserRecipe(List<ItemStack> inputs, ItemStack output, int mana) {
+        List<ItemStack> copies = new ArrayList<>();
+        for (ItemStack input : inputs) {
+            copies.add(input.copy());
+        }
+        this.inputs = Collections.unmodifiableList(copies);
         this.output = output.copy();
         this.mana = Math.max(0, mana);
     }
 
     public static void register(ItemStack input, ItemStack output, int mana) {
         if (input != null && output != null && !input.isEmpty() && !output.isEmpty()) {
-            RECIPES.add(new InfuserRecipe(input, output, mana));
+            register(Collections.singletonList(input), output, mana);
         }
+    }
+
+    public static synchronized void register(List<ItemStack> inputs, ItemStack output, int mana) {
+        if (inputs == null || inputs.isEmpty() || inputs.size() > MAX_INPUTS
+                || output == null || output.isEmpty()) {
+            return;
+        }
+        for (ItemStack input : inputs) {
+            if (input == null || input.isEmpty()) {
+                return;
+            }
+        }
+        RECIPES.add(new InfuserRecipe(inputs, output, mana));
     }
 
     public static synchronized void loadResources() {
@@ -70,13 +91,27 @@ public final class InfuserRecipe {
             }
             JsonObject recipe = new JsonParser()
                     .parse(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject();
-            ItemStack input = readStack(recipe, "input");
+            List<ItemStack> inputs = new ArrayList<>();
+            JsonElement inputsElement = recipe.get("inputs");
+            if (inputsElement != null && inputsElement.isJsonArray()) {
+                for (JsonElement element : inputsElement.getAsJsonArray()) {
+                    ItemStack input = readStack(element);
+                    if (!input.isEmpty()) {
+                        inputs.add(input);
+                    }
+                }
+            } else {
+                ItemStack input = readStack(recipe, "input");
+                if (!input.isEmpty()) {
+                    inputs.add(input);
+                }
+            }
             ItemStack output = readStack(recipe, "output");
-            if (input.isEmpty() || output.isEmpty() || !recipe.has("mana")) {
+            if (inputs.isEmpty() || output.isEmpty() || !recipe.has("mana")) {
                 warn("Invalid Infuser recipe: " + name);
                 return;
             }
-            register(input, output, recipe.get("mana").getAsInt());
+            register(inputs, output, recipe.get("mana").getAsInt());
         } catch (Exception exception) {
             warn("Unable to load Infuser recipe " + name + ": " + exception.getMessage());
         }
@@ -84,6 +119,10 @@ public final class InfuserRecipe {
 
     private static ItemStack readStack(JsonObject recipe, String key) {
         JsonElement element = recipe.get(key);
+        return readStack(element);
+    }
+
+    private static ItemStack readStack(JsonElement element) {
         if (element == null || !element.isJsonObject()) {
             return ItemStack.EMPTY;
         }
@@ -118,8 +157,20 @@ public final class InfuserRecipe {
         if (stack == null || stack.isEmpty()) {
             return null;
         }
-        for (InfuserRecipe recipe : RECIPES) {
-            if (recipe.matches(stack)) {
+        for (int i = RECIPES.size() - 1; i >= 0; i--) {
+            InfuserRecipe recipe = RECIPES.get(i);
+            if (recipe.inputs.size() == 1 && recipe.matches(stack)) {
+                return recipe;
+            }
+        }
+        return null;
+    }
+
+    public static InfuserRecipe find(List<EntityItem> entities) {
+        loadResources();
+        for (int i = RECIPES.size() - 1; i >= 0; i--) {
+            InfuserRecipe recipe = RECIPES.get(i);
+            if (recipe.matches(entities)) {
                 return recipe;
             }
         }
@@ -127,10 +178,58 @@ public final class InfuserRecipe {
     }
 
     public boolean matches(ItemStack stack) {
-        return stack != null && !stack.isEmpty()
-                && input.getItem() == stack.getItem()
-                && (input.getMetadata() == stack.getMetadata() || input.getMetadata() == 32767)
-                && input.getCount() <= stack.getCount();
+        return inputs.size() == 1 && stack != null && !stack.isEmpty()
+                && matchesStack(inputs.get(0), stack)
+                && inputs.get(0).getCount() <= stack.getCount();
+    }
+
+    public boolean matches(List<EntityItem> entities) {
+        return getConsumption(entities) != null;
+    }
+
+    public Map<EntityItem, Integer> getConsumption(List<EntityItem> entities) {
+        if (entities == null) {
+            return null;
+        }
+        Map<EntityItem, Integer> available = new LinkedHashMap<>();
+        for (EntityItem entity : entities) {
+            if (entity != null && !entity.getItem().isEmpty()) {
+                available.put(entity, entity.getItem().getCount());
+            }
+        }
+        Map<EntityItem, Integer> consumed = new LinkedHashMap<>();
+        for (ItemStack expected : inputs) {
+            int needed = Math.max(1, expected.getCount());
+            for (Map.Entry<EntityItem, Integer> entry : available.entrySet()) {
+                if (needed <= 0) {
+                    break;
+                }
+                if (entry.getValue() <= 0 || !matchesStack(expected, entry.getKey().getItem())) {
+                    continue;
+                }
+                int take = Math.min(needed, entry.getValue());
+                entry.setValue(entry.getValue() - take);
+                consumed.put(entry.getKey(), consumed.containsKey(entry.getKey())
+                        ? consumed.get(entry.getKey()) + take : take);
+                needed -= take;
+            }
+            if (needed > 0) {
+                return null;
+            }
+        }
+        for (EntityItem entity : available.keySet()) {
+            if (!consumed.containsKey(entity)) {
+                return null;
+            }
+        }
+        return consumed;
+    }
+
+    private static boolean matchesStack(ItemStack expected, ItemStack actual) {
+        return expected != null && actual != null && !expected.isEmpty() && !actual.isEmpty()
+                && expected.getItem() == actual.getItem()
+                && (expected.getMetadata() == 32767 || expected.getMetadata() == actual.getMetadata())
+                && (!expected.hasTagCompound() || ItemStack.areItemStackTagsEqual(expected, actual));
     }
 
     public static List<InfuserRecipe> getRecipes() {
@@ -143,7 +242,15 @@ public final class InfuserRecipe {
     }
 
     public ItemStack getInput() {
-        return input.copy();
+        return inputs.isEmpty() ? ItemStack.EMPTY : inputs.get(0).copy();
+    }
+
+    public List<ItemStack> getInputs() {
+        List<ItemStack> copies = new ArrayList<>();
+        for (ItemStack input : inputs) {
+            copies.add(input.copy());
+        }
+        return copies;
     }
 
     public int getMana() {

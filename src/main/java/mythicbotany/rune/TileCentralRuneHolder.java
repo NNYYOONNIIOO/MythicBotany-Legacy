@@ -33,9 +33,11 @@ import vazkii.botania.common.core.handler.ModSounds;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TileCentralRuneHolder extends TileEntity implements ITickable {
     private ItemStack center = ItemStack.EMPTY;
@@ -214,7 +216,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             }
 
             InputSelection selection = findInputs(recipe);
-            if (selection == null || !hasSpecialInput(recipe.getSpecialInput())) {
+            if (selection == null || !hasSpecialInputs(recipe.getSpecialInputs())) {
                 lastStatusKey = "message.mythicbotany.ritual_wrong_items";
                 return false;
             }
@@ -224,7 +226,7 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
             }
 
             consumeInputs(selection);
-            consumeSpecialInput(recipe.getSpecialInput());
+            consumeSpecialInputs(recipe.getSpecialInputs());
             activeRecipe = recipe;
             rotation = candidateTransform;
             runeCoordinateScale = candidateScale;
@@ -297,11 +299,41 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         }
     }
 
-    private boolean hasSpecialInput(String specialInput) {
-        return specialInput == null || findSpecialInput(specialInput) != null;
+    private boolean hasSpecialInputs(List<String> specialInputs) {
+        return findSpecialInputs(specialInputs).size() == (specialInputs == null ? 0 : specialInputs.size());
+    }
+
+    private List<Entity> findSpecialInputs(List<String> specialInputs) {
+        List<Entity> matches = new ArrayList<>();
+        if (specialInputs == null || specialInputs.isEmpty()) {
+            return matches;
+        }
+        AxisAlignedBB bounds = new AxisAlignedBB(
+                pos.getX() - 2.0D, pos.getY() - 2.0D, pos.getZ() - 2.0D,
+                pos.getX() + 3.0D, pos.getY() + 3.0D, pos.getZ() + 3.0D);
+        Set<Entity> used = new HashSet<>();
+        for (String specialInput : specialInputs) {
+            Entity match = null;
+            for (Entity entity : world.getEntitiesWithinAABB(Entity.class, bounds)) {
+                String id = EntityList.getEntityString(entity);
+                if (!used.contains(entity) && matchesEntityId(specialInput, id)) {
+                    match = entity;
+                    break;
+                }
+            }
+            if (match == null) {
+                return new ArrayList<>();
+            }
+            used.add(match);
+            matches.add(match);
+        }
+        return matches;
     }
 
     private Entity findSpecialInput(String specialInput) {
+        if (specialInput == null) {
+            return null;
+        }
         AxisAlignedBB bounds = new AxisAlignedBB(
                 pos.getX() - 2.0D, pos.getY() - 2.0D, pos.getZ() - 2.0D,
                 pos.getX() + 3.0D, pos.getY() + 3.0D, pos.getZ() + 3.0D);
@@ -328,12 +360,9 @@ public class TileCentralRuneHolder extends TileEntity implements ITickable {
         return normalizedPath.equals(normalizedActual);
     }
 
-    private void consumeSpecialInput(String specialInput) {
-        if (specialInput != null) {
-            Entity entity = findSpecialInput(specialInput);
-            if (entity != null) {
-                entity.setDead();
-            }
+    private void consumeSpecialInputs(List<String> specialInputs) {
+        for (Entity entity : findSpecialInputs(specialInputs)) {
+            entity.setDead();
         }
     }
 
