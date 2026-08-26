@@ -13,6 +13,7 @@ import mezz.jei.api.gui.ITooltipCallback;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IRecipeWrapper;
+import mezz.jei.api.recipe.VanillaRecipeCategoryUid;
 import mythicbotany.MythicBotany;
 import mythicbotany.recipe.InfuserRecipe;
 import mythicbotany.recipe.YggdrasilBranchRecipe;
@@ -31,6 +32,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import vazkii.botania.client.core.handler.HUDHandler;
+import vazkii.botania.client.integration.jei.crafting.AncientWillRecipeWrapper;
+import vazkii.botania.common.crafting.recipe.AncientWillRecipe;
 import vazkii.botania.common.block.tile.mana.TilePool;
 
 import java.lang.reflect.Method;
@@ -57,6 +60,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         RitualCategory ritualCategory = new RitualCategory(guiHelper);
         YggdrasilBranchCategory yggdrasilBranchCategory = new YggdrasilBranchCategory(guiHelper);
         registry.addRecipeCategories(infuserCategory, ritualCategory, yggdrasilBranchCategory);
+        registry.handleRecipes(AncientWillRecipe.class, AncientWillRecipeWrapper::new,
+                VanillaRecipeCategoryUid.CRAFTING);
 
         List<InfuserWrapper> infuserRecipes = new ArrayList<>();
         for (InfuserRecipe recipe : InfuserRecipe.getRecipes()) {
