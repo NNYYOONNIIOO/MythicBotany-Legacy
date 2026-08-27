@@ -15,6 +15,7 @@ import net.minecraft.util.NonNullList;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.lexicon.LexiconCategory;
 import vazkii.botania.api.lexicon.LexiconEntry;
+import vazkii.botania.api.lexicon.LexiconPage;
 import vazkii.botania.api.lexicon.LexiconRecipeMappings;
 import vazkii.botania.common.lexicon.page.PageText;
 
@@ -55,8 +56,17 @@ public final class MythicLexicon {
     private static void add(LexiconCategory category, String name, String iconId, String... pageKeys) {
         LexiconEntry entry = new LexiconEntry(name, category);
         entry.setIcon(icon(iconId));
-        PageText[] pages = new PageText[pageKeys.length];
+        LexiconPage[] pages = new LexiconPage[pageKeys.length];
         for (int i = 0; i < pageKeys.length; i++) pages[i] = new PageText(pageKeys[i]);
+        if (name.endsWith(".mimir")) {
+            LexiconPage[] withRecipe = new LexiconPage[pages.length + 1];
+            System.arraycopy(pages, 0, withRecipe, 0, pages.length);
+            withRecipe[pages.length] = new PageMythicRecipe(
+                    "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page4.text0",
+                    new ItemStack(ModItems.gjallarHornFull), 6000,
+                    new ItemStack(ModItems.gjallarHornEmpty));
+            pages = withRecipe;
+        }
         entry.setLexiconPages(pages);
         BotaniaAPI.addEntry(entry, category);
         ENTRIES.put(name.substring(name.lastIndexOf('.') + 1), entry);
