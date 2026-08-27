@@ -721,9 +721,17 @@ public class ModWorldGenerator implements IWorldGenerator {
             return;
         }
         TileEntityChest chest = (TileEntityChest) tile;
-        chest.setInventorySlotContents(0, new ItemStack(ModItems.cursedAndwariRing));
+        // Keep the fixed ring, but scatter every generated stack through the
+        // chest so the treasure does not look like a machine-filled row.
+        List<Integer> emptySlots = new ArrayList<>();
+        for (int slot = 0; slot < chest.getSizeInventory(); slot++) {
+            emptySlots.add(slot);
+        }
+        int ringSlot = random.nextInt(emptySlots.size());
+        chest.setInventorySlotContents(emptySlots.remove(ringSlot),
+                new ItemStack(ModItems.cursedAndwariRing));
         int rolls = 8 + random.nextInt(6);
-        for (int roll = 0; roll < rolls; roll++) {
+        for (int roll = 0; roll < rolls && !emptySlots.isEmpty(); roll++) {
             int choice = random.nextInt(15);
             ItemStack loot;
             if (choice == 0) {
@@ -735,7 +743,8 @@ public class ModWorldGenerator implements IWorldGenerator {
             } else {
                 loot = new ItemStack(Items.GOLD_NUGGET, 4 + random.nextInt(17));
             }
-            chest.setInventorySlotContents(roll + 1, loot);
+            int slot = emptySlots.remove(random.nextInt(emptySlots.size()));
+            chest.setInventorySlotContents(slot, loot);
         }
         chest.markDirty();
     }
