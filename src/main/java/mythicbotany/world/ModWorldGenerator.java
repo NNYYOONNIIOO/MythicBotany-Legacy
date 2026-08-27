@@ -2,14 +2,19 @@ package mythicbotany.world;
 
 import mythicbotany.MythicBotany;
 import mythicbotany.registry.ModBlocks;
+import mythicbotany.registry.ModItems;
 import mythicbotany.dimension.ModDimensions;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
@@ -139,6 +144,11 @@ public class ModWorldGenerator implements IWorldGenerator {
             generateFlowers(world, random, chunkX, chunkZ, 3);
         } else if (biome == AlfheimBiomes.ALFHEIM_LAKES) {
             generateLakePlants(world, random, chunkX, chunkZ);
+        }
+
+        if (biome == AlfheimBiomes.GOLDEN_FIELDS
+                && isAndwariCaveChunk(world, chunkX, chunkZ)) {
+            generateAndwariCave(world, random, chunkX, chunkZ);
         }
 
         if (random.nextInt(20) == 0) {
@@ -539,6 +549,225 @@ public class ModWorldGenerator implements IWorldGenerator {
                 }
             }
         }
+    }
+
+    private boolean isAndwariCaveChunk(World world, int chunkX, int chunkZ) {
+        // Match the reference structure set's 28-chunk spacing and
+        // 8-chunk separation with a deterministic candidate per region.
+        final int spacing = 28;
+        final int separation = 8;
+        int regionX = Math.floorDiv(chunkX, spacing);
+        int regionZ = Math.floorDiv(chunkZ, spacing);
+        long regionSeed = world.getSeed()
+                ^ (regionX * 341873128712L)
+                ^ (regionZ * 132897987541L)
+                ^ 1328389907L;
+        Random regionRandom = new Random(regionSeed);
+        int targetX = regionX * spacing + separation
+                + regionRandom.nextInt(spacing - separation);
+        int targetZ = regionZ * spacing + separation
+                + regionRandom.nextInt(spacing - separation);
+        return chunkX == targetX && chunkZ == targetZ;
+    }
+
+    /**
+     * Procedural 1.12 port of MythicBotany's Andwari Cave. It has a hidden
+     * surface entrance, a descending livingrock stair tunnel, a gold-filled
+     * chamber, and a chest with the fixed cursed ring plus random treasure.
+     */
+    private void generateAndwariCave(World world, Random random, int chunkX, int chunkZ) {
+        EnumFacing direction = EnumFacing.HORIZONTALS[random.nextInt(
+                EnumFacing.HORIZONTALS.length)];
+        EnumFacing left = direction.rotateY();
+        int localX = direction == EnumFacing.EAST ? 1
+                : direction == EnumFacing.WEST ? 14 : 8;
+        int localZ = direction == EnumFacing.SOUTH ? 1
+                : direction == EnumFacing.NORTH ? 14 : 8;
+        int x = chunkX * 16 + localX;
+        int z = chunkZ * 16 + localZ;
+        BlockPos surface = findGroundSurface(world, x, z);
+        if (surface == null || surface.getY() < 16
+                || world.getBiome(new BlockPos(x, 0, z)) != AlfheimBiomes.GOLDEN_FIELDS) {
+            return;
+        }
+
+        BlockPos entrance = new BlockPos(x, surface.getY(), z);
+        BlockPos roomFloor = offsetAndwari(entrance, direction, 10, left, 0, -10);
+        IBlockState livingrock = vazkii.botania.common.block.ModBlocks.livingrock
+                .getDefaultState();
+
+        // Validate before changing blocks so structures and existing features
+        // are not destroyed by a failed placement.
+        for (int distance = 0; distance <= 10; distance++) {
+            BlockPos step = offsetAndwari(entrance, direction, distance, left,
+                    0, -distance);
+            for (int lateral = -1; lateral <= 1; lateral++) {
+                for (int vertical = 1; vertical <= 3; vertical++) {
+                    if (!canCarveAndwari(world, offsetAndwari(step, direction,
+                            0, left, lateral, vertical))) {
+                        return;
+                    }
+                }
+            }
+            if (distance > 0 && !canCarveAndwari(world, step)) {
+                return;
+            }
+        }
+        for (int forward = -5; forward <= 5; forward++) {
+            for (int lateral = -4; lateral <= 4; lateral++) {
+                if (!canCarveAndwari(world, offsetAndwari(roomFloor, direction,
+                        forward, left, lateral, 0))) {
+                    return;
+                }
+                for (int vertical = 1; vertical <= 5; vertical++) {
+                    if (!canCarveAndwari(world, offsetAndwari(roomFloor, direction,
+                            forward, left, lateral, vertical))) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Three-block-wide descending stair passage with livingrock walls.
+        for (int distance = 0; distance <= 10; distance++) {
+            BlockPos step = offsetAndwari(entrance, direction, distance, left,
+                    0, -distance);
+            for (int lateral = -1; lateral <= 1; lateral++) {
+                for (int vertical = 1; vertical <= 3; vertical++) {
+                    world.setBlockToAir(offsetAndwari(step, direction, 0, left,
+                            lateral, vertical));
+                }
+            }
+            if (distance > 0) {
+                world.setBlockState(step, livingrock, 2);
+            }
+            for (int vertical = 1; vertical <= 3; vertical++) {
+                world.setBlockState(offsetAndwari(step, direction, 0, left,
+                        -2, vertical), livingrock, 2);
+                world.setBlockState(offsetAndwari(step, direction, 0, left,
+                        2, vertical), livingrock, 2);
+            }
+            world.setBlockState(offsetAndwari(step, direction, 0, left,
+                    0, 4), livingrock, 2);
+        }
+
+        // Carve a five-block-high chamber with a solid livingrock floor.
+        for (int forward = -5; forward <= 5; forward++) {
+            for (int lateral = -4; lateral <= 4; lateral++) {
+                BlockPos floor = offsetAndwari(roomFloor, direction, forward,
+                        left, lateral, 0);
+                world.setBlockState(floor, livingrock, 2);
+                for (int vertical = 1; vertical <= 5; vertical++) {
+                    world.setBlockToAir(offsetAndwari(roomFloor, direction,
+                            forward, left, lateral, vertical));
+                }
+            }
+        }
+
+        // The chest is beneath the left-hand gold pile, as in the reference.
+        BlockPos chestPos = offsetAndwari(roomFloor, direction, -2, left, -3, 1);
+        placeAndwariChest(world, random, chestPos, direction);
+        for (int height = 1; height <= 3; height++) {
+            BlockPos gold = chestPos.up(height);
+            if (world.isAirBlock(gold)) {
+                world.setBlockState(gold, Blocks.GOLD_BLOCK.getDefaultState(), 2);
+            }
+        }
+        for (int forward = -4; forward <= 4; forward++) {
+            for (int lateral = -3; lateral <= 3; lateral++) {
+                if (random.nextInt(3) != 0) {
+                    continue;
+                }
+                BlockPos gold = offsetAndwari(roomFloor, direction, forward,
+                        left, lateral, 1);
+                if (world.isAirBlock(gold)) {
+                    world.setBlockState(gold, Blocks.GOLD_BLOCK.getDefaultState(), 2);
+                    if (random.nextInt(4) == 0 && world.isAirBlock(gold.up())) {
+                        world.setBlockState(gold.up(), Blocks.GOLD_BLOCK.getDefaultState(), 2);
+                    }
+                }
+            }
+        }
+
+        // Most entrances are partially buried, making the cave difficult to
+        // spot; a gold block may also mark the entrance from outside.
+        if (random.nextInt(4) == 0) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    BlockPos cover = entrance.add(dx, 1, dz);
+                    if (world.isAirBlock(cover)) {
+                        world.setBlockState(cover, livingrock, 2);
+                    }
+                }
+            }
+        }
+        if (random.nextBoolean()) {
+            BlockPos marker = entrance.offset(left, 2).up();
+            if (world.isAirBlock(marker)) {
+                world.setBlockState(marker, Blocks.GOLD_BLOCK.getDefaultState(), 2);
+            }
+        }
+    }
+
+    private void placeAndwariChest(World world, Random random, BlockPos pos,
+                                   EnumFacing facing) {
+        if (!world.isAirBlock(pos)) {
+            return;
+        }
+        world.setBlockState(pos, Blocks.CHEST.getDefaultState()
+                .withProperty(BlockChest.FACING, facing), 3);
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(tile instanceof TileEntityChest)) {
+            return;
+        }
+        TileEntityChest chest = (TileEntityChest) tile;
+        chest.setInventorySlotContents(0, new ItemStack(ModItems.cursedAndwariRing));
+        int rolls = 8 + random.nextInt(6);
+        for (int roll = 0; roll < rolls; roll++) {
+            int choice = random.nextInt(15);
+            ItemStack loot;
+            if (choice == 0) {
+                loot = new ItemStack(Items.GOLDEN_APPLE, 1, 1);
+            } else if (choice < 5) {
+                loot = new ItemStack(Items.GOLDEN_APPLE, 1 + random.nextInt(3));
+            } else if (choice < 10) {
+                loot = new ItemStack(Items.GOLD_INGOT, 3 + random.nextInt(6));
+            } else {
+                loot = new ItemStack(Items.GOLD_NUGGET, 4 + random.nextInt(17));
+            }
+            chest.setInventorySlotContents(roll + 1, loot);
+        }
+        chest.markDirty();
+    }
+
+    private static BlockPos offsetAndwari(BlockPos origin, EnumFacing forward,
+                                          int forwardDistance, EnumFacing lateral,
+                                          int lateralDistance, int vertical) {
+        return origin.add(
+                forward.getXOffset() * forwardDistance
+                        + lateral.getXOffset() * lateralDistance,
+                vertical,
+                forward.getZOffset() * forwardDistance
+                        + lateral.getZOffset() * lateralDistance);
+    }
+
+    private boolean canCarveAndwari(World world, BlockPos pos) {
+        if (pos.getY() <= 1 || pos.getY() >= world.getActualHeight()) {
+            return false;
+        }
+        if (world.isAirBlock(pos)) {
+            return true;
+        }
+        Block block = world.getBlockState(pos).getBlock();
+        return block == vazkii.botania.common.block.ModBlocks.livingrock
+                || block == Blocks.STONE
+                || block == Blocks.DIRT
+                || block == Blocks.GRASS
+                || block == Blocks.GRAVEL
+                || block == Blocks.SAND
+                || block == Blocks.SANDSTONE
+                || (block == vazkii.botania.common.block.ModBlocks.altGrass
+                && block.getMetaFromState(world.getBlockState(pos)) == 1);
     }
 
     private boolean generateAbandonedApothecary(World world, Random random, int x, int z) {
