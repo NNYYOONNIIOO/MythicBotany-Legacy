@@ -26,7 +26,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import vazkii.botania.api.BotaniaAPI;
-import vazkii.botania.api.recipe.RecipeManaInfusion;
 import vazkii.botania.api.recipe.RecipePetals;
 import vazkii.botania.api.recipe.RecipeRuneAltar;
 import vazkii.botania.api.lexicon.LexiconCategory;
@@ -82,24 +81,23 @@ public final class MythicLexicon {
             // different order from the rune recipes and caused wrong captions.
             pages = new LexiconPage[] {new PageText(pageKeys[0])};
         } else if (name.endsWith(".alfheim_landscape")) {
-            // Use the same full-page image presentation as Botania's
-            // Hydroangeas entry. PageMythicImage scales the 512px resources to
-            // the legacy lexicon page instead of showing only their corner.
+            // Use Botania's native PageImage, exactly like Hydroangeas. The
+            // image page owns the full artwork and renders its caption below.
             pages = new LexiconPage[] {
                     new PageText(pageKeys[0]),
-                    new PageMythicImage(pageKeys[1], pageKeys[2],
+                    BotaniaAPI.internalHandler.imagePage(pageKeys[2],
                             "mythicbotany:textures/image/alfheim_hills.png"),
-                    new PageMythicImage(pageKeys[3], pageKeys[4],
+                    BotaniaAPI.internalHandler.imagePage(pageKeys[4],
                             "mythicbotany:textures/image/dreamwood_forest.png"),
-                    new PageMythicImage(pageKeys[5], pageKeys[6],
+                    BotaniaAPI.internalHandler.imagePage(pageKeys[6],
                             "mythicbotany:textures/image/golden_fields.png")
             };
         } else if (name.endsWith(".andwari")) {
             pages = new LexiconPage[] {
                     new PageText(pageKeys[0]),
-                    new PageMythicImage(pageKeys[1], pageKeys[2],
+                    BotaniaAPI.internalHandler.imagePage(pageKeys[2],
                             "mythicbotany:textures/image/andwari_entrance.png"),
-                    new PageMythicImage(pageKeys[1], pageKeys[3],
+                    BotaniaAPI.internalHandler.imagePage(pageKeys[3],
                             "mythicbotany:textures/image/andwari_cave.png"),
                     new PageText(pageKeys[4])
             };
@@ -167,13 +165,6 @@ public final class MythicLexicon {
             for (YggdrasilBranchRecipe recipe : YggdrasilBranchRecipe.getDefaultRecipes()) {
                 addRecipePage(mimir, new PageYggdrasilBranchRecipe(
                         EMPTY_PAGE, recipe.getInput(), recipe.getOutput(), recipe.getMana()));
-            }
-            for (RecipeManaInfusion recipe : BotaniaAPI.manaInfusionRecipes) {
-                if (recipe.getOutput().getItem() == ModItems.gjallarHornEmpty) {
-                    addRecipePage(mimir, BotaniaAPI.internalHandler.manaInfusionRecipePage(
-                            EMPTY_PAGE,
-                            recipe));
-                }
             }
         }
 
@@ -244,11 +235,16 @@ public final class MythicLexicon {
         }
         for (String name : names) {
             ResourceLocation id = new ResourceLocation(MythicBotany.MODID, name);
-            if (ForgeRegistries.RECIPES.getValue(id) != null) {
+            net.minecraft.item.crafting.IRecipe recipe = ForgeRegistries.RECIPES.getValue(id);
+            if (recipe != null) {
                 // Keep each recipe on its own page.  The Botania page renderer
                 // lays out all recipes in a supplied list at once, which makes
                 // the longer alfsteel and ring recipes overflow the page.
+                int pageIndex = entry.pages.size();
                 addRecipePage(entry, new PageCraftingRecipe(textKey, id));
+                if (!recipe.getRecipeOutput().isEmpty()) {
+                    LexiconRecipeMappings.map(recipe.getRecipeOutput(), entry, pageIndex, true);
+                }
             }
         }
     }
@@ -260,7 +256,9 @@ public final class MythicLexicon {
             ItemStack output = recipe.getOutput();
             NBTTagCompound tag = output.getTagCompound();
             if (tag != null && flowerType.equals(tag.getString("type"))) {
+                int pageIndex = entry.pages.size();
                 addRecipePage(entry, BotaniaAPI.internalHandler.petalRecipePage(pageName, recipe));
+                LexiconRecipeMappings.map(output, entry, pageIndex, true);
                 return;
             }
         }
@@ -271,7 +269,9 @@ public final class MythicLexicon {
         if (entry == null) return;
         for (RecipeRuneAltar recipe : BotaniaAPI.runeAltarRecipes) {
             if (recipe.getOutput().getItem() == outputItem) {
+                int pageIndex = entry.pages.size();
                 addRecipePage(entry, BotaniaAPI.internalHandler.runeRecipePage(pageName, recipe));
+                LexiconRecipeMappings.map(recipe.getOutput(), entry, pageIndex, true);
                 return;
             }
         }

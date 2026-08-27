@@ -25,11 +25,11 @@ public final class PageRitualOutput extends PageRecipe {
     private boolean mouseDown;
 
     public PageRitualOutput(String unlocalizedName, ItemStack output) {
-        this(unlocalizedName, "lexicon.page.empty", output);
+        this(unlocalizedName, "", output);
     }
 
     public PageRitualOutput(String unlocalizedName, String textKey, ItemStack output) {
-        super("lexicon.page.empty");
+        super("");
         this.textKey = textKey;
         this.output = output == null ? ItemStack.EMPTY : output.copy();
     }
