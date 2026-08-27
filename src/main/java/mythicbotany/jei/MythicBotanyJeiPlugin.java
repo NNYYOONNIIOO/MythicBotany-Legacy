@@ -287,23 +287,28 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
         /** Enlarges the rune panel by 10 px left, 9 px right, 18 px up and 25 px down. */
         private static final class ExpandedRitualBackground implements IDrawable {
-            // Relative to the previous 155x239 drawable: +10 px on the left,
+            // Relative to the current 183x252 drawable: +10 px on the left,
             // +18 px on the right, and +13 px at the bottom.
-            private static final int WIDTH = 183;
-            private static final int HEIGHT = 252;
-            private static final int LEFT = 20;
+            private static final int WIDTH = 211;
+            private static final int HEIGHT = 265;
+            private static final int LEFT = 30;
             private static final int TOP = 18;
             private static final int SOURCE_WIDTH = 136;
             private static final int SOURCE_HEIGHT = 196;
 
             @Override
             public int getWidth() {
-                return WIDTH;
+                // Include the left overhang in JEI's category bounds. The
+                // drawable is intentionally painted from -LEFT so the rune
+                // panel grows around the existing rune coordinates.
+                return WIDTH + LEFT;
             }
 
             @Override
             public int getHeight() {
-                return HEIGHT;
+                // Include the top overhang as well, preventing the enlarged
+                // frame from being clipped by JEI's recipe-area boundary.
+                return HEIGHT + TOP;
             }
 
             @Override
