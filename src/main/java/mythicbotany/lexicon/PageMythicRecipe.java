@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -50,25 +49,10 @@ public final class PageMythicRecipe extends PageRecipe {
     @Override
     @SideOnly(Side.CLIENT)
     public void renderRecipe(IGuiLexiconEntry gui, int mx, int my) {
-        // Keep this page useful even when a custom recipe has several inputs.
-        // PageRecipe's item helper uses the current GUI origin, so each stack
-        // is rendered in a small row around the centre of the recipe area.
         int inputCount = inputs.size();
         for (int i = 0; i < inputCount; i++) {
-            GlStateManager.pushMatrix();
-            GlStateManager.translate((i - (inputCount - 1) / 2.0D) * 24.0D - 18.0D, 0.0D, 0.0D);
-            renderItemAtAngle(gui, 0.0F, inputs.get(i));
-            GlStateManager.popMatrix();
+            renderItemAtAngle(gui, inputCount == 0 ? 0.0F : i * 360.0F / inputCount, inputs.get(i));
         }
-        if (!output.isEmpty()) {
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(36.0D, 0.0D, 0.0D);
-            renderItemAtAngle(gui, 0.0F, output);
-            GlStateManager.popMatrix();
-        }
-        // Keep the value part of the page's data even though the stock 1.12
-        // lexicon has no mana label primitive; it is used by integrations and
-        // prevents this page from being mistaken for a normal crafting page.
-        if (mana < 0) throw new AssertionError("unreachable");
+        if (!output.isEmpty()) renderItemAtGridPos(gui, 3, 0, output, false);
     }
 }

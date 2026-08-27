@@ -1,10 +1,21 @@
 package mythicbotany.lexicon;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import mythicbotany.MythicBotany;
+import mythicbotany.recipe.InfuserRecipe;
+import mythicbotany.recipe.YggdrasilBranchRecipe;
 import mythicbotany.registry.ModItems;
+import mythicbotany.rune.RuneRitualRegistry;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemMonsterPlacer;
@@ -17,6 +28,7 @@ import vazkii.botania.api.lexicon.LexiconCategory;
 import vazkii.botania.api.lexicon.LexiconEntry;
 import vazkii.botania.api.lexicon.LexiconPage;
 import vazkii.botania.api.lexicon.LexiconRecipeMappings;
+import vazkii.botania.common.lexicon.page.PageCraftingRecipe;
 import vazkii.botania.common.lexicon.page.PageText;
 
 /** Lexicon categories, entries, and text keys ported from MythicBotany upstream. */
@@ -51,6 +63,7 @@ public final class MythicLexicon {
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.runes", "mythicbotany:niflheim_rune", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page4.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page5.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page6.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page7.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page8.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page9.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.tools", "mythicbotany:alfsteel_axe{Damage:0}", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page4.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page5.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page6.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page7.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page8.text0");
         registerItemMappings();
+        registerRecipePages();
     }
 
     private static void add(LexiconCategory category, String name, String iconId, String... pageKeys) {
@@ -58,13 +71,12 @@ public final class MythicLexicon {
         entry.setIcon(icon(iconId));
         LexiconPage[] pages = new LexiconPage[pageKeys.length];
         for (int i = 0; i < pageKeys.length; i++) pages[i] = new PageText(pageKeys[i]);
-        if (name.endsWith(".mimir")) {
+        if (name.endsWith(".infuser")) {
             LexiconPage[] withRecipe = new LexiconPage[pages.length + 1];
             System.arraycopy(pages, 0, withRecipe, 0, pages.length);
-            withRecipe[pages.length] = new PageMythicRecipe(
-                    "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page4.text0",
-                    new ItemStack(ModItems.gjallarHornFull), 6000,
-                    new ItemStack(ModItems.gjallarHornEmpty));
+            withRecipe[pages.length] = new PageCraftingRecipe(
+                    "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page3.text0",
+                    new ResourceLocation(MythicBotany.MODID, "alfsteel_block"));
             pages = withRecipe;
         }
         entry.setLexiconPages(pages);
@@ -117,6 +129,114 @@ public final class MythicLexicon {
             mapFlower(specialFlower, "mythicbotany_raindeletia", "functional");
             mapFlower(specialFlower, "mythicbotany_feysythia", "functional");
             mapFlower(specialFlower, "mythicbotany_petrunia", "functional");
+        }
+    }
+
+    private static void registerRecipePages() {
+        YggdrasilBranchRecipe.addListener(new YggdrasilBranchRecipe.RecipeListener() {
+            @Override
+            public void onRecipeAdded(YggdrasilBranchRecipe recipe) {
+                addRecipePage(find("mimir"), new PageMythicRecipe(
+                        "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page4.text0",
+                        recipe.getOutput(), recipe.getMana(), recipe.getInput()));
+            }
+        });
+        addReflectiveRecipePages(find("infuser"), InfuserRecipe.getRecipes(),
+                "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page3.text0");
+        addReflectiveRecipePages(find("rune_rituals"), RuneRitualRegistry.getRecipes(),
+                "lexicon.entry.mythicbotany.botania.mythic_botany.rune_rituals.page3.text0");
+    }
+
+    private static void addReflectiveRecipePages(LexiconEntry entry, Iterable<?> recipes, String pageName) {
+        if (entry == null || recipes == null) return;
+        for (Object recipe : recipes) {
+            if (recipe == null) continue;
+            List<ItemStack> stacks = extractStacks(recipe);
+            if (stacks.isEmpty()) continue;
+
+            List<ItemStack> declaredOutputs = extractStacks(invokeFirst(recipe,
+                    "getOutput", "getOutputs", "getResult", "getResults", "getResultItem"));
+            ItemStack output = declaredOutputs.isEmpty()
+                    ? stacks.get(stacks.size() - 1) : declaredOutputs.get(0);
+            removeMatchingStack(stacks, output);
+            int mana = number(invokeFirst(recipe, "getMana", "getManaUsage", "getManaCost"));
+            addRecipePage(entry, new PageMythicRecipe(pageName, output, mana,
+                    stacks.toArray(new ItemStack[stacks.size()])));
+        }
+    }
+
+    private static void addRecipePage(LexiconEntry entry, PageMythicRecipe page) {
+        if (entry == null || page == null) return;
+        int pageIndex = entry.pages.size();
+        entry.addPage(page);
+        page.onPageAdded(entry, pageIndex);
+    }
+
+    private static Object invokeFirst(Object target, String... methodNames) {
+        for (String methodName : methodNames) {
+            try {
+                return target.getClass().getMethod(methodName).invoke(target);
+            } catch (ReflectiveOperationException ignored) {
+                // Recipe implementations have changed names between legacy revisions.
+            }
+        }
+        return null;
+    }
+
+    private static int number(Object value) {
+        return value instanceof Number ? Math.max(0, ((Number) value).intValue()) : 0;
+    }
+
+    private static List<ItemStack> extractStacks(Object value) {
+        List<ItemStack> result = new ArrayList<>();
+        Set<Object> visited = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
+        collectStacks(value, result, visited, 0);
+        return result;
+    }
+
+    private static void collectStacks(Object value, List<ItemStack> result,
+                                      Set<Object> visited, int depth) {
+        if (value == null || depth > 5) return;
+        if (value instanceof ItemStack) {
+            ItemStack stack = (ItemStack) value;
+            if (!stack.isEmpty()) result.add(stack.copy());
+            return;
+        }
+        if (value instanceof Iterable<?>) {
+            for (Object child : (Iterable<?>) value) collectStacks(child, result, visited, depth + 1);
+            return;
+        }
+        Class<?> type = value.getClass();
+        if (type.isArray()) {
+            int length = Array.getLength(value);
+            for (int i = 0; i < length; i++) {
+                collectStacks(Array.get(value, i), result, visited, depth + 1);
+            }
+            return;
+        }
+        Package packageInfo = type.getPackage();
+        if (packageInfo == null || !packageInfo.getName().startsWith("mythicbotany")) return;
+        if (!visited.add(value)) return;
+        for (Field field : type.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers())) continue;
+            try {
+                field.setAccessible(true);
+                collectStacks(field.get(value), result, visited, depth + 1);
+            } catch (ReflectiveOperationException | SecurityException ignored) {
+                // A recipe may contain an implementation detail that is not readable.
+            }
+        }
+    }
+
+    private static void removeMatchingStack(List<ItemStack> stacks, ItemStack target) {
+        for (int i = 0; i < stacks.size(); i++) {
+            ItemStack candidate = stacks.get(i);
+            if (candidate.getItem() == target.getItem()
+                    && candidate.getMetadata() == target.getMetadata()
+                    && ItemStack.areItemStackTagsEqual(candidate, target)) {
+                stacks.remove(i);
+                return;
+            }
         }
     }
 
