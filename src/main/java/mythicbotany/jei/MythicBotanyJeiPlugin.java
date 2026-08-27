@@ -14,6 +14,7 @@ import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.plugins.vanilla.ingredients.item.ItemStackRenderer;
 import mezz.jei.api.recipe.IRecipeCategory;
+import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import mezz.jei.api.recipe.VanillaRecipeCategoryUid;
 import mythicbotany.MythicBotany;
@@ -53,6 +54,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
     private static final ResourceLocation RITUAL_BACKGROUND = new ResourceLocation(
             MythicBotany.MODID, "textures/gui/jei_ritual.png");
     private IRecipeRegistry runtimeRecipeRegistry;
+    private static volatile IJeiRuntime runtime;
     private final List<YggdrasilBranchRecipe> pendingBranchRecipes = new ArrayList<>();
     private final Set<YggdrasilBranchRecipe> initialBranchRecipes =
             Collections.newSetFromMap(new IdentityHashMap<YggdrasilBranchRecipe, Boolean>());
@@ -103,12 +105,24 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
     @Override
     public void onRuntimeAvailable(IJeiRuntime runtime) {
+        MythicBotanyJeiPlugin.runtime = runtime;
         runtimeRecipeRegistry = runtime.getRecipeRegistry();
         for (YggdrasilBranchRecipe recipe : new ArrayList<>(pendingBranchRecipes)) {
             runtimeRecipeRegistry.addRecipe(new YggdrasilBranchWrapper(recipe),
                     YggdrasilBranchCategory.UID);
         }
         pendingBranchRecipes.clear();
+    }
+
+    /** Opens the JEI recipes for a ritual output, if JEI is present. */
+    public static void showRitual(ItemStack output) {
+        IJeiRuntime current = runtime;
+        if (current == null || output == null || output.isEmpty()) {
+            return;
+        }
+        IFocus<ItemStack> focus = current.getRecipeRegistry().createFocus(
+                IFocus.Mode.OUTPUT, output.copy());
+        current.getRecipesGui().show(focus);
     }
 
     private void addYggdrasilBranchRecipe(YggdrasilBranchRecipe recipe) {

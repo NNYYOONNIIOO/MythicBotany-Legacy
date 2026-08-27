@@ -11,6 +11,7 @@ import vazkii.botania.api.internal.IGuiLexiconEntry;
 import vazkii.botania.api.lexicon.LexiconEntry;
 import vazkii.botania.api.lexicon.LexiconRecipeMappings;
 import vazkii.botania.common.lexicon.page.PageRecipe;
+import vazkii.botania.common.block.ModBlocks;
 
 /**
  * Small legacy-lexicon recipe page for recipes that are not Forge IRecipes.
@@ -53,6 +54,9 @@ public final class PageMythicRecipe extends PageRecipe {
         for (int i = 0; i < inputCount; i++) {
             renderItemAtAngle(gui, inputCount == 0 ? 0.0F : i * 360.0F / inputCount, inputs.get(i));
         }
+        // Match Botania's mana-infusion presentation: the operation happens
+        // over a visible mana pool, with the result to its right.
+        renderItemAtGridPos(gui, 2, 0, new ItemStack(ModBlocks.pool), false);
         if (!output.isEmpty()) renderItemAtGridPos(gui, 3, 0, output, false);
     }
 }
