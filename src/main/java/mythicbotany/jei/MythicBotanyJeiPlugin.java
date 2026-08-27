@@ -190,8 +190,10 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
         private RitualCategory(IGuiHelper helper) {
             background = new ExpandedRitualBackground();
-            // Keep extra inputs and output on JEI's native 18x18 slot drawable.
-            itemSlot = helper.getSlotDrawable();
+            // Use JEI's unscaled 18x18 slot texture so the normal slot border is
+            // preserved independently of the enlarged ritual background.
+            itemSlot = helper.createDrawable(new ResourceLocation("jei",
+                    "textures/gui/slot.png"), 0, 0, ITEM_SLOT_SIZE, ITEM_SLOT_SIZE);
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.centralRuneHolder));
         }
 
@@ -285,13 +287,17 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                     - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
         }
 
-        /** Enlarges the rune panel by 10 px left, 9 px right, 18 px up and 25 px down. */
+        /**
+         * Enlarges the current rune panel by another 10 px on the left,
+         * 18 px on the right, and 13 px at the bottom. The lower controls
+         * remain at their existing coordinates.
+         */
         private static final class ExpandedRitualBackground implements IDrawable {
-            // Relative to the current 183x252 drawable: +10 px on the left,
+            // Relative to the current 211x265 drawable: +10 px on the left,
             // +18 px on the right, and +13 px at the bottom.
-            private static final int WIDTH = 211;
-            private static final int HEIGHT = 265;
-            private static final int LEFT = 30;
+            private static final int WIDTH = 239;
+            private static final int HEIGHT = 278;
+            private static final int LEFT = 40;
             private static final int TOP = 18;
             private static final int SOURCE_WIDTH = 136;
             private static final int SOURCE_HEIGHT = 196;
