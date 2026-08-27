@@ -110,8 +110,13 @@ public final class MythicLexicon {
         // Mythic flowers are stored as Botania's specialflower with a type tag.
         Item specialFlower = Item.REGISTRY.getObject(new ResourceLocation("botania", "specialflower"));
         if (specialFlower != null) {
-            mapFlower(specialFlower, "mythicbotany_hellebore", "functional");
+            mapFlower(specialFlower, "mythicbotany_exoblaze", "functional");
             mapFlower(specialFlower, "mythicbotany_wither_aconite", "generating");
+            mapFlower(specialFlower, "mythicbotany_aquapanthus", "functional");
+            mapFlower(specialFlower, "mythicbotany_hellebore", "functional");
+            mapFlower(specialFlower, "mythicbotany_raindeletia", "functional");
+            mapFlower(specialFlower, "mythicbotany_feysythia", "functional");
+            mapFlower(specialFlower, "mythicbotany_petrunia", "functional");
         }
     }
 

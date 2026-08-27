@@ -50,19 +50,19 @@ public final class PageMythicRecipe extends PageRecipe {
     @Override
     @SideOnly(Side.CLIENT)
     public void renderRecipe(IGuiLexiconEntry gui, int mx, int my) {
-        // PageRecipe supplies Botania's normal lit item rendering.  Translate
-        // each stack relative to its normal centre so the page remains valid
-        // for both the narrow and wide legacy lexicon layouts.
+        // Keep this page useful even when a custom recipe has several inputs.
+        // PageRecipe's item helper uses the current GUI origin, so each stack
+        // is rendered in a small row around the centre of the recipe area.
         int inputCount = inputs.size();
         for (int i = 0; i < inputCount; i++) {
             GlStateManager.pushMatrix();
-            GlStateManager.translate((i - (inputCount - 1) / 2.0D) * 28.0D, 0.0D, 0.0D);
+            GlStateManager.translate((i - (inputCount - 1) / 2.0D) * 24.0D - 18.0D, 0.0D, 0.0D);
             renderItemAtAngle(gui, 0.0F, inputs.get(i));
             GlStateManager.popMatrix();
         }
         if (!output.isEmpty()) {
             GlStateManager.pushMatrix();
-            GlStateManager.translate(Math.max(34.0D, inputCount * 14.0D), 0.0D, 0.0D);
+            GlStateManager.translate(36.0D, 0.0D, 0.0D);
             renderItemAtAngle(gui, 0.0F, output);
             GlStateManager.popMatrix();
         }
