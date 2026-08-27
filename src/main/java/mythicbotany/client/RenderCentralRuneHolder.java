@@ -8,6 +8,6 @@ public class RenderCentralRuneHolder extends TileEntitySpecialRenderer<TileCentr
     @Override
     public void render(TileCentralRuneHolder tile, double x, double y, double z, float partialTicks,
                        int destroyStage, float alpha) {
-        RenderRuneHolder.renderStack(tile.getDisplayStack(), x, y, z);
+        RenderRuneHolder.renderStack(tile.getDisplayStack(), tile, x, y, z, partialTicks);
     }
 }

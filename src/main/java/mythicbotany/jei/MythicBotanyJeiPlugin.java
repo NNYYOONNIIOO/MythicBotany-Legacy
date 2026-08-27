@@ -23,6 +23,7 @@ import mythicbotany.rune.RuneRitualRecipe;
 import mythicbotany.rune.RuneRitualRegistry;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityList;
@@ -46,6 +47,7 @@ import java.util.Set;
 public final class MythicBotanyJeiPlugin implements IModPlugin {
     private static final ResourceLocation RITUAL_BACKGROUND = new ResourceLocation(
             MythicBotany.MODID, "textures/gui/jei_ritual.png");
+    private static final int RITUAL_LOWER_CONTENT_OFFSET_Y = 25;
     private IRecipeRegistry runtimeRecipeRegistry;
     private final List<YggdrasilBranchRecipe> pendingBranchRecipes = new ArrayList<>();
     private final Set<YggdrasilBranchRecipe> initialBranchRecipes =
@@ -185,9 +187,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         private final IDrawable icon;
 
         private RitualCategory(IGuiHelper helper) {
-            background = helper.createDrawable(RITUAL_BACKGROUND, 0, 0, 136, 196);
-            // JEI's standard slot is exactly 18x18. Keep the rune artwork in
-            // the background untouched and use this slot only for extras/output.
+            background = new ExpandedRitualBackground();
+            // Keep extra inputs and output on JEI's native 18x18 slot drawable.
             itemSlot = helper.getSlotDrawable();
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.centralRuneHolder));
         }
@@ -238,7 +239,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 entityIndex++;
             }
 
-            stacks.init(slotIndex, false, 60, 170);
+            stacks.init(slotIndex, false, 60, 170 + RITUAL_LOWER_CONTENT_OFFSET_Y);
             stacks.setBackground(slotIndex, itemSlot);
             stacks.set(slotIndex, wrapper.recipe.getOutput());
 
@@ -278,7 +279,41 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             int columns = Math.min(7, Math.max(1, count));
             int rows = (count + columns - 1) / columns;
             int row = index / columns;
-            return 140 - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
+            return 140 + RITUAL_LOWER_CONTENT_OFFSET_Y
+                    - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
+        }
+
+        /** Enlarges the rune panel by 10 px left, 9 px right, 18 px up and 25 px down. */
+        private static final class ExpandedRitualBackground implements IDrawable {
+            private static final int WIDTH = 155;
+            private static final int HEIGHT = 239;
+            private static final int LEFT = 10;
+            private static final int TOP = 18;
+            private static final int SOURCE_WIDTH = 136;
+            private static final int SOURCE_HEIGHT = 196;
+
+            @Override
+            public int getWidth() {
+                return WIDTH;
+            }
+
+            @Override
+            public int getHeight() {
+                return HEIGHT;
+            }
+
+            @Override
+            public void draw(Minecraft minecraft, int xOffset, int yOffset) {
+                minecraft.renderEngine.bindTexture(RITUAL_BACKGROUND);
+                GlStateManager.enableAlpha();
+                GlStateManager.enableBlend();
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                Gui.drawScaledCustomSizeModalRect(xOffset - LEFT, yOffset - TOP,
+                        0.0F, 0.0F, SOURCE_WIDTH, SOURCE_HEIGHT,
+                        WIDTH, HEIGHT, 256.0F, 256.0F);
+                GlStateManager.disableBlend();
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            }
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
@@ -439,7 +474,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override
         public void drawInfo(Minecraft minecraft, int width, int height, int mouseX, int mouseY) {
             if (recipe.getMana() > 0) {
-                HUDHandler.renderManaBar(17, height - 7, 0x0000FF, 0.75F,
+                HUDHandler.renderManaBar(17, 189 + RITUAL_LOWER_CONTENT_OFFSET_Y,
+                        0x0000FF, 0.75F,
                         recipe.getMana(), 1000000);
             }
         }
