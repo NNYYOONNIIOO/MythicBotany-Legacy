@@ -187,8 +187,12 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         private static final String UID = MythicBotany.MODID + ":ritual";
         private static final int ITEM_SLOT_SIZE = 18;
         private static final int RUNE_SLOT_SIZE = 16;
-        private static final int RUNE_CENTER_X = 62;
-        private static final int RUNE_CENTER_Y = 62;
+        // Position adjustment for the item icons inside the circled rune area.
+        // The lower extra-input/output slots are intentionally unaffected.
+        private static final int RUNE_ITEM_OFFSET_X = -2;
+        private static final int RUNE_ITEM_OFFSET_Y = -2;
+        private static final int RUNE_CENTER_X = 62 + RUNE_ITEM_OFFSET_X;
+        private static final int RUNE_CENTER_Y = 62 + RUNE_ITEM_OFFSET_Y;
         private static final int RUNE_STEP = 16;
         private final IDrawable background;
         private final IDrawable itemSlot;
