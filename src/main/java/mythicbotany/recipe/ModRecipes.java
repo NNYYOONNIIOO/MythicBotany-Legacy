@@ -5,8 +5,11 @@ import mythicbotany.registry.ModItems;
 import mythicbotany.flower.MythicFlowerSubTiles;
 import mythicbotany.flower.MythicFlowerSignature;
 import mythicbotany.rune.RuneRitualRegistry;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.common.item.block.ItemBlockSpecialFlower;
 
@@ -27,7 +30,59 @@ public final class ModRecipes {
         InfuserRecipe.loadResources();
         RuneRitualRegistry.loadResources();
         SmeltingRecipeLoader.loadResources();
+        registerBotaniaRecipes();
         registerSpecialFlowerRecipes();
+    }
+
+    private static void registerBotaniaRecipes() {
+        final int mana = 16000;
+
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.asgardRune), mana,
+                stack("botania:manaresource", 2), stack("botania:rune", 3),
+                stack("botania:rune", 6), stack("botania:rune", 15),
+                stack("botania:rainbowrod", 0));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.vanaheimRune), mana,
+                stack("botania:alfheimportal", 0), stack("botania:manaresource", 4),
+                stack("botania:rune", 2), stack("botania:rune", 4),
+                stack("botania:rune", 15));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.alfheimRune), mana,
+                "treeLeaves", stack("botania:manaresource", 7), stack("botania:rune", 3),
+                stack("botania:rune", 5), stack("botania:rune", 9));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.midgardRune), mana,
+                stack("minecraft:grass", 0), stack("botania:manaresource", 0),
+                stack("botania:rune", 2), stack("botania:rune", 4),
+                stack("botania:rune", 11));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.joetunheimRune), mana,
+                stack("minecraft:concrete", 15), stack("minecraft:brick", 0),
+                stack("botania:rune", 2), stack("botania:rune", 6),
+                stack("botania:rune", 10));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.muspelheimRune), mana,
+                stack("minecraft:magma", 0), stack("minecraft:netherbrick", 0),
+                stack("botania:rune", 1), stack("botania:rune", 5),
+                stack("botania:rune", 13));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.niflheimRune), mana,
+                stack("minecraft:packed_ice", 0), stack("minecraft:iron_ingot", 0),
+                stack("botania:rune", 0), stack("botania:rune", 7),
+                stack("botania:rune", 13));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.nidavellirRune), mana,
+                stack("minecraft:iron_block", 0), stack("minecraft:gold_ingot", 0),
+                stack("botania:rune", 2), stack("botania:rune", 7),
+                stack("botania:rune", 12));
+        BotaniaAPI.registerRuneAltarRecipe(new ItemStack(ModItems.helheimRune), mana,
+                stack("minecraft:skull", OreDictionary.WILDCARD_VALUE),
+                stack("minecraft:gold_ingot", 0), stack("botania:rune", 1),
+                stack("botania:rune", 6), stack("botania:rune", 14));
+
+        BotaniaAPI.registerManaInfusionRecipe(new ItemStack(ModItems.gjallarHornEmpty),
+                stack("botania:grasshorn", 0), 20000);
+    }
+
+    private static ItemStack stack(String id, int meta) {
+        Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(id));
+        if (item == null) {
+            throw new IllegalStateException("Missing recipe item: " + id);
+        }
+        return new ItemStack(item, 1, meta);
     }
 
     /** Register Botania's shared specialflower subtiles before client models and tile data are baked. */

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "mythicbotany.recipes",
+  "pattern": [" G ", "APA", " G "],
+  "key": {
+    "G": {"item": "minecraft:ghast_tear"},
+    "A": {"item": "mythicbotany:alfsteel_nugget"},
+    "P": {"item": "botania:pylon", "data": 1}
+  },
+  "result": {"item": "mythicbotany:alfsteel_pylon"}
+}

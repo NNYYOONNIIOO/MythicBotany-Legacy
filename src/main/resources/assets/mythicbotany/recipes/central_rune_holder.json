@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "mythicbotany.recipes",
+  "pattern": [" E ", "EME"],
+  "key": {
+    "E": {"item": "minecraft:emerald"},
+    "M": {"item": "botania:manaresource", "data": 23}
+  },
+  "result": {"item": "mythicbotany:central_rune_holder"}
+}

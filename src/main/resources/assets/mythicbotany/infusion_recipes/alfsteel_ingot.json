@@ -1,0 +1,9 @@
+{
+  "inputs": [
+    {"item": "botania:manaresource", "data": 7},
+    {"item": "botania:manaresource", "data": 9},
+    {"item": "botania:manaresource", "data": 8}
+  ],
+  "output": {"item": "mythicbotany:alfsteel_ingot"},
+  "mana": 1500000
+}

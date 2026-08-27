@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "mythicbotany.recipes",
+  "pattern": ["DMD", "DMD", "DVD"],
+  "key": {
+    "D": {"item": "botania:dreamwood", "data": 5},
+    "M": {"item": "botania:manaresource", "data": 14},
+    "V": {"item": "botania:manaresource", "data": 8}
+  },
+  "result": {"item": "mythicbotany:mana_collector"}
+}

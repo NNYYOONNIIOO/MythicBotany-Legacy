@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "mythicbotany.recipes",
+  "ingredients": [
+    {"item": "mythicbotany:alfsteel_ingot"}
+  ],
+  "result": {"item": "mythicbotany:alfsteel_nugget", "count": 9}
+}

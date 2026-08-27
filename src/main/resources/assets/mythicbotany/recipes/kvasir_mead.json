@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "mythicbotany.recipes",
+  "ingredients": [
+    {"item": "mythicbotany:kvasir_blood"},
+    {"item": "minecraft:sugar"}
+  ],
+  "result": {"item": "mythicbotany:kvasir_mead"}
+}

@@ -1,0 +1,23 @@
+{
+  "center": {"item": "botania:rune", "data": 8},
+  "inputs": [
+    [
+      {"item": "mythicbotany:cursed_andwari_ring"},
+      {"item": "mythicbotany:andwari_ring"}
+    ],
+    {"item": "botania:manaresource", "data": 22}
+  ],
+  "output": {"item": "mythicbotany:andwari_ring"},
+  "mana": 0,
+  "ticks": 200,
+  "runes": [
+    {"x": 0, "z": 3, "rune": {"item": "botania:rune", "data": 11}},
+    {"x": 0, "z": -3, "rune": {"item": "botania:rune", "data": 11}},
+    {"x": -2, "z": 2, "rune": {"item": "botania:rune", "data": 11}},
+    {"x": 2, "z": -2, "rune": {"item": "botania:rune", "data": 11}},
+    {"x": -2, "z": -2, "rune": {"item": "botania:rune", "data": 11}},
+    {"x": 2, "z": 2, "rune": {"item": "botania:rune", "data": 11}},
+    {"x": -3, "z": 0, "rune": {"item": "mythicbotany:alfheim_rune"}},
+    {"x": 3, "z": 0, "rune": {"item": "mythicbotany:alfheim_rune"}}
+  ]
+}

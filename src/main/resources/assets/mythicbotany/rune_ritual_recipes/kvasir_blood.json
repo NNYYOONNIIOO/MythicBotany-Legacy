@@ -1,0 +1,26 @@
+{
+  "center": {"item": "mythicbotany:fimbultyr_tablet"},
+  "inputs": [
+    {"item": "botania:enderdagger"},
+    {"item": "mythicbotany:alfsteel_nugget"},
+    {"item": "botania:vial"}
+  ],
+  "special_input": ["minecraft:villager"],
+  "output": {"item": "mythicbotany:kvasir_blood"},
+  "mana": 500000,
+  "ticks": 200,
+  "runes": [
+    {"x": -3, "z": 1, "rune": {"item": "botania:rune", "data": 1}},
+    {"x": -1, "z": 3, "rune": {"item": "botania:rune", "data": 1}},
+    {"x": 3, "z": -1, "rune": {"item": "botania:rune", "data": 1}},
+    {"x": 1, "z": -3, "rune": {"item": "botania:rune", "data": 1}},
+    {"x": -2, "z": 2, "rune": {"item": "mythicbotany:helheim_rune"}},
+    {"x": 2, "z": -2, "rune": {"item": "mythicbotany:helheim_rune"}},
+    {"x": 1, "z": 3, "rune": {"item": "botania:rune", "data": 5}},
+    {"x": 3, "z": 1, "rune": {"item": "botania:rune", "data": 5}},
+    {"x": -3, "z": -1, "rune": {"item": "botania:rune", "data": 5}},
+    {"x": -1, "z": -3, "rune": {"item": "botania:rune", "data": 5}},
+    {"x": 2, "z": 2, "rune": {"item": "mythicbotany:midgard_rune"}},
+    {"x": -2, "z": -2, "rune": {"item": "mythicbotany:midgard_rune"}}
+  ]
+}
