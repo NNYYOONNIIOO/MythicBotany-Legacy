@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import mythicbotany.recipe.RecipeAlfsteelPickElementium;
+import mythicbotany.recipe.RecipeAlfsteelUpgrade;
 import mythicbotany.recipe.ModRecipes;
 import mythicbotany.world.AlfheimBiomes;
 import net.minecraft.world.biome.Biome;
@@ -46,11 +47,42 @@ public final class ModRegistry {
     public void registerRecipes(RegistryEvent.Register<IRecipe> event) {
         Item elementiumPick = ForgeRegistries.ITEMS.getValue(
                 new ResourceLocation("botania", "elementiumpick"));
-        if (elementiumPick == null) {
+        if (elementiumPick != null) {
+            RecipeAlfsteelPickElementium recipe = new RecipeAlfsteelPickElementium(elementiumPick);
+            recipe.setRegistryName(new ResourceLocation("mythicbotany", "alfsteel_pick_elementium"));
+            event.getRegistry().register(recipe);
+        }
+
+        registerAlfsteelUpgrade(event, "terrasteelhelm", ModItems.alfsteelHelmet,
+                "alfsteel_helmet_upgrade");
+        registerAlfsteelUpgrade(event, "terrasteelchest", ModItems.alfsteelChestplate,
+                "alfsteel_chestplate_upgrade");
+        registerAlfsteelUpgrade(event, "terrasteellegs", ModItems.alfsteelLeggings,
+                "alfsteel_leggings_upgrade");
+        registerAlfsteelUpgrade(event, "terrasteelboots", ModItems.alfsteelBoots,
+                "alfsteel_boots_upgrade");
+        registerAlfsteelUpgrade(event, "terrasword", ModItems.alfsteelSword,
+                "alfsteel_sword_upgrade");
+        registerAlfsteelUpgrade(event, "terraaxe", ModItems.alfsteelAxe,
+                "alfsteel_axe_upgrade");
+        registerAlfsteelUpgrade(event, "terrapick", ModItems.alfsteelPick,
+                "alfsteel_pick_upgrade");
+        registerAlfsteelUpgrade(event, "manaringgreater", ModItems.manaRingGreatest,
+                "mana_ring_greatest_upgrade");
+        registerAlfsteelUpgrade(event, "auraringgreater", ModItems.auraRingGreatest,
+                "aura_ring_greatest_upgrade");
+    }
+
+    private static void registerAlfsteelUpgrade(RegistryEvent.Register<IRecipe> event,
+                                                 String sourceName, Item outputItem,
+                                                 String recipeName) {
+        Item sourceItem = ForgeRegistries.ITEMS.getValue(
+                new ResourceLocation("botania", sourceName));
+        if (sourceItem == null) {
             return;
         }
-        RecipeAlfsteelPickElementium recipe = new RecipeAlfsteelPickElementium(elementiumPick);
-        recipe.setRegistryName(new ResourceLocation("mythicbotany", "alfsteel_pick_elementium"));
+        RecipeAlfsteelUpgrade recipe = new RecipeAlfsteelUpgrade(sourceItem, outputItem);
+        recipe.setRegistryName(new ResourceLocation("mythicbotany", recipeName));
         event.getRegistry().register(recipe);
     }
 

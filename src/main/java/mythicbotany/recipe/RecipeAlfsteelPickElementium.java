@@ -59,6 +59,13 @@ public class RecipeAlfsteelPickElementium extends ShapelessRecipes {
     @Override
     public ItemStack getCraftingResult(InventoryCrafting inventory) {
         ItemStack output = super.getCraftingResult(inventory);
+        for (int slot = 0; slot < inventory.getSizeInventory(); slot++) {
+            ItemStack stack = inventory.getStackInSlot(slot);
+            if (!stack.isEmpty() && stack.getItem() == ModItems.alfsteelPick) {
+                output = RecipeAlfsteelUpgrade.copyAttributes(stack, output);
+                break;
+            }
+        }
         ItemAlfsteelPick.setTipped(output, true);
         return output;
     }
