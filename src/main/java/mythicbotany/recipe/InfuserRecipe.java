@@ -24,6 +24,7 @@ public final class InfuserRecipe {
     public static final int MAX_INPUTS = 16;
     private static final String RESOURCE_ROOT = "assets/mythicbotany/infusion_recipes/";
     private static final List<InfuserRecipe> RECIPES = new ArrayList<>();
+    private static final List<InfuserRecipe> DEFAULT_RECIPES = new ArrayList<>();
     private static boolean resourcesLoaded;
     private final List<ItemStack> inputs;
     private final ItemStack output;
@@ -46,6 +47,15 @@ public final class InfuserRecipe {
     }
 
     public static synchronized void register(List<ItemStack> inputs, ItemStack output, int mana) {
+        registerInternal(inputs, output, mana, false);
+    }
+
+    private static synchronized void registerDefault(List<ItemStack> inputs, ItemStack output, int mana) {
+        registerInternal(inputs, output, mana, true);
+    }
+
+    private static void registerInternal(List<ItemStack> inputs, ItemStack output, int mana,
+                                         boolean defaultRecipe) {
         if (inputs == null || inputs.isEmpty() || inputs.size() > MAX_INPUTS
                 || output == null || output.isEmpty()) {
             return;
@@ -55,7 +65,11 @@ public final class InfuserRecipe {
                 return;
             }
         }
-        RECIPES.add(new InfuserRecipe(inputs, output, mana));
+        InfuserRecipe recipe = new InfuserRecipe(inputs, output, mana);
+        RECIPES.add(recipe);
+        if (defaultRecipe) {
+            DEFAULT_RECIPES.add(recipe);
+        }
     }
 
     public static synchronized void loadResources() {
@@ -111,7 +125,7 @@ public final class InfuserRecipe {
                 warn("Invalid Infuser recipe: " + name);
                 return;
             }
-            register(inputs, output, recipe.get("mana").getAsInt());
+            registerDefault(inputs, output, recipe.get("mana").getAsInt());
         } catch (Exception exception) {
             warn("Unable to load Infuser recipe " + name + ": " + exception.getMessage());
         }
@@ -263,6 +277,12 @@ public final class InfuserRecipe {
     public static List<InfuserRecipe> getRecipes() {
         loadResources();
         return Collections.unmodifiableList(RECIPES);
+    }
+
+    /** Recipes shipped by MythicBotany itself; CraftTweaker additions are excluded. */
+    public static List<InfuserRecipe> getDefaultRecipes() {
+        loadResources();
+        return Collections.unmodifiableList(new ArrayList<>(DEFAULT_RECIPES));
     }
 
     public ItemStack getOutput() {

@@ -16,6 +16,7 @@ public final class YggdrasilBranchRecipe {
     }
 
     private static final List<YggdrasilBranchRecipe> RECIPES = new ArrayList<>();
+    private static final List<YggdrasilBranchRecipe> DEFAULT_RECIPES = new ArrayList<>();
     private static final List<RecipeListener> LISTENERS = new ArrayList<>();
     private static boolean defaultsRegistered;
 
@@ -35,11 +36,20 @@ public final class YggdrasilBranchRecipe {
             return;
         }
         defaultsRegistered = true;
-        register(new ItemStack(ModItems.gjallarHornEmpty),
+        registerDefault(new ItemStack(ModItems.gjallarHornEmpty),
                 new ItemStack(ModItems.gjallarHornFull), DEFAULT_MANA);
     }
 
     public static synchronized void register(ItemStack input, ItemStack output, int mana) {
+        registerInternal(input, output, mana, false);
+    }
+
+    private static synchronized void registerDefault(ItemStack input, ItemStack output, int mana) {
+        registerInternal(input, output, mana, true);
+    }
+
+    private static void registerInternal(ItemStack input, ItemStack output, int mana,
+                                         boolean defaultRecipe) {
         if (input == null || input.isEmpty() || output == null || output.isEmpty()) {
             return;
         }
@@ -47,11 +57,17 @@ public final class YggdrasilBranchRecipe {
         for (int i = 0; i < RECIPES.size(); i++) {
             if (RECIPES.get(i).sameInput(recipe.input)) {
                 RECIPES.set(i, recipe);
+                if (defaultRecipe) {
+                    DEFAULT_RECIPES.add(recipe);
+                }
                 notifyListeners(recipe);
                 return;
             }
         }
         RECIPES.add(recipe);
+        if (defaultRecipe) {
+            DEFAULT_RECIPES.add(recipe);
+        }
         notifyListeners(recipe);
     }
 
@@ -117,6 +133,11 @@ public final class YggdrasilBranchRecipe {
 
     public static List<YggdrasilBranchRecipe> getRecipes() {
         return Collections.unmodifiableList(new ArrayList<>(RECIPES));
+    }
+
+    /** Recipes shipped by MythicBotany itself; CraftTweaker additions are excluded. */
+    public static List<YggdrasilBranchRecipe> getDefaultRecipes() {
+        return Collections.unmodifiableList(new ArrayList<>(DEFAULT_RECIPES));
     }
 
     public static YggdrasilBranchRecipe getRecipe(int index) {

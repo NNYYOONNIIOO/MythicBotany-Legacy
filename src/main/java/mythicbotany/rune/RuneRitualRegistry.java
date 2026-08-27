@@ -21,6 +21,7 @@ import java.util.List;
 public final class RuneRitualRegistry {
     private static final String RESOURCE_ROOT = "assets/mythicbotany/rune_ritual_recipes/";
     private static final List<RuneRitualRecipe> RECIPES = new ArrayList<>();
+    private static final List<RuneRitualRecipe> DEFAULT_RECIPES = new ArrayList<>();
     private static boolean resourcesLoaded;
 
     private RuneRitualRegistry() {
@@ -121,7 +122,7 @@ public final class RuneRitualRegistry {
                         rune.get("z").getAsInt(), stack, consume));
             }
 
-            register(new RuneRitualRecipe(center, outputs,
+            registerDefault(new RuneRitualRecipe(center, outputs,
                     recipe.has("mana") ? recipe.get("mana").getAsInt() : 0,
                     recipe.has("ticks") ? recipe.get("ticks").getAsInt() : 200,
                     inputs, readSpecialInputs(recipe), specialOutput,
@@ -270,9 +271,22 @@ public final class RuneRitualRegistry {
         }
     }
 
+    private static void registerDefault(RuneRitualRecipe recipe) {
+        if (recipe != null) {
+            RECIPES.add(recipe);
+            DEFAULT_RECIPES.add(recipe);
+        }
+    }
+
     public static List<RuneRitualRecipe> getRecipes() {
         loadResources();
         return Collections.unmodifiableList(RECIPES);
+    }
+
+    /** Recipes shipped by MythicBotany itself; CraftTweaker additions are excluded. */
+    public static List<RuneRitualRecipe> getDefaultRecipes() {
+        loadResources();
+        return Collections.unmodifiableList(new ArrayList<>(DEFAULT_RECIPES));
     }
 
     public static RuneRitualRecipe getRecipe(int index) {
