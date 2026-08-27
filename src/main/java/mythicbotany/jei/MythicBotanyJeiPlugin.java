@@ -23,7 +23,6 @@ import mythicbotany.rune.RuneRitualRecipe;
 import mythicbotany.rune.RuneRitualRegistry;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityList;
@@ -47,9 +46,6 @@ import java.util.Set;
 public final class MythicBotanyJeiPlugin implements IModPlugin {
     private static final ResourceLocation RITUAL_BACKGROUND = new ResourceLocation(
             MythicBotany.MODID, "textures/gui/jei_ritual.png");
-    // The lower controls stay at their original positions while only the
-    // rune-panel drawable grows around them.
-    private static final int RITUAL_LOWER_CONTENT_OFFSET_Y = 0;
     private IRecipeRegistry runtimeRecipeRegistry;
     private final List<YggdrasilBranchRecipe> pendingBranchRecipes = new ArrayList<>();
     private final Set<YggdrasilBranchRecipe> initialBranchRecipes =
@@ -189,11 +185,10 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         private final IDrawable icon;
 
         private RitualCategory(IGuiHelper helper) {
-            background = new ExpandedRitualBackground();
-            // Use JEI's unscaled 18x18 slot texture so the normal slot border is
-            // preserved independently of the enlarged ritual background.
-            itemSlot = helper.createDrawable(new ResourceLocation("jei",
-                    "textures/gui/slot.png"), 0, 0, ITEM_SLOT_SIZE, ITEM_SLOT_SIZE);
+            background = helper.createDrawable(RITUAL_BACKGROUND, 0, 0, 136, 196);
+            // JEI's standard slot is exactly 18x18. Keep the rune artwork in
+            // the background untouched and use this slot only for extras/output.
+            itemSlot = helper.getSlotDrawable();
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.centralRuneHolder));
         }
 
@@ -243,7 +238,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 entityIndex++;
             }
 
-            stacks.init(slotIndex, false, 60, 170 + RITUAL_LOWER_CONTENT_OFFSET_Y);
+            stacks.init(slotIndex, false, 60, 170);
             stacks.setBackground(slotIndex, itemSlot);
             stacks.set(slotIndex, wrapper.recipe.getOutput());
 
@@ -283,54 +278,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             int columns = Math.min(7, Math.max(1, count));
             int rows = (count + columns - 1) / columns;
             int row = index / columns;
-            return 140 + RITUAL_LOWER_CONTENT_OFFSET_Y
-                    - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
-        }
-
-        /**
-         * Enlarges the current rune panel by another 10 px on the left,
-         * 18 px on the right, and 13 px at the bottom. The lower controls
-         * remain at their existing coordinates.
-         */
-        private static final class ExpandedRitualBackground implements IDrawable {
-            // Relative to the current 211x265 drawable: +10 px on the left,
-            // +18 px on the right, and +13 px at the bottom.
-            private static final int WIDTH = 239;
-            private static final int HEIGHT = 278;
-            private static final int LEFT = 40;
-            private static final int TOP = 18;
-            private static final int SOURCE_WIDTH = 136;
-            private static final int SOURCE_HEIGHT = 196;
-
-            @Override
-            public int getWidth() {
-                // Include the left overhang in JEI's category bounds. The
-                // drawable is intentionally painted from -LEFT so the rune
-                // panel grows around the existing rune coordinates.
-                return WIDTH + LEFT;
-            }
-
-            @Override
-            public int getHeight() {
-                // Include the top overhang as well, preventing the enlarged
-                // frame from being clipped by JEI's recipe-area boundary.
-                return HEIGHT + TOP;
-            }
-
-            @Override
-            public void draw(Minecraft minecraft, int xOffset, int yOffset) {
-                minecraft.renderEngine.bindTexture(RITUAL_BACKGROUND);
-                GlStateManager.enableAlpha();
-                GlStateManager.enableBlend();
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                // Keep the enlarged drawable's full bounds known to JEI so
-                // its frame is not clipped by the recipe panel boundary.
-                Gui.drawScaledCustomSizeModalRect(xOffset - LEFT, yOffset - TOP,
-                        0.0F, 0.0F, SOURCE_WIDTH, SOURCE_HEIGHT,
-                        WIDTH, HEIGHT, 256.0F, 256.0F);
-                GlStateManager.disableBlend();
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            }
+            return 140 - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
@@ -491,8 +439,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override
         public void drawInfo(Minecraft minecraft, int width, int height, int mouseX, int mouseY) {
             if (recipe.getMana() > 0) {
-                HUDHandler.renderManaBar(17, 189 + RITUAL_LOWER_CONTENT_OFFSET_Y,
-                        0x0000FF, 0.75F,
+                HUDHandler.renderManaBar(17, height - 7, 0x0000FF, 0.75F,
                         recipe.getMana(), 1000000);
             }
         }
