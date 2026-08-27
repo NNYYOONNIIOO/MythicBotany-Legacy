@@ -47,7 +47,9 @@ import java.util.Set;
 public final class MythicBotanyJeiPlugin implements IModPlugin {
     private static final ResourceLocation RITUAL_BACKGROUND = new ResourceLocation(
             MythicBotany.MODID, "textures/gui/jei_ritual.png");
-    private static final int RITUAL_LOWER_CONTENT_OFFSET_Y = 25;
+    // The lower controls stay at their original positions while only the
+    // rune-panel drawable grows around them.
+    private static final int RITUAL_LOWER_CONTENT_OFFSET_Y = 0;
     private IRecipeRegistry runtimeRecipeRegistry;
     private final List<YggdrasilBranchRecipe> pendingBranchRecipes = new ArrayList<>();
     private final Set<YggdrasilBranchRecipe> initialBranchRecipes =
@@ -285,9 +287,11 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
 
         /** Enlarges the rune panel by 10 px left, 9 px right, 18 px up and 25 px down. */
         private static final class ExpandedRitualBackground implements IDrawable {
-            private static final int WIDTH = 155;
-            private static final int HEIGHT = 239;
-            private static final int LEFT = 10;
+            // Relative to the previous 155x239 drawable: +10 px on the left,
+            // +18 px on the right, and +13 px at the bottom.
+            private static final int WIDTH = 183;
+            private static final int HEIGHT = 252;
+            private static final int LEFT = 20;
             private static final int TOP = 18;
             private static final int SOURCE_WIDTH = 136;
             private static final int SOURCE_HEIGHT = 196;
@@ -308,6 +312,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 GlStateManager.enableAlpha();
                 GlStateManager.enableBlend();
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                // Keep the enlarged drawable's full bounds known to JEI so
+                // its frame is not clipped by the recipe panel boundary.
                 Gui.drawScaledCustomSizeModalRect(xOffset - LEFT, yOffset - TOP,
                         0.0F, 0.0F, SOURCE_WIDTH, SOURCE_HEIGHT,
                         WIDTH, HEIGHT, 256.0F, 256.0F);
