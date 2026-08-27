@@ -33,8 +33,12 @@ public final class MjoellnirHandler {
         if (player == null || player.capabilities.isCreativeMode) {
             return true;
         }
-        return !ItemThorRing.getThorRing(player).isEmpty()
-                && player.getEntityData().getLong(GOLDEN_APPLE_UNTIL_TAG) >= player.world.getTotalWorldTime();
+        if (ItemThorRing.getThorRing(player).isEmpty()) {
+            return false;
+        }
+        return !MythicBotanyConfig.mjoellnirRequiresGoldenApple
+                || player.getEntityData().getLong(GOLDEN_APPLE_UNTIL_TAG)
+                >= player.world.getTotalWorldTime();
     }
 
     /** Drops the hammer; conversion to its placed form is controlled by the config. */

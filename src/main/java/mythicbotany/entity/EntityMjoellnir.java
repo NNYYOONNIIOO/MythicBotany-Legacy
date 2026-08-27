@@ -83,7 +83,8 @@ public class EntityMjoellnir extends EntityThrowable {
         }
         if (result.entityHit instanceof EntityLivingBase && result.entityHit != getThrower()) {
             EntityLivingBase target = (EntityLivingBase) result.entityHit;
-            target.attackEntityFrom(DamageSource.LIGHTNING_BOLT, 5.0F);
+            target.attackEntityFrom(DamageSource.LIGHTNING_BOLT,
+                    MythicBotanyConfig.mjoellnirLightningDamage);
             world.addWeatherEffect(new EntityLightningBolt(world, target.posX, target.posY, target.posZ, false));
         }
         startReturning();

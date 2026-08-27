@@ -16,6 +16,10 @@ public final class MythicBotanyConfig {
             "minecraft:vindication_illager",
             "minecraft:evocation_illager"
     };
+    public static final float DEFAULT_ALFSTEEL_TEMPLATE_DROP_CHANCE = 0.15F;
+    public static final int DEFAULT_MJOELLNIR_LAUNCH_COOLDOWN = 20;
+    public static final float DEFAULT_MJOELLNIR_LIGHTNING_DAMAGE = 5.0F;
+    public static final boolean DEFAULT_MJOELLNIR_REQUIRE_GOLDEN_APPLE = true;
     public static final float DEFAULT_MJOELLNIR_FLIGHT_SPEED = 1.5F;
     public static final float DEFAULT_MJOELLNIR_FLIGHT_DISTANCE = 64.0F;
     public static final boolean DEFAULT_MJOELLNIR_DROPS_BECOME_BLOCKS = true;
@@ -31,6 +35,10 @@ public final class MythicBotanyConfig {
             DEFAULT_ALLOW_FIMBULTYR_TABLET_ALFHEIM_TRAVEL;
     public static String[] alfsteelTemplateDropEntities =
             DEFAULT_ALFSTEEL_TEMPLATE_DROP_ENTITIES.clone();
+    public static float alfsteelTemplateDropChance = DEFAULT_ALFSTEEL_TEMPLATE_DROP_CHANCE;
+    public static int mjoellnirLaunchCooldown = DEFAULT_MJOELLNIR_LAUNCH_COOLDOWN;
+    public static float mjoellnirLightningDamage = DEFAULT_MJOELLNIR_LIGHTNING_DAMAGE;
+    public static boolean mjoellnirRequiresGoldenApple = DEFAULT_MJOELLNIR_REQUIRE_GOLDEN_APPLE;
     public static float mjoellnirFlightSpeed = DEFAULT_MJOELLNIR_FLIGHT_SPEED;
     public static float mjoellnirFlightDistance = DEFAULT_MJOELLNIR_FLIGHT_DISTANCE;
     public static boolean mjoellnirDropsBecomeBlocks = DEFAULT_MJOELLNIR_DROPS_BECOME_BLOCKS;
@@ -74,6 +82,32 @@ public final class MythicBotanyConfig {
                     Configuration.CATEGORY_GENERAL,
                     DEFAULT_ALFSTEEL_TEMPLATE_DROP_ENTITIES,
                     "Entity registry names that can drop an Alfsteel Template when killed with an Alfsteel Sword.");
+            alfsteelTemplateDropChance = configuration.getFloat(
+                    "alfsteelTemplateDropChance",
+                    Configuration.CATEGORY_GENERAL,
+                    DEFAULT_ALFSTEEL_TEMPLATE_DROP_CHANCE,
+                    0.0F,
+                    1.0F,
+                    "Chance for an Alfsteel Template to drop from a configured target killed with an Alfsteel Sword.");
+            mjoellnirLaunchCooldown = configuration.getInt(
+                    "mjoellnirLaunchCooldown",
+                    Configuration.CATEGORY_GENERAL,
+                    DEFAULT_MJOELLNIR_LAUNCH_COOLDOWN,
+                    0,
+                    Integer.MAX_VALUE,
+                    "Cooldown in ticks after launching Mjoellnir; zero disables it.");
+            mjoellnirLightningDamage = configuration.getFloat(
+                    "mjoellnirLightningDamage",
+                    Configuration.CATEGORY_GENERAL,
+                    DEFAULT_MJOELLNIR_LIGHTNING_DAMAGE,
+                    0.0F,
+                    Float.MAX_VALUE,
+                    "Damage dealt by the lightning projectile created by Mjoellnir.");
+            mjoellnirRequiresGoldenApple = configuration.getBoolean(
+                    "mjoellnirRequiresGoldenApple",
+                    Configuration.CATEGORY_GENERAL,
+                    DEFAULT_MJOELLNIR_REQUIRE_GOLDEN_APPLE,
+                    "Whether lifting or picking up Mjoellnir requires the player to have eaten a golden apple.");
             mjoellnirFlightSpeed = Math.max(0.01F, configuration.getFloat(
                     "mjoellnirFlightSpeed",
                     Configuration.CATEGORY_GENERAL,

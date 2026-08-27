@@ -25,7 +25,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /** Adds the configurable Alfsteel Template drop for Alfsteel Sword kills. */
 public final class AlfsteelTemplateDropHandler {
-    private static final float DROP_CHANCE = 0.15F;
     private static final String TAG_LAST_ALFSTEEL_HIT = "mythicbotanyLastAlfsteelHit";
     private static final String TAG_ALFSTEEL_ATTACKER_ID = "mythicbotanyAlfsteelAttackerId";
     private static final String TAG_DROP_ROLLED = "mythicbotanyAlfsteelTemplateDropRolled";
@@ -169,7 +168,7 @@ public final class AlfsteelTemplateDropHandler {
             return false;
         }
         data.setBoolean(TAG_DROP_ROLLED, true);
-        return target.world.rand.nextFloat() < DROP_CHANCE;
+        return target.world.rand.nextFloat() < MythicBotanyConfig.alfsteelTemplateDropChance;
     }
 
     private static boolean spawnTemplate(EntityLivingBase target) {

@@ -84,7 +84,7 @@ public class ItemMjoellnir extends ItemSword {
         if (!playerIn.capabilities.isCreativeMode) {
             stack.shrink(1);
         }
-        playerIn.getCooldownTracker().setCooldown(this, 20);
+        playerIn.getCooldownTracker().setCooldown(this, MythicBotanyConfig.mjoellnirLaunchCooldown);
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
     }
 
