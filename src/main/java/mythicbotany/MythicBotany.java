@@ -1,6 +1,7 @@
 package mythicbotany;
 
 import mythicbotany.proxy.CommonProxy;
+import mythicbotany.config.MythicBotanyConfig;
 import mythicbotany.recipe.ModRecipes;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
@@ -70,6 +71,7 @@ public final class MythicBotany {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
+        MythicBotanyConfig.load(event.getSuggestedConfigurationFile());
         NetworkHandler.init();
         ModDimensions.register();
         GameRegistry.registerTileEntity(TileManaInfuser.class, tileId("mana_infuser"));

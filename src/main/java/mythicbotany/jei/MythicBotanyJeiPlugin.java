@@ -10,11 +10,14 @@ import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ITooltipCallback;
+import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.ingredients.IIngredients;
+import mezz.jei.plugins.vanilla.ingredients.item.ItemStackRenderer;
 import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IRecipeWrapper;
 import mezz.jei.api.recipe.VanillaRecipeCategoryUid;
 import mythicbotany.MythicBotany;
+import mythicbotany.config.MythicBotanyConfig;
 import mythicbotany.recipe.InfuserRecipe;
 import mythicbotany.recipe.YggdrasilBranchRecipe;
 import mythicbotany.registry.ModBlocks;
@@ -23,7 +26,10 @@ import mythicbotany.rune.RuneRitualRecipe;
 import mythicbotany.rune.RuneRitualRegistry;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityList;
 import net.minecraft.init.Items;
@@ -180,9 +186,14 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
     private static final class RitualCategory implements IRecipeCategory<RitualWrapper> {
         private static final String UID = MythicBotany.MODID + ":ritual";
         private static final int ITEM_SLOT_SIZE = 18;
+        private static final int RUNE_SLOT_SIZE = 16;
+        private static final int RUNE_CENTER_X = 62;
+        private static final int RUNE_CENTER_Y = 62;
+        private static final int RUNE_STEP = 16;
         private final IDrawable background;
         private final IDrawable itemSlot;
         private final IDrawable icon;
+        private final IIngredientRenderer<ItemStack> runeRenderer;
 
         private RitualCategory(IGuiHelper helper) {
             background = helper.createDrawable(RITUAL_BACKGROUND, 0, 0, 136, 196);
@@ -190,6 +201,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             // the background untouched and use this slot only for extras/output.
             itemSlot = helper.getSlotDrawable();
             icon = helper.createDrawableIngredient(new ItemStack(ModBlocks.centralRuneHolder));
+            runeRenderer = new ScaledItemStackRenderer(MythicBotanyConfig.ritualJeiRuneScale);
         }
 
         @Override public String getUid() { return UID; }
@@ -201,15 +213,17 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         @Override
         public void setRecipe(IRecipeLayout layout, RitualWrapper wrapper, IIngredients ingredients) {
             IGuiItemStackGroup stacks = layout.getItemStacks();
-            stacks.init(0, true, 62, 62);
+            stacks.init(0, true, runeRenderer, RUNE_CENTER_X, RUNE_CENTER_Y,
+                    RUNE_SLOT_SIZE, RUNE_SLOT_SIZE, 0, 0);
             stacks.set(0, wrapper.recipe.getCenter());
 
             final int runeCount = wrapper.recipe.getRunes().size();
             int slotIndex = 1;
             for (RuneRitualRecipe.RunePosition rune : wrapper.recipe.getRunes()) {
-                int x = 62 + 16 * rune.getOriginalX();
-                int y = 62 - 16 * rune.getOriginalZ();
-                stacks.init(slotIndex, true, x, y);
+                int x = RUNE_CENTER_X + scaledRuneOffset(rune.getOriginalX());
+                int y = RUNE_CENTER_Y - scaledRuneOffset(rune.getOriginalZ());
+                stacks.init(slotIndex, true, runeRenderer, x, y,
+                        RUNE_SLOT_SIZE, RUNE_SLOT_SIZE, 0, 0);
                 stacks.set(slotIndex, rune.getRune());
                 slotIndex++;
             }
@@ -238,7 +252,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 entityIndex++;
             }
 
-            stacks.init(slotIndex, false, 60, 170);
+                stacks.init(slotIndex, false, 60, 170);
             stacks.setBackground(slotIndex, itemSlot);
             stacks.set(slotIndex, wrapper.recipe.getOutput());
 
@@ -265,6 +279,10 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             });
         }
 
+        private static int scaledRuneOffset(int coordinate) {
+            return Math.round(coordinate * RUNE_STEP * MythicBotanyConfig.ritualJeiRuneScale);
+        }
+
         private static int extraInputX(int index, int count) {
             int columns = Math.min(7, Math.max(1, count));
             int row = index / columns;
@@ -279,6 +297,64 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             int rows = (count + columns - 1) / columns;
             int row = index / columns;
             return 140 - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
+        }
+
+        private static final class ScaledItemStackRenderer
+                implements IIngredientRenderer<ItemStack> {
+            private final float scale;
+            private final ItemStackRenderer delegate = new ItemStackRenderer();
+
+            private ScaledItemStackRenderer(float scale) {
+                this.scale = scale;
+            }
+
+            @Override
+            public void render(Minecraft minecraft, int x, int y, ItemStack stack) {
+                if (stack == null || stack.isEmpty()) {
+                    return;
+                }
+
+                GlStateManager.pushMatrix();
+                try {
+                    GlStateManager.enableDepth();
+                    RenderHelper.enableGUIStandardItemLighting();
+                    FontRenderer fontRenderer = getFontRenderer(minecraft, stack);
+                    GlStateManager.translate(x + RUNE_SLOT_SIZE / 2.0F,
+                            y + RUNE_SLOT_SIZE / 2.0F, 0.0F);
+                    GlStateManager.scale(scale, scale, 1.0F);
+                    GlStateManager.translate(-RUNE_SLOT_SIZE / 2.0F,
+                            -RUNE_SLOT_SIZE / 2.0F, 0.0F);
+                    minecraft.getRenderItem().renderItemAndEffectIntoGUI(null, stack, 0, 0);
+                    minecraft.getRenderItem().renderItemOverlayIntoGUI(
+                            fontRenderer, stack, 0, 0, null);
+                } finally {
+                    GlStateManager.disableBlend();
+                    RenderHelper.disableStandardItemLighting();
+                    GlStateManager.popMatrix();
+                }
+            }
+
+            @Override
+            public List<String> getTooltip(Minecraft minecraft, ItemStack stack,
+                                            ITooltipFlag tooltipFlag) {
+                return delegate.getTooltip(minecraft, stack, tooltipFlag);
+            }
+
+            @Override
+            public FontRenderer getFontRenderer(Minecraft minecraft, ItemStack stack) {
+                return delegate.getFontRenderer(minecraft, stack);
+            }
+
+            @Override
+            public List<String> getTooltip(Minecraft minecraft, ItemStack stack,
+                                            boolean advanced) {
+                return delegate.getTooltip(minecraft, stack, advanced);
+            }
+
+            @Override
+            public List<String> getTooltip(Minecraft minecraft, ItemStack stack) {
+                return delegate.getTooltip(minecraft, stack);
+            }
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
