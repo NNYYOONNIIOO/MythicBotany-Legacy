@@ -297,8 +297,8 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             // lower 60 pixels contain the fixed input/output area.
             private static final int PANEL_SOURCE_X = 0;
             private static final int PANEL_SOURCE_Y = 0;
-            private static final int PANEL_SOURCE_WIDTH = 136;
-            private static final int PANEL_SOURCE_HEIGHT = 136;
+            private static final int PANEL_SOURCE_WIDTH = 180;
+            private static final int PANEL_SOURCE_HEIGHT = 180;
 
             // Change only these four values to tune the highlighted panel.
             // These defaults implement +10 left, +18 right, +0 top and
