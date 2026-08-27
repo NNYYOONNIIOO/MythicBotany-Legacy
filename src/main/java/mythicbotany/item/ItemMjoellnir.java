@@ -3,6 +3,7 @@ package mythicbotany.item;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import mythicbotany.entity.EntityMjoellnir;
+import mythicbotany.config.MythicBotanyConfig;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.EntityLivingBase;
@@ -72,7 +73,8 @@ public class ItemMjoellnir extends ItemSword {
             ToolCommons.damageItem(thrownStack, 4, playerIn, AlfsteelRepairHelper.MANA_PER_DURABILITY);
             EntityMjoellnir thrown = new EntityMjoellnir(worldIn, playerIn, thrownStack);
             thrown.setCreativeThrow(playerIn.capabilities.isCreativeMode);
-            thrown.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
+            thrown.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F,
+                    MythicBotanyConfig.mjoellnirFlightSpeed, 1.0F);
             worldIn.spawnEntity(thrown);
             worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ,
                     SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.PLAYERS, 0.8F, 0.8F);

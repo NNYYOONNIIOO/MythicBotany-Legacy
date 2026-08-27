@@ -15,6 +15,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import mythicbotany.item.MjoellnirHandler;
+import mythicbotany.config.MythicBotanyConfig;
 
 /** A thrown Mjoellnir which strikes living targets and then returns to its owner. */
 public class EntityMjoellnir extends EntityThrowable {
@@ -26,7 +27,6 @@ public class EntityMjoellnir extends EntityThrowable {
             EntityMjoellnir.class, DataSerializers.BOOLEAN);
     private static final int MAX_FLIGHT_TICKS = 80;
     private static final int MAX_RETURN_TICKS = 80;
-    private static final double MAX_FLIGHT_DISTANCE_SQUARED = 64.0D * 64.0D;
 
     public EntityMjoellnir(World world) {
         super(world);
@@ -96,8 +96,9 @@ public class EntityMjoellnir extends EntityThrowable {
             super.onUpdate();
             if (!world.isRemote && !isDead) {
                 EntityLivingBase owner = getThrower();
+                double maxFlightDistance = Math.max(0.01D, MythicBotanyConfig.mjoellnirFlightDistance);
                 if (ticksExisted >= MAX_FLIGHT_TICKS
-                        || owner != null && getDistanceSq(owner) >= MAX_FLIGHT_DISTANCE_SQUARED) {
+                        || owner != null && getDistanceSq(owner) >= maxFlightDistance * maxFlightDistance) {
                     startReturning();
                 }
             }

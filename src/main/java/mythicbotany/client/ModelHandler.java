@@ -49,7 +49,6 @@ public final class ModelHandler {
         registerSpecialFlowerModel("mythicbotany_aquapanthus", "aquapanthus");
         registerSpecialFlowerModel("mythicbotany_hellebore", "hellebore");
         registerSpecialFlowerModel("mythicbotany_raindeletia", "raindeletia");
-        registerSpecialFlowerModel("mythicbotany_feysythia", "feysythia");
         registerSpecialFlowerModel("mythicbotany_petrunia", "petrunia");
     }
     private static void register(Item item) {

@@ -19,6 +19,7 @@ import mythicbotany.dimension.AlfheimPortalHandler;
 import mythicbotany.lexicon.MythicLexicon;
 import mythicbotany.network.NetworkHandler;
 import mythicbotany.item.AlfsteelArmorHandler;
+import mythicbotany.item.AlfsteelTemplateDropHandler;
 import mythicbotany.item.MjoellnirHandler;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
@@ -61,6 +62,7 @@ public final class MythicBotany {
     public MythicBotany() {
         MinecraftForge.EVENT_BUS.register(new mythicbotany.registry.ModRegistry());
         MinecraftForge.EVENT_BUS.register(new AlfsteelArmorHandler());
+        MinecraftForge.EVENT_BUS.register(new AlfsteelTemplateDropHandler());
         MinecraftForge.EVENT_BUS.register(new MjoellnirHandler());
         MinecraftForge.EVENT_BUS.register(new AlfheimPortalHandler());
         // DecorateBiomeEvent is posted on Forge's terrain-generation bus,

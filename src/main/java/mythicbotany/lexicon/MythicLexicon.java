@@ -23,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.NonNullList;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.lexicon.LexiconCategory;
 import vazkii.botania.api.lexicon.LexiconEntry;
@@ -64,6 +65,7 @@ public final class MythicLexicon {
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.tools", "mythicbotany:alfsteel_axe{Damage:0}", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page4.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page5.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page6.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page7.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page8.text0");
         registerItemMappings();
         registerRecipePages();
+        registerCraftingRecipePages();
     }
 
     private static void add(LexiconCategory category, String name, String iconId, String... pageKeys) {
@@ -127,7 +129,6 @@ public final class MythicLexicon {
             mapFlower(specialFlower, "mythicbotany_aquapanthus", "functional");
             mapFlower(specialFlower, "mythicbotany_hellebore", "functional");
             mapFlower(specialFlower, "mythicbotany_raindeletia", "functional");
-            mapFlower(specialFlower, "mythicbotany_feysythia", "functional");
             mapFlower(specialFlower, "mythicbotany_petrunia", "functional");
         }
     }
@@ -145,6 +146,37 @@ public final class MythicLexicon {
                 "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page3.text0");
         addReflectiveRecipePages(find("rune_rituals"), RuneRitualRegistry.getRecipes(),
                 "lexicon.entry.mythicbotany.botania.mythic_botany.rune_rituals.page3.text0");
+    }
+
+    /** Adds custom Forge recipes that are not already represented by the static lexicon JSON. */
+    private static void registerCraftingRecipePages() {
+        addCraftingRecipePage(find("tools"),
+                "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page1.text0",
+                "alfsteel_pick_elementium", "alfsteel_helmet_upgrade",
+                "alfsteel_chestplate_upgrade", "alfsteel_leggings_upgrade", "alfsteel_boots_upgrade",
+                "alfsteel_sword_upgrade", "alfsteel_axe_upgrade", "alfsteel_pick_upgrade");
+        addCraftingRecipePage(find("manaband"),
+                "lexicon.entry.mythicbotany.botania.mythic_botany.manaband.page0.text0",
+                "mana_ring_greatest_upgrade", "aura_ring_greatest_upgrade");
+        addCraftingRecipePage(find("infuser"),
+                "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page3.text0",
+                "alfsteel_ingots", "alfsteel_nuggets", "alfsteel_block");
+    }
+
+    private static void addCraftingRecipePage(LexiconEntry entry, String textKey, String... names) {
+        if (entry == null) {
+            return;
+        }
+        List<ResourceLocation> recipes = new ArrayList<>();
+        for (String name : names) {
+            ResourceLocation id = new ResourceLocation(MythicBotany.MODID, name);
+            if (ForgeRegistries.RECIPES.getValue(id) != null) {
+                recipes.add(id);
+            }
+        }
+        if (!recipes.isEmpty()) {
+            addRecipePage(entry, new PageCraftingRecipe(textKey, recipes));
+        }
     }
 
     private static void addReflectiveRecipePages(LexiconEntry entry, Iterable<?> recipes, String pageName) {
@@ -165,7 +197,7 @@ public final class MythicLexicon {
         }
     }
 
-    private static void addRecipePage(LexiconEntry entry, PageMythicRecipe page) {
+    private static void addRecipePage(LexiconEntry entry, LexiconPage page) {
         if (entry == null || page == null) return;
         int pageIndex = entry.pages.size();
         entry.addPage(page);

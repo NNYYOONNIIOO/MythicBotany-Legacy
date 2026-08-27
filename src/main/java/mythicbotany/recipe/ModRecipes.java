@@ -116,11 +116,6 @@ public final class ModRecipes {
                 new MythicFlowerSignature("mythicbotany_raindeletia",
                         "tooltip.mythicbotany.flower.raindeletia"));
         BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_raindeletia");
-        BotaniaAPI.registerSubTile("mythicbotany_feysythia", MythicFlowerSubTiles.Feysythia.class);
-        BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Feysythia.class,
-                new MythicFlowerSignature("mythicbotany_feysythia",
-                        "tooltip.mythicbotany.flower.feysythia"));
-        BotaniaAPI.addSubTileToCreativeMenu("mythicbotany_feysythia");
         BotaniaAPI.registerSubTile("mythicbotany_petrunia", MythicFlowerSubTiles.Petrunia.class);
         BotaniaAPI.registerSubTileSignature(MythicFlowerSubTiles.Petrunia.class,
                 new MythicFlowerSignature("mythicbotany_petrunia",
@@ -144,7 +139,6 @@ public final class ModRecipes {
 
         ItemStack red = petal(14);
         ItemStack orange = petal(1);
-        ItemStack yellow = petal(4);
         ItemStack green = petal(13);
         ItemStack lime = petal(5);
         ItemStack blue = petal(11);
@@ -164,8 +158,6 @@ public final class ModRecipes {
                 new ItemStack(ModItems.alfheimRune));
         BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_raindeletia"), lightBlue, lightBlue, blue, blue,
                 new ItemStack(ModItems.niflheimRune));
-        BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_feysythia"), yellow, yellow, orange, lime,
-                new ItemStack(ModItems.asgardRune));
         BotaniaAPI.registerPetalRecipe(ItemBlockSpecialFlower.ofType("mythicbotany_petrunia"), magenta, magenta, purple, black,
                 new ItemStack(ModItems.joetunheimRune));
     }

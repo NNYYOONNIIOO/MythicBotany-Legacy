@@ -1,7 +1,0 @@
-{
-  "parent": "block/block",
-  "flower": {
-    "parent": "mythicbotany:block/feysythia"
-  },
-  "loader": "botania:floating_flower"
-}

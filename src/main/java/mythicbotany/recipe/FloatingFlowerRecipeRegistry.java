@@ -13,7 +13,7 @@ import vazkii.botania.common.crafting.recipe.SpecialFloatingFlowerRecipe;
 public final class FloatingFlowerRecipeRegistry {
     private static final String[] FLOWERS = {
             "mythicbotany_exoblaze", "mythicbotany_aquapanthus", "mythicbotany_hellebore",
-            "mythicbotany_feysythia", "mythicbotany_petrunia", "mythicbotany_raindeletia",
+            "mythicbotany_petrunia", "mythicbotany_raindeletia",
             "mythicbotany_wither_aconite"
     };
 

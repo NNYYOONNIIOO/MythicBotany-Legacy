@@ -17,6 +17,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
 import mythicbotany.tile.TileMjoellnir;
+import mythicbotany.config.MythicBotanyConfig;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -36,7 +37,7 @@ public final class MjoellnirHandler {
                 && player.getEntityData().getLong(GOLDEN_APPLE_UNTIL_TAG) >= player.world.getTotalWorldTime();
     }
 
-    /** Drops the hammer; every dropped Mjoellnir is converted to its placed form on landing. */
+    /** Drops the hammer; conversion to its placed form is controlled by the config. */
     public static void dropForFailedReturn(EntityPlayer player, ItemStack stack) {
         if (player == null || stack == null || stack.isEmpty()) {
             return;
@@ -48,7 +49,8 @@ public final class MjoellnirHandler {
     }
 
     public static boolean convertFailedReturnDrop(EntityItem item) {
-        if (item == null || item.isDead || !item.onGround || item.world.isRemote) {
+        if (!MythicBotanyConfig.mjoellnirDropsBecomeBlocks
+                || item == null || item.isDead || !item.onGround || item.world.isRemote) {
             return false;
         }
         ItemStack stack = item.getItem();
