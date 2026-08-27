@@ -7,6 +7,7 @@ import mythicbotany.config.MythicBotanyConfig;
 import mythicbotany.registry.ModItems;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityEvoker;
 import net.minecraft.entity.monster.EntityVindicator;
 import net.minecraft.entity.monster.EntityWitch;
@@ -17,6 +18,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.registry.EntityEntry;
@@ -30,21 +32,22 @@ public final class AlfsteelTemplateDropHandler {
     private static final String TAG_DROP_ROLLED = "mythicbotanyAlfsteelTemplateDropRolled";
 
     /** Records the actual weapon used for the last accepted hit. */
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onLivingAttack(LivingAttackEvent event) {
         EntityLivingBase target = event.getEntityLiving();
         if (target == null || target.world.isRemote) {
             return;
         }
 
-        EntityPlayer player = getKillingPlayer(event.getSource());
-        NBTTagCompound data = target.getEntityData();
-        if (!event.isCanceled() && player != null && holdsAlfsteelSword(player)) {
-            data.setBoolean(TAG_LAST_ALFSTEEL_HIT, true);
-            data.setInteger(TAG_ALFSTEEL_ATTACKER_ID, player.getEntityId());
-        } else {
-            data.setBoolean(TAG_LAST_ALFSTEEL_HIT, false);
-            data.removeTag(TAG_ALFSTEEL_ATTACKER_ID);
+        rememberSwordHit(target, event.getSource(), !event.isCanceled());
+    }
+
+    /** Some combat implementations post LivingHurtEvent without a usable attack event. */
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public void onLivingHurt(LivingHurtEvent event) {
+        EntityLivingBase target = event.getEntityLiving();
+        if (target != null && !target.world.isRemote) {
+            rememberSwordHit(target, event.getSource(), !event.isCanceled());
         }
     }
 
@@ -66,7 +69,7 @@ public final class AlfsteelTemplateDropHandler {
     }
 
     /** Adds the item to vanilla's drop list when that event is available. */
-    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onLivingDrops(LivingDropsEvent event) {
         EntityLivingBase target = event.getEntityLiving();
         if (!canAttemptDrop(target, event.getSource()) || !rollDrop(target)) {
@@ -78,7 +81,7 @@ public final class AlfsteelTemplateDropHandler {
                 target.getEntityData().removeTag(TAG_DROP_ROLLED);
             }
         } else {
-            event.getDrops().add(new net.minecraft.entity.item.EntityItem(target.world,
+            event.getDrops().add(new EntityItem(target.world,
                     target.posX, target.posY, target.posZ,
                     new ItemStack(ModItems.alfsteelTemplate)));
         }
@@ -157,9 +160,9 @@ public final class AlfsteelTemplateDropHandler {
             return false;
         }
 
-        EntityPlayer player = getKillingPlayer(source, target);
-        return player != null && (holdsAlfsteelSword(player)
-                || target.getEntityData().getBoolean(TAG_LAST_ALFSTEEL_HIT));
+        EntityPlayer player = getKillingPlayer(source);
+        return (player != null && holdsAlfsteelSword(player))
+                || target.getEntityData().getBoolean(TAG_LAST_ALFSTEEL_HIT);
     }
 
     private static boolean rollDrop(EntityLivingBase target) {
@@ -168,11 +171,32 @@ public final class AlfsteelTemplateDropHandler {
             return false;
         }
         data.setBoolean(TAG_DROP_ROLLED, true);
-        return target.world.rand.nextFloat() < MythicBotanyConfig.alfsteelTemplateDropChance;
+        double chance = MythicBotanyConfig.alfsteelTemplateDropChance;
+        if (chance > 1.0D) {
+            chance /= 100.0D;
+        }
+        chance = Math.max(0.0D, Math.min(1.0D, chance));
+        return target.world.rand.nextDouble() < chance;
     }
 
     private static boolean spawnTemplate(EntityLivingBase target) {
-        return target.entityDropItem(new ItemStack(ModItems.alfsteelTemplate), 0.0F) != null;
+        EntityItem item = new EntityItem(target.world, target.posX, target.posY,
+                target.posZ, new ItemStack(ModItems.alfsteelTemplate));
+        item.setDefaultPickupDelay();
+        return target.world.spawnEntity(item);
+    }
+
+    private static void rememberSwordHit(EntityLivingBase target, DamageSource source,
+                                          boolean accepted) {
+        NBTTagCompound data = target.getEntityData();
+        EntityPlayer player = getKillingPlayer(source);
+        if (accepted && player != null && holdsAlfsteelSword(player)) {
+            data.setBoolean(TAG_LAST_ALFSTEEL_HIT, true);
+            data.setInteger(TAG_ALFSTEEL_ATTACKER_ID, player.getEntityId());
+        } else {
+            data.setBoolean(TAG_LAST_ALFSTEEL_HIT, false);
+            data.removeTag(TAG_ALFSTEEL_ATTACKER_ID);
+        }
     }
 
     private static boolean matchesVanillaTarget(EntityLivingBase target, String configuredId) {
