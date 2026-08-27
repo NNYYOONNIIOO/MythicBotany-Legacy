@@ -6,14 +6,16 @@ import mythicbotany.MythicBotany;
 import mythicbotany.config.MythicBotanyConfig;
 import mythicbotany.registry.ModItems;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.monster.EntityEvoker;
+import net.minecraft.entity.monster.EntityVindicator;
+import net.minecraft.entity.monster.EntityWitch;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraft.util.DamageSource;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -22,14 +24,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 public final class AlfsteelTemplateDropHandler {
     private static final float DROP_CHANCE = 0.15F;
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onLivingDrops(LivingDropsEvent event) {
+    @SubscribeEvent
+    public void onLivingDeath(LivingDeathEvent event) {
         EntityLivingBase target = event.getEntityLiving();
         if (target == null || target.world.isRemote || !isConfiguredTarget(target)) {
             return;
         }
 
-        EntityPlayer player = getKillingPlayer(event);
+        EntityPlayer player = getKillingPlayer(event.getSource());
         if (player == null || !holdsAlfsteelSword(player)) {
             return;
         }
@@ -37,7 +39,7 @@ public final class AlfsteelTemplateDropHandler {
             return;
         }
 
-        event.getDrops().add(new EntityItem(target.world, target.posX, target.posY, target.posZ,
+        target.world.spawnEntity(new EntityItem(target.world, target.posX, target.posY, target.posZ,
                 new ItemStack(ModItems.alfsteelTemplate)));
     }
 
@@ -57,25 +59,24 @@ public final class AlfsteelTemplateDropHandler {
         return new ResourceLocation(MythicBotany.MODID, "alfsteel_sword").equals(registryName);
     }
 
-    private static EntityPlayer getKillingPlayer(LivingDropsEvent event) {
-        Entity source = event.getSource().getTrueSource();
+    private static EntityPlayer getKillingPlayer(DamageSource damageSource) {
+        Entity source = damageSource.getTrueSource();
         if (source instanceof EntityPlayer) {
             return (EntityPlayer) source;
         }
 
-        Entity immediateSource = event.getSource().getImmediateSource();
+        Entity immediateSource = damageSource.getImmediateSource();
         return immediateSource instanceof EntityPlayer ? (EntityPlayer) immediateSource : null;
     }
 
     private static boolean isConfiguredTarget(EntityLivingBase target) {
-        String targetId = getEntityId(target);
         for (String configured : MythicBotanyConfig.alfsteelTemplateDropEntities) {
             if (configured == null || configured.trim().isEmpty()) {
                 continue;
             }
 
             String configuredId = normalize(configured);
-            if (configuredId.equals(targetId)) {
+            if (matchesVanillaTarget(target, configuredId)) {
                 return true;
             }
 
@@ -94,13 +95,20 @@ public final class AlfsteelTemplateDropHandler {
         return false;
     }
 
-    /**
-     * EntityList#getEntityString returns legacy names in 1.12.2 (for example,
-     * "Vindicator"), while the config uses Forge registry names.
-     */
-    private static String getEntityId(EntityLivingBase target) {
-        String legacyName = EntityList.getEntityString(target);
-        return legacyName == null ? null : normalize(legacyName);
+    private static boolean matchesVanillaTarget(EntityLivingBase target, String configuredId) {
+        if ("minecraft:witch".equals(configuredId)) {
+            return target instanceof EntityWitch;
+        }
+        if ("minecraft:vindication_illager".equals(configuredId)
+                || "minecraft:vindicator".equals(configuredId)) {
+            return target instanceof EntityVindicator;
+        }
+        if ("minecraft:evocation_illager".equals(configuredId)
+                || "minecraft:evoker".equals(configuredId)
+                || "minecraft:evocationillager".equals(configuredId)) {
+            return target instanceof EntityEvoker;
+        }
+        return false;
     }
 
     private static String normalize(String value) {
