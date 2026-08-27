@@ -291,22 +291,40 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             private static final int OUTER_WIDTH = 136;
             private static final int OUTER_HEIGHT = 196;
 
-            // Source rectangle of the red rune-panel area in jei_ritual.png.
-            private static final int PANEL_SOURCE_X = 3;
-            private static final int PANEL_SOURCE_Y = 1;
-            private static final int PANEL_SOURCE_WIDTH = 130;
-            private static final int PANEL_SOURCE_HEIGHT = 134;
+            // Source rectangle of the highlighted rune panel in
+            // assets/mythicbotany/textures/gui/jei_ritual.png. The panel is
+            // the complete 136x136 block at the top of the texture; the
+            // lower 60 pixels contain the fixed input/output area.
+            private static final int PANEL_SOURCE_X = 0;
+            private static final int PANEL_SOURCE_Y = 0;
+            private static final int PANEL_SOURCE_WIDTH = 136;
+            private static final int PANEL_SOURCE_HEIGHT = 136;
 
-            // Destination rectangle. Increase width/height to enlarge only
-            // the red panel; adjust X/Y to keep it anchored as desired.
-            private static final int PANEL_X = 3;
-            private static final int PANEL_Y = 1;
-            private static final int PANEL_WIDTH = 130;
-            private static final int PANEL_HEIGHT = 134;
+            // Change only these four values to tune the highlighted panel.
+            // These defaults implement +10 left, +18 right, +0 top and
+            // +13 bottom. The lower JEI controls keep their coordinates.
+            private static final int PANEL_LEFT_EXPANSION = 10;
+            private static final int PANEL_RIGHT_EXPANSION = 18;
+            private static final int PANEL_TOP_EXPANSION = 0;
+            private static final int PANEL_BOTTOM_EXPANSION = 13;
+
+            // The one-pixel panel border is kept at native thickness while
+            // the panel interior is enlarged. Set this to 0 to stretch the
+            // border together with the panel.
+            private static final int PANEL_BORDER = 1;
+
+            private static final int PANEL_X = PANEL_SOURCE_X - PANEL_LEFT_EXPANSION;
+            private static final int PANEL_Y = PANEL_SOURCE_Y - PANEL_TOP_EXPANSION;
+            private static final int PANEL_WIDTH = PANEL_SOURCE_WIDTH
+                    + PANEL_LEFT_EXPANSION + PANEL_RIGHT_EXPANSION;
+            private static final int PANEL_HEIGHT = PANEL_SOURCE_HEIGHT
+                    + PANEL_TOP_EXPANSION + PANEL_BOTTOM_EXPANSION;
 
             @Override
             public int getWidth() {
-                return OUTER_WIDTH;
+                // Include the panel overhang in JEI's drawable bounds so the
+                // enlarged area is not clipped by the recipe window.
+                return OUTER_WIDTH + PANEL_LEFT_EXPANSION + PANEL_RIGHT_EXPANSION;
             }
 
             @Override
@@ -326,15 +344,69 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                         0.0F, 0.0F, OUTER_WIDTH, OUTER_HEIGHT,
                         OUTER_WIDTH, OUTER_HEIGHT, 256.0F, 256.0F);
 
-                // Paint the selected panel over its original position. The
-                // panel is the only part that is resampled.
-                Gui.drawScaledCustomSizeModalRect(xOffset + PANEL_X, yOffset + PANEL_Y,
+                // Paint only the selected panel over the unchanged outer
+                // texture. A nine-slice draw keeps its border crisp.
+                drawNineSlice(xOffset + PANEL_X, yOffset + PANEL_Y,
+                        PANEL_WIDTH, PANEL_HEIGHT,
                         PANEL_SOURCE_X, PANEL_SOURCE_Y,
                         PANEL_SOURCE_WIDTH, PANEL_SOURCE_HEIGHT,
-                        PANEL_WIDTH, PANEL_HEIGHT, 256.0F, 256.0F);
+                        PANEL_BORDER);
 
                 GlStateManager.disableBlend();
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            }
+
+            private static void drawNineSlice(int targetX, int targetY,
+                                              int targetWidth, int targetHeight,
+                                              int sourceX, int sourceY,
+                                              int sourceWidth, int sourceHeight,
+                                              int border) {
+                int sourceInnerWidth = sourceWidth - border * 2;
+                int sourceInnerHeight = sourceHeight - border * 2;
+                int targetInnerWidth = targetWidth - border * 2;
+                int targetInnerHeight = targetHeight - border * 2;
+
+                drawPart(targetX, targetY, border, border,
+                        sourceX, sourceY, border, border);
+                drawPart(targetX + border, targetY, targetInnerWidth, border,
+                        sourceX + border, sourceY, sourceInnerWidth, border);
+                drawPart(targetX + targetWidth - border, targetY, border, border,
+                        sourceX + sourceWidth - border, sourceY, border, border);
+
+                drawPart(targetX, targetY + border, border, targetInnerHeight,
+                        sourceX, sourceY + border, border, sourceInnerHeight);
+                drawPart(targetX + border, targetY + border,
+                        targetInnerWidth, targetInnerHeight,
+                        sourceX + border, sourceY + border,
+                        sourceInnerWidth, sourceInnerHeight);
+                drawPart(targetX + targetWidth - border, targetY + border,
+                        border, targetInnerHeight,
+                        sourceX + sourceWidth - border, sourceY + border,
+                        border, sourceInnerHeight);
+
+                drawPart(targetX, targetY + targetHeight - border,
+                        border, border,
+                        sourceX, sourceY + sourceHeight - border,
+                        border, border);
+                drawPart(targetX + border, targetY + targetHeight - border,
+                        targetInnerWidth, border,
+                        sourceX + border, sourceY + sourceHeight - border,
+                        sourceInnerWidth, border);
+                drawPart(targetX + targetWidth - border,
+                        targetY + targetHeight - border,
+                        border, border,
+                        sourceX + sourceWidth - border,
+                        sourceY + sourceHeight - border,
+                        border, border);
+            }
+
+            private static void drawPart(int targetX, int targetY,
+                                         int targetWidth, int targetHeight,
+                                         int sourceX, int sourceY,
+                                         int sourceWidth, int sourceHeight) {
+                Gui.drawScaledCustomSizeModalRect(targetX, targetY,
+                        sourceX, sourceY, sourceWidth, sourceHeight,
+                        targetWidth, targetHeight, 256.0F, 256.0F);
             }
         }
 
