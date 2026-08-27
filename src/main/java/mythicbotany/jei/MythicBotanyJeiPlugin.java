@@ -23,6 +23,7 @@ import mythicbotany.rune.RuneRitualRecipe;
 import mythicbotany.rune.RuneRitualRegistry;
 import mythicbotany.tile.TileYggdrasilBranch;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityList;
@@ -185,7 +186,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         private final IDrawable icon;
 
         private RitualCategory(IGuiHelper helper) {
-            background = helper.createDrawable(RITUAL_BACKGROUND, 0, 0, 136, 196);
+            background = new RitualBackground();
             // JEI's standard slot is exactly 18x18. Keep the rune artwork in
             // the background untouched and use this slot only for extras/output.
             itemSlot = helper.getSlotDrawable();
@@ -279,6 +280,62 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
             int rows = (count + columns - 1) / columns;
             int row = index / columns;
             return 140 - ITEM_SLOT_SIZE * (rows - 1) + row * ITEM_SLOT_SIZE;
+        }
+
+        /**
+         * Draws the outer JEI frame at native size and enlarges only the
+         * rune-panel rectangle inside it. The source/target values below are
+         * intentionally kept together so the panel can be tuned by hand.
+         */
+        private static final class RitualBackground implements IDrawable {
+            private static final int OUTER_WIDTH = 136;
+            private static final int OUTER_HEIGHT = 196;
+
+            // Source rectangle of the red rune-panel area in jei_ritual.png.
+            private static final int PANEL_SOURCE_X = 3;
+            private static final int PANEL_SOURCE_Y = 1;
+            private static final int PANEL_SOURCE_WIDTH = 130;
+            private static final int PANEL_SOURCE_HEIGHT = 134;
+
+            // Destination rectangle. Increase width/height to enlarge only
+            // the red panel; adjust X/Y to keep it anchored as desired.
+            private static final int PANEL_X = 3;
+            private static final int PANEL_Y = 1;
+            private static final int PANEL_WIDTH = 130;
+            private static final int PANEL_HEIGHT = 134;
+
+            @Override
+            public int getWidth() {
+                return OUTER_WIDTH;
+            }
+
+            @Override
+            public int getHeight() {
+                return OUTER_HEIGHT;
+            }
+
+            @Override
+            public void draw(Minecraft minecraft, int xOffset, int yOffset) {
+                minecraft.renderEngine.bindTexture(RITUAL_BACKGROUND);
+                GlStateManager.enableAlpha();
+                GlStateManager.enableBlend();
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+                // Draw the unchanged outer frame first.
+                Gui.drawScaledCustomSizeModalRect(xOffset, yOffset,
+                        0.0F, 0.0F, OUTER_WIDTH, OUTER_HEIGHT,
+                        OUTER_WIDTH, OUTER_HEIGHT, 256.0F, 256.0F);
+
+                // Paint the selected panel over its original position. The
+                // panel is the only part that is resampled.
+                Gui.drawScaledCustomSizeModalRect(xOffset + PANEL_X, yOffset + PANEL_Y,
+                        PANEL_SOURCE_X, PANEL_SOURCE_Y,
+                        PANEL_SOURCE_WIDTH, PANEL_SOURCE_HEIGHT,
+                        PANEL_WIDTH, PANEL_HEIGHT, 256.0F, 256.0F);
+
+                GlStateManager.disableBlend();
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            }
         }
 
         private static ItemStack entityDisplayStack(String entityId) {
