@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
         dependencies = "required-after:botania;required-after:baubles")
 public final class MythicBotany {
     public static final String MODID = "mythicbotany";
-    public static final String NAME = "MythicBotany";
+    public static final String NAME = "MythicBotany Legacy";
     public static final String VERSION = "0.1.0";
 
     public static final CreativeTabs TAB = new CreativeTabs(MODID) {

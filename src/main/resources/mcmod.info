@@ -1,7 +1,7 @@
 [
 {
   "modid": "mythicbotany",
-  "name": "MythicBotany",
+  "name": "MythicBotany Legacy",
   "description": "Botania's mythic Nordic expansion, backported to Minecraft 1.12.2.",
   "version": "${version}",
   "mcversion": "${mcversion}",
