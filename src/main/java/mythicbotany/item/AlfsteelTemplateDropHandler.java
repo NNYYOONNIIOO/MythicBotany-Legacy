@@ -2,7 +2,6 @@ package mythicbotany.item;
 
 import java.util.Locale;
 
-import mythicbotany.MythicBotany;
 import mythicbotany.config.MythicBotanyConfig;
 import mythicbotany.registry.ModItems;
 import net.minecraft.entity.Entity;
@@ -95,9 +94,6 @@ public final class AlfsteelTemplateDropHandler {
     private static boolean isAlfsteelSword(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return false;
-        }
-        if (stack.getItem() instanceof ItemAlfsteelSword) {
-            return true;
         }
         ResourceLocation registryName = stack.getItem().getRegistryName();
         return new ResourceLocation("botania", "elementiumsword").equals(registryName);
