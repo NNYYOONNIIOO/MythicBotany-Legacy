@@ -87,8 +87,8 @@ public final class MythicBotanyConfig {
                     Configuration.CATEGORY_GENERAL,
                     DEFAULT_ALFSTEEL_TEMPLATE_DROP_CHANCE,
                     0.0F,
-                    100.0F,
-                    "Chance for an Alfsteel Template to drop. Values from 0 to 1 are fractions; values above 1 are percentages.");
+                    1.0F,
+                    "Chance for an Alfsteel Template to drop, from 0.0 to 1.0.");
             mjoellnirLaunchCooldown = configuration.getInt(
                     "mjoellnirLaunchCooldown",
                     Configuration.CATEGORY_GENERAL,

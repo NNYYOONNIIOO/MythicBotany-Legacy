@@ -171,11 +171,8 @@ public final class AlfsteelTemplateDropHandler {
             return false;
         }
         data.setBoolean(TAG_DROP_ROLLED, true);
-        double chance = MythicBotanyConfig.alfsteelTemplateDropChance;
-        if (chance > 1.0D) {
-            chance /= 100.0D;
-        }
-        chance = Math.max(0.0D, Math.min(1.0D, chance));
+        double chance = Math.max(0.0D, Math.min(1.0D,
+                MythicBotanyConfig.alfsteelTemplateDropChance));
         return target.world.rand.nextDouble() < chance;
     }
 
