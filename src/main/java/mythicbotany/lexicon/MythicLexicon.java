@@ -1,20 +1,27 @@
 package mythicbotany.lexicon;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import mythicbotany.MythicBotany;
 import mythicbotany.registry.ModItems;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemMonsterPlacer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.NonNullList;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.lexicon.LexiconCategory;
 import vazkii.botania.api.lexicon.LexiconEntry;
+import vazkii.botania.api.lexicon.LexiconRecipeMappings;
 import vazkii.botania.common.lexicon.page.PageText;
 
 /** Lexicon categories, entries, and text keys ported from MythicBotany upstream. */
 public final class MythicLexicon {
     private static boolean registered;
+    private static final Map<String, LexiconEntry> ENTRIES = new HashMap<>();
     private MythicLexicon() { }
     public static void register() {
         if (registered) return;
@@ -42,6 +49,7 @@ public final class MythicLexicon {
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.rune_rituals", "mythicbotany:fimbultyr_tablet", "lexicon.entry.mythicbotany.botania.mythic_botany.rune_rituals.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.rune_rituals.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.rune_rituals.page3.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.runes", "mythicbotany:niflheim_rune", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page4.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page5.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page6.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page7.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page8.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.runes.page9.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.tools", "mythicbotany:alfsteel_axe{Damage:0}", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page4.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page5.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page6.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page7.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.tools.page8.text0");
+        registerItemMappings();
     }
 
     private static void add(LexiconCategory category, String name, String iconId, String... pageKeys) {
@@ -51,6 +59,87 @@ public final class MythicLexicon {
         for (int i = 0; i < pageKeys.length; i++) pages[i] = new PageText(pageKeys[i]);
         entry.setLexiconPages(pages);
         BotaniaAPI.addEntry(entry, category);
+        ENTRIES.put(name.substring(name.lastIndexOf('.') + 1), entry);
+    }
+
+    /**
+     * PageText entries do not create the item-to-entry links used by the
+     * Botania lexicon search.  Register every MythicBotany item explicitly so
+     * Ctrl-click/Shift-click works for blocks, tools, rings and materials too.
+     * The mappings are deliberately installed after the item registry has been
+     * populated, which is when this class is called by the mod lifecycle.
+     */
+    private static void registerItemMappings() {
+        for (Item item : Item.REGISTRY) {
+            ResourceLocation registryName = item.getRegistryName();
+            if (registryName == null) continue;
+            String name = registryName.toString();
+            String prefix = MythicBotany.MODID + ":";
+            if (!name.startsWith(prefix)) continue;
+            LexiconEntry entry = entryFor(name.substring(prefix.length()));
+            if (entry == null) continue;
+
+            NonNullList<ItemStack> variants = NonNullList.create();
+            item.getSubItems(CreativeTabs.SEARCH, variants);
+            if (variants.isEmpty()) {
+                LexiconRecipeMappings.map(new ItemStack(item), entry, 0, true);
+            } else {
+                for (ItemStack variant : variants) {
+                    LexiconRecipeMappings.map(variant, entry, 0, true);
+                }
+            }
+        }
+
+        // Ancient Wills are Botania metadata variants but are documented by
+        // MythicBotany's armour entry.
+        Item ancientWill = Item.REGISTRY.getObject(new ResourceLocation("botania", "ancientwill"));
+        if (ancientWill != null) {
+            for (int meta = 0; meta <= 5; meta++) map(new ItemStack(ancientWill, 1, meta), "tools");
+        }
+
+        // Mythic flowers are stored as Botania's specialflower with a type tag.
+        Item specialFlower = Item.REGISTRY.getObject(new ResourceLocation("botania", "specialflower"));
+        if (specialFlower != null) {
+            mapFlower(specialFlower, "mythicbotany_hellebore", "functional");
+            mapFlower(specialFlower, "mythicbotany_wither_aconite", "generating");
+        }
+    }
+
+    private static LexiconEntry entryFor(String path) {
+        if (path.contains("gjallar") || path.contains("yggdrasil") || path.contains("branch")) return find("mimir");
+        if (path.contains("mjoellnir")) return find("mjoellnir");
+        if (path.contains("kvasir")) return find("kvasir");
+        if (path.contains("andwari")) return find("andwari");
+        if (path.contains("pylon")) return find("pylons");
+        if (path.contains("mana_ring") || path.contains("aura_ring")) return find("manaband");
+        if (path.endsWith("fire_ring") || path.endsWith("ice_ring")) return find("rings");
+        if (path.contains("rune_holder") || path.contains("central_rune") || path.contains("fimbultyr")) return find("rune_rituals");
+        if (path.contains("rune")) return find("runes");
+        if (path.contains("helmet") || path.contains("chestplate") || path.contains("leggings") || path.contains("boots")
+                || path.contains("sword") || path.contains("pick") || path.contains("axe") || path.contains("shovel")
+                || path.contains("breaker")) return find("tools");
+        if (path.contains("ore") || path.contains("dream") || path.contains("pixie") || path.contains("dragonstone")
+                || path.contains("gold")) return find("alfheim_resources");
+        if (path.contains("return_portal")) return find("alfheim_landscape");
+        if (path.contains("infuser") || path.contains("alfsteel")) return find("infuser");
+        return find("tools");
+    }
+
+    private static LexiconEntry find(String suffix) {
+        return ENTRIES.get(suffix);
+    }
+
+    private static void mapFlower(Item item, String type, String entrySuffix) {
+        ItemStack stack = new ItemStack(item);
+        NBTTagCompound tag = new NBTTagCompound();
+        tag.setString("type", type);
+        stack.setTagCompound(tag);
+        map(stack, entrySuffix);
+    }
+
+    private static void map(ItemStack stack, String entrySuffix) {
+        LexiconEntry entry = find(entrySuffix);
+        if (entry != null) LexiconRecipeMappings.map(stack, entry, 0, true);
     }
 
     private static ItemStack icon(String raw) {
