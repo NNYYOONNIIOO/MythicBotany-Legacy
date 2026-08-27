@@ -96,12 +96,11 @@ public final class AlfsteelTemplateDropHandler {
         if (stack == null || stack.isEmpty()) {
             return false;
         }
-        if (stack.getItem() == ModItems.alfsteelSword
-                || stack.getItem() instanceof ItemAlfsteelSword) {
+        if (stack.getItem() instanceof ItemAlfsteelSword) {
             return true;
         }
         ResourceLocation registryName = stack.getItem().getRegistryName();
-        return new ResourceLocation(MythicBotany.MODID, "alfsteel_sword").equals(registryName);
+        return new ResourceLocation("botania", "elementiumsword").equals(registryName);
     }
 
     private static EntityPlayer getKillingPlayer(DamageSource damageSource) {
