@@ -1,12 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "group": "mythicbotany.recipes",
-  "pattern": ["MMM", "RDR", "RAR"],
+  "pattern": ["MMM", "ABC", "DEF"],
   "key": {
     "M": {"item": "botania:manaresource", "data": 7},
-    "R": {"item": "botania:rune", "data": 4},
-    "D": {"item": "botania:dreamwood", "data": 5},
-    "A": {"item": "mythicbotany:asgard_rune"}
+    "A": {"item": "botania:rune", "data": 4},
+    "B": {"item": "botania:dreamwood", "data": 5},
+    "C": {"item": "botania:rune", "data": 7},
+    "D": {"item": "botania:rune", "data": 5},
+    "E": {"item": "mythicbotany:asgard_rune"},
+    "F": {"item": "botania:rune", "data": 6}
   },
   "result": {"item": "mythicbotany:mana_infuser"}
 }
