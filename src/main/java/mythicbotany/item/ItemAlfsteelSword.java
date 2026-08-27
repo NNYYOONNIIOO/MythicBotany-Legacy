@@ -28,6 +28,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import mythicbotany.network.NetworkHandler;
 import mythicbotany.network.PacketLeftClick;
+import mythicbotany.config.MythicBotanyConfig;
 import vazkii.botania.api.internal.IManaBurst;
 import vazkii.botania.api.mana.BurstProperties;
 import vazkii.botania.api.mana.ILensEffect;
@@ -156,9 +157,14 @@ public class ItemAlfsteelSword extends ItemSword implements ILensEffect {
             }
             if (living.hurtTime == 0 && burst.getMana() >= BURST_MANA / 3) {
                 burst.setMana(burst.getMana() - BURST_MANA / 3);
-                float damage = attacker == null ? 13.0F
-                        : (float) attacker.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
-                damage += EnchantmentHelper.getModifierForCreature(stack, living.getCreatureAttribute());
+                float damage = 13.0F;
+                if (MythicBotanyConfig.alfsteelSwordPulseInheritsWeaponAttributes) {
+                    damage = attacker == null ? 13.0F
+                            : (float) attacker.getEntityAttribute(
+                            SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
+                    damage += EnchantmentHelper.getModifierForCreature(
+                            stack, living.getCreatureAttribute());
+                }
                 if (!burst.isFake() && !entity.world.isRemote) {
                     living.attackEntityFrom(attacker == null ? DamageSource.MAGIC : DamageSource.causePlayerDamage(attacker), damage);
                     entity.setDead();

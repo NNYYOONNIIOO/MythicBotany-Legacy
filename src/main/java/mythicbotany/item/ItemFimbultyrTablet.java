@@ -1,5 +1,6 @@
 package mythicbotany.item;
 
+import mythicbotany.config.MythicBotanyConfig;
 import mythicbotany.dimension.ModDimensions;
 import mythicbotany.dimension.TeleporterAlfheim;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,6 +22,9 @@ public class ItemFimbultyrTablet extends Item {
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         ItemStack stack = playerIn.getHeldItem(handIn);
+        if (!MythicBotanyConfig.allowFimbultyrTabletAlfheimTravel) {
+            return new ActionResult<>(EnumActionResult.PASS, stack);
+        }
         if (!worldIn.isRemote && playerIn instanceof EntityPlayerMP && worldIn.getMinecraftServer() != null) {
             EntityPlayerMP player = (EntityPlayerMP) playerIn;
             int targetDimension = player.dimension == ModDimensions.ALFHEIM_DIMENSION_ID

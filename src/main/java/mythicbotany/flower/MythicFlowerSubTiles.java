@@ -1,5 +1,6 @@
 package mythicbotany.flower;
 
+import mythicbotany.config.MythicBotanyConfig;
 import mythicbotany.item.ItemFadedNetherStar;
 
 import mythicbotany.registry.ModItems;
@@ -279,20 +280,24 @@ public final class MythicFlowerSubTiles {
             }
 
             AxisAlignedBB area = new AxisAlignedBB(getPos()).grow(RANGE);
-            List<net.minecraft.entity.monster.EntityZombieVillager> villagers =
-                    getWorld().getEntitiesWithinAABB(
-                            net.minecraft.entity.monster.EntityZombieVillager.class, area);
-            for (net.minecraft.entity.monster.EntityZombieVillager villager : villagers) {
-                if (villager.isConverting()) {
-                    continue;
-                }
-                villager.addPotionEffect(new net.minecraft.potion.PotionEffect(
-                        net.minecraft.init.MobEffects.WEAKNESS, 40, 0, true, false));
-                if (startConverting(villager)) {
-                    getWorld().setEntityState(villager, (byte) 16);
+            if (MythicBotanyConfig.helleboreHealsZombieVillagers) {
+                List<net.minecraft.entity.monster.EntityZombieVillager> villagers =
+                        getWorld().getEntitiesWithinAABB(
+                                net.minecraft.entity.monster.EntityZombieVillager.class, area);
+                for (net.minecraft.entity.monster.EntityZombieVillager villager : villagers) {
+                    if (villager.isConverting()) {
+                        continue;
+                    }
+                    villager.addPotionEffect(new net.minecraft.potion.PotionEffect(
+                            net.minecraft.init.MobEffects.WEAKNESS, 40, 0, true, false));
+                    if (startConverting(villager)) {
+                        getWorld().setEntityState(villager, (byte) 16);
+                    }
                 }
             }
-            resetNetherBackportZombification(area);
+            if (MythicBotanyConfig.enableUnseensNetherBackportIntegration) {
+                resetNetherBackportZombification(area);
+            }
         }
 
         private static boolean startConverting(
