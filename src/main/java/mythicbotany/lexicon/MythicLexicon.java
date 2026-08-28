@@ -14,24 +14,31 @@ import java.util.Set;
 import mythicbotany.MythicBotany;
 import mythicbotany.recipe.InfuserRecipe;
 import mythicbotany.recipe.YggdrasilBranchRecipe;
+import mythicbotany.registry.ModBlocks;
 import mythicbotany.registry.ModItems;
 import mythicbotany.rune.RuneRitualRecipe;
 import mythicbotany.rune.RuneRitualRegistry;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemMonsterPlacer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import vazkii.botania.api.BotaniaAPI;
+import vazkii.botania.api.recipe.RecipeManaInfusion;
 import vazkii.botania.api.recipe.RecipePetals;
 import vazkii.botania.api.recipe.RecipeRuneAltar;
 import vazkii.botania.api.lexicon.LexiconCategory;
 import vazkii.botania.api.lexicon.LexiconEntry;
 import vazkii.botania.api.lexicon.LexiconPage;
 import vazkii.botania.api.lexicon.LexiconRecipeMappings;
+import vazkii.botania.api.lexicon.multiblock.Multiblock;
+import vazkii.botania.api.lexicon.multiblock.MultiblockSet;
 import vazkii.botania.common.lexicon.page.PageCraftingRecipe;
 import vazkii.botania.common.lexicon.page.PageText;
 
@@ -50,7 +57,7 @@ public final class MythicLexicon {
         BotaniaAPI.addCategory(category0);
         add(category0, "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape", "minecraft:spawn_egg{EntityTag:{id:\"mythicbotany:alf_pixie\"}}", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page1.text1", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page2.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page2.text1", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page3.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_landscape.page3.text1");
         add(category0, "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources", "mythicbotany:elementium_ore", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page2.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page3.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page4.text0", "lexicon.entry.mythicbotany.botania.alfheim.alfheim_resources.page5.text0");
-        add(category0, "lexicon.entry.mythicbotany.botania.alfheim.andwari", "mythicbotany:andwari_ring{Damage:0}", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page1.text1", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page3.text0", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page4.text0");
+        add(category0, "lexicon.entry.mythicbotany.botania.alfheim.andwari", "mythicbotany:andwari_ring{Damage:0}", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page1.text1", "lexicon.entry.mythicbotany.botania.alfheim.andwari.page3.text0");
         add(category0, "lexicon.entry.mythicbotany.botania.alfheim.kvasir", "mythicbotany:kvasir_mead", "lexicon.entry.mythicbotany.botania.alfheim.kvasir.page0.text0", "lexicon.entry.mythicbotany.botania.alfheim.kvasir.page1.text0", "lexicon.entry.mythicbotany.botania.alfheim.kvasir.page3.text0");
         LexiconCategory category1 = new LexiconCategory("lexicon.category.mythicbotany.botania.mythic_botany")
                 .setPriority(6)
@@ -60,7 +67,7 @@ public final class MythicLexicon {
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.generating", "botania:specialflower{type:mythicbotany_wither_aconite}", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.generating.page5.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.infuser", "mythicbotany:alfsteel_ingot", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page2.text1", "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page3.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.manaband", "mythicbotany:mana_ring_greatest", "lexicon.entry.mythicbotany.botania.mythic_botany.manaband.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.manaband.page1.text0");
-        add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.mimir", "mythicbotany:gjallar_horn_full", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page3.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page4.text0");
+        add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.mimir", "mythicbotany:gjallar_horn_full", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mimir.page4.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.mjoellnir", "mythicbotany:mjoellnir", "lexicon.entry.mythicbotany.botania.mythic_botany.mjoellnir.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mjoellnir.page1.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mjoellnir.page2.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.mjoellnir.page5.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.pylons", "mythicbotany:alfsteel_pylon", "lexicon.entry.mythicbotany.botania.mythic_botany.pylons.page0.text0");
         add(category1, "lexicon.entry.mythicbotany.botania.mythic_botany.rings", "mythicbotany:fire_ring", "lexicon.entry.mythicbotany.botania.mythic_botany.rings.page0.text0", "lexicon.entry.mythicbotany.botania.mythic_botany.rings.page1.text0");
@@ -82,24 +89,24 @@ public final class MythicLexicon {
             pages = new LexiconPage[] {new PageText(pageKeys[0])};
         } else if (name.endsWith(".alfheim_landscape")) {
             // Use Botania's native PageImage, exactly like Hydroangeas. The
-            // image page owns the full artwork and renders its caption below.
+            // page supplies only the artwork and the normal lexicon caption;
+            // do not use a full-screen custom renderer here.
             pages = new LexiconPage[] {
                     new PageText(pageKeys[0]),
-                    BotaniaAPI.internalHandler.imagePage(pageKeys[2],
+                    new PageMythicImage(pageKeys[2],
                             "mythicbotany:textures/image/alfheim_hills.png"),
-                    BotaniaAPI.internalHandler.imagePage(pageKeys[4],
+                    new PageMythicImage(pageKeys[4],
                             "mythicbotany:textures/image/dreamwood_forest.png"),
-                    BotaniaAPI.internalHandler.imagePage(pageKeys[6],
+                    new PageMythicImage(pageKeys[6],
                             "mythicbotany:textures/image/golden_fields.png")
             };
         } else if (name.endsWith(".andwari")) {
             pages = new LexiconPage[] {
                     new PageText(pageKeys[0]),
-                    BotaniaAPI.internalHandler.imagePage(pageKeys[2],
+                    new PageMythicImage(pageKeys[2],
                             "mythicbotany:textures/image/andwari_entrance.png"),
-                    BotaniaAPI.internalHandler.imagePage(pageKeys[3],
-                            "mythicbotany:textures/image/andwari_cave.png"),
-                    new PageText(pageKeys[4])
+                    new PageMythicImage(pageKeys[3],
+                            "mythicbotany:textures/image/andwari_cave.png")
             };
         } else {
             pages = new LexiconPage[pageKeys.length];
@@ -162,6 +169,18 @@ public final class MythicLexicon {
         // recipes remain available in JEI, but must not leak into the lexicon.
         LexiconEntry mimir = find("mimir");
         if (mimir != null) {
+            RecipeManaInfusion gjallarHornRecipe = null;
+            for (RecipeManaInfusion recipe : BotaniaAPI.manaInfusionRecipes) {
+                if (recipe.getOutput().getItem() == ModItems.gjallarHornEmpty) {
+                    gjallarHornRecipe = recipe;
+                    break;
+                }
+            }
+            if (gjallarHornRecipe != null && BotaniaAPI.internalHandler != null) {
+                // The third page is the Gjallarhorn mana-infusion recipe.
+                replaceRecipePage(mimir, 2, BotaniaAPI.internalHandler.manaInfusionRecipePage(
+                        EMPTY_PAGE, gjallarHornRecipe));
+            }
             for (YggdrasilBranchRecipe recipe : YggdrasilBranchRecipe.getDefaultRecipes()) {
                 addRecipePage(mimir, new PageYggdrasilBranchRecipe(
                         EMPTY_PAGE, recipe.getInput(), recipe.getOutput(), recipe.getMana()));
@@ -170,6 +189,22 @@ public final class MythicLexicon {
 
         LexiconEntry infuser = find("infuser");
         if (infuser != null) {
+            ResourceLocation infuserCraftingId = new ResourceLocation(MythicBotany.MODID, "mana_infuser");
+            if (ForgeRegistries.RECIPES.getValue(infuserCraftingId) != null) {
+                // Keep the third page as the ordinary 3x3 crafting recipe.
+                replaceRecipePage(infuser, 2, new PageCraftingRecipe(EMPTY_PAGE, infuserCraftingId));
+            }
+            if (BotaniaAPI.internalHandler != null) {
+                // Keep the fourth page as the Terra Plate-style multiblock
+                // projection. The support shimmerrock is the anchor and the
+                // infuser is rendered one block above it.
+                replaceRecipePage(infuser,
+                        3,
+                        new PageMythicMultiblock(
+                                "lexicon.entry.mythicbotany.botania.mythic_botany.infuser.page2.text0",
+                                makeManaInfuserMultiblock(),
+                                new ItemStack(vazkii.botania.common.block.ModBlocks.shimmerrock)));
+            }
             for (InfuserRecipe recipe : InfuserRecipe.getDefaultRecipes()) {
                 addRecipePage(infuser, new PageMythicInfuserRecipe(
                         EMPTY_PAGE, recipe.getOutput(), recipe.getMana(), recipe.getInputs()));
@@ -191,12 +226,13 @@ public final class MythicLexicon {
 
         // The explanatory text occupies pages 1-4 / 1-3. Keep recipes on the
         // requested following pages, with no caption text on those pages.
-        addPetalRecipePage("functional", "mythicbotany_aquapanthus", EMPTY_PAGE);
-        addPetalRecipePage("functional", "mythicbotany_exoblaze", EMPTY_PAGE);
-        addPetalRecipePage("functional", "mythicbotany_hellebore", EMPTY_PAGE);
-        addPetalRecipePage("functional", "mythicbotany_petrunia", EMPTY_PAGE);
-        addPetalRecipePage("generating", "mythicbotany_wither_aconite", EMPTY_PAGE);
-        addPetalRecipePage("generating", "mythicbotany_raindeletia", EMPTY_PAGE);
+        addPetalRecipePage("functional", "mythicbotany_aquapanthus", EMPTY_PAGE, 1);
+        addPetalRecipePage("functional", "mythicbotany_exoblaze", EMPTY_PAGE, 3);
+        addPetalRecipePage("functional", "mythicbotany_hellebore", EMPTY_PAGE, 5);
+        addPetalRecipePage("functional", "mythicbotany_petrunia", EMPTY_PAGE, 7);
+        addPetalRecipePage("generating", "mythicbotany_wither_aconite", EMPTY_PAGE, 1);
+        addPetalRecipePage("generating", "mythicbotany_raindeletia", EMPTY_PAGE, 3);
+        addCraftingRecipePageAt(find("generating"), 5, EMPTY_PAGE, "mana_collector");
 
         // Recipe captions intentionally match the rune item, not the old page
         // order from the JSON data.
@@ -213,52 +249,83 @@ public final class MythicLexicon {
 
     /** Adds custom Forge recipes that are not already represented by the static lexicon JSON. */
     private static void registerCraftingRecipePages() {
-        addCraftingRecipePage(find("tools"),
-                EMPTY_PAGE,
-                "alfsteel_pick_elementium", "alfsteel_helmet_upgrade",
-                "alfsteel_chestplate_upgrade", "alfsteel_leggings_upgrade", "alfsteel_boots_upgrade",
-                "alfsteel_sword_upgrade", "alfsteel_axe_upgrade", "alfsteel_pick_upgrade");
-        addCraftingRecipePage(find("manaband"),
-                EMPTY_PAGE,
-                "mana_ring_greatest_upgrade", "aura_ring_greatest_upgrade");
-        addCraftingRecipePage(find("rings"),
-                EMPTY_PAGE,
-                "fire_ring", "ice_ring");
+        LexiconEntry tools = find("tools");
+        replaceCraftingRecipePage(tools, 1, EMPTY_PAGE, "alfsteel_template");
+        addToolRecipePages(tools);
+
+        LexiconEntry manaband = find("manaband");
+        addCraftingRecipePageAt(manaband, 1, EMPTY_PAGE, "mana_ring_greatest_upgrade");
+        addCraftingRecipePageAt(manaband, 3, EMPTY_PAGE, "aura_ring_greatest_upgrade");
+
+        LexiconEntry rings = find("rings");
+        addCraftingRecipePageAt(rings, 1, EMPTY_PAGE, "fire_ring");
+        addCraftingRecipePageAt(rings, 3, EMPTY_PAGE, "ice_ring");
+
         addCraftingRecipePage(find("infuser"),
                 EMPTY_PAGE,
                 "alfsteel_ingots", "alfsteel_nuggets", "alfsteel_block");
     }
 
     private static void addCraftingRecipePage(LexiconEntry entry, String textKey, String... names) {
-        if (entry == null) {
-            return;
-        }
         for (String name : names) {
-            ResourceLocation id = new ResourceLocation(MythicBotany.MODID, name);
-            net.minecraft.item.crafting.IRecipe recipe = ForgeRegistries.RECIPES.getValue(id);
-            if (recipe != null) {
-                // Keep each recipe on its own page.  The Botania page renderer
-                // lays out all recipes in a supplied list at once, which makes
-                // the longer alfsteel and ring recipes overflow the page.
-                int pageIndex = entry.pages.size();
-                addRecipePage(entry, new PageCraftingRecipe(textKey, id));
-                if (!recipe.getRecipeOutput().isEmpty()) {
-                    LexiconRecipeMappings.map(recipe.getRecipeOutput(), entry, pageIndex, true);
-                }
-            }
+            addCraftingRecipePageAt(entry, entry == null ? 0 : entry.pages.size(), textKey, name);
         }
     }
 
-    private static void addPetalRecipePage(String entrySuffix, String flowerType, String pageName) {
+    private static boolean addCraftingRecipePageAt(LexiconEntry entry, int pageIndex,
+                                                    String textKey, String name) {
+        if (entry == null) {
+            return false;
+        }
+        ResourceLocation id = new ResourceLocation(MythicBotany.MODID, name);
+        if (ForgeRegistries.RECIPES.getValue(id) == null) {
+            return false;
+        }
+        insertRecipePage(entry, pageIndex, new PageCraftingRecipe(textKey, id));
+        return true;
+    }
+
+    private static boolean replaceCraftingRecipePage(LexiconEntry entry, int pageIndex,
+                                                       String textKey, String name) {
+        if (entry == null) {
+            return false;
+        }
+        ResourceLocation id = new ResourceLocation(MythicBotany.MODID, name);
+        if (ForgeRegistries.RECIPES.getValue(id) == null) {
+            return false;
+        }
+        replaceRecipePage(entry, pageIndex, new PageCraftingRecipe(textKey, id));
+        return true;
+    }
+
+    private static void addToolRecipePages(LexiconEntry entry) {
+        if (entry == null) {
+            return;
+        }
+
+        // Keep every recipe directly after the description of the item it
+        // creates, matching Botania's native lexicon page ordering.
+        addCraftingRecipePageAt(entry, 3, EMPTY_PAGE, "alfsteel_sword_upgrade");
+        addCraftingRecipePageAt(entry, 5, EMPTY_PAGE, "alfsteel_axe_upgrade");
+        addCraftingRecipePageAt(entry, 7, EMPTY_PAGE, "alfsteel_pick_upgrade");
+        addCraftingRecipePageAt(entry, 9, EMPTY_PAGE, "alfsteel_helmet_upgrade");
+        addCraftingRecipePageAt(entry, 11, EMPTY_PAGE, "alfsteel_chestplate_upgrade");
+        addCraftingRecipePageAt(entry, 13, EMPTY_PAGE, "alfsteel_leggings_upgrade");
+        addCraftingRecipePageAt(entry, 15, EMPTY_PAGE, "alfsteel_boots_upgrade");
+    }
+
+    private static void addPetalRecipePage(String entrySuffix, String flowerType, String pageName,
+                                           int pageIndex) {
         LexiconEntry entry = find(entrySuffix);
         if (entry == null) return;
         for (RecipePetals recipe : BotaniaAPI.petalRecipes) {
             ItemStack output = recipe.getOutput();
             NBTTagCompound tag = output.getTagCompound();
             if (tag != null && flowerType.equals(tag.getString("type"))) {
-                int pageIndex = entry.pages.size();
-                addRecipePage(entry, BotaniaAPI.internalHandler.petalRecipePage(pageName, recipe));
-                LexiconRecipeMappings.map(output, entry, pageIndex, true);
+                if (BotaniaAPI.internalHandler != null) {
+                    insertRecipePage(entry, pageIndex,
+                            BotaniaAPI.internalHandler.petalRecipePage(pageName, recipe));
+                }
                 return;
             }
         }
@@ -307,6 +374,51 @@ public final class MythicLexicon {
         int pageIndex = entry.pages.size();
         entry.addPage(page);
         page.onPageAdded(entry, pageIndex);
+    }
+
+    private static void insertRecipePage(LexiconEntry entry, int pageIndex, LexiconPage page) {
+        if (entry == null || page == null) return;
+        int index = Math.max(0, Math.min(pageIndex, entry.pages.size()));
+        entry.pages.add(index, page);
+        page.onPageAdded(entry, index);
+    }
+
+    private static void replaceRecipePage(LexiconEntry entry, int pageIndex, LexiconPage page) {
+        if (entry == null || page == null) return;
+        if (pageIndex < 0 || pageIndex >= entry.pages.size()) {
+            addRecipePage(entry, page);
+            return;
+        }
+        entry.pages.set(pageIndex, page);
+        page.onPageAdded(entry, pageIndex);
+    }
+
+    private static MultiblockSet makeManaInfuserMultiblock() {
+        Multiblock multiblock = new Multiblock();
+        Block shimmerrock = vazkii.botania.common.block.ModBlocks.shimmerrock;
+        // The central shimmerrock is the block below the infuser and is the
+        // block that should be selected when the projection is placed.
+        multiblock.addComponent(new BlockPos(0, 0, 0), shimmerrock.getDefaultState());
+        multiblock.addComponent(new BlockPos(0, 1, 0), ModBlocks.manaInfuser.getDefaultState());
+        addInfuserBaseBlock(multiblock, -1, -1, shimmerrock);
+        addInfuserBaseBlock(multiblock, 0, -1, Blocks.GOLD_BLOCK);
+        addInfuserBaseBlock(multiblock, 1, -1, shimmerrock);
+        addInfuserBaseBlock(multiblock, -1, 0, Blocks.GOLD_BLOCK);
+        addInfuserBaseBlock(multiblock, 1, 0, Blocks.GOLD_BLOCK);
+        addInfuserBaseBlock(multiblock, -1, 1, shimmerrock);
+        addInfuserBaseBlock(multiblock, 0, 1, Blocks.GOLD_BLOCK);
+        addInfuserBaseBlock(multiblock, 1, 1, shimmerrock);
+        // The support block is the projection origin, while the infuser is
+        // one block above it, matching Botania's Terra Plate structure.
+        multiblock.setRenderOffset(new BlockPos(0, 1, 0));
+        return multiblock.makeSet();
+    }
+
+    private static void addInfuserBaseBlock(Multiblock multiblock, int x, int z, Block block) {
+        // The center position is the shimmerrock anchor below the infuser and
+        // is added explicitly by makeManaInfuserMultiblock().
+        if (x == 0 && z == 0) return;
+        multiblock.addComponent(new BlockPos(x, 0, z), block.getDefaultState());
     }
 
     private static Object invokeFirst(Object target, String... methodNames) {

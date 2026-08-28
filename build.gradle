@@ -15,7 +15,7 @@ apply plugin: 'maven-publish'
 
 version = '1.0.0'
 group = 'com.wubid.mythicbotany'
-archivesBaseName = 'mythicbotany'
+archivesBaseName = 'mythicbotany_legacy'
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 // ForgeGradle's development classpath places the main output before the

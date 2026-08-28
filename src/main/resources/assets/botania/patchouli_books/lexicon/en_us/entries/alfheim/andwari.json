@@ -27,10 +27,6 @@
       "recipe": "mythicbotany:mythicbotany_rune_rituals/andwari_ring",
       "text": "lexicon.entry.mythicbotany.botania.alfheim.andwari.page3.text0",
       "title": ""
-    },
-    {
-      "type": "patchouli:text",
-      "text": "lexicon.entry.mythicbotany.botania.alfheim.andwari.page4.text0"
     }
   ]
 }
