@@ -7,6 +7,7 @@ import mythicbotany.registry.ModBlocks;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.EntityPlayer.SleepResult;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemShears;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
@@ -15,6 +16,7 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
@@ -38,6 +40,8 @@ public final class AlfheimPortalHandler {
     private static final Map<UUID, EntityPlayerMP> activePortalPlayers = new HashMap<>();
     private static final Set<UUID> playersInPortal = new HashSet<>();
     private static final float DREAM_CHERRY_DROP_CHANCE = 0.05F;
+    // Botania's Dragonstone is the metadata-9 mana resource.
+    private static final int DRAGONSTONE_META = 9;
 
     @SubscribeEvent
     public void onElvenPortalUpdate(ElvenPortalUpdateEvent event) {
@@ -134,6 +138,59 @@ public final class AlfheimPortalHandler {
                 }
             }
         }
+    }
+
+    /**
+     * A repaired frame can be reactivated by sacrificing a dragonstone. The
+     * item is deliberately not consumed here: ItemExpireEvent is fired only
+     * when the dropped item reaches its normal lifetime, so picking it up or
+     * removing it early does not open the portal.
+     */
+    @SubscribeEvent
+    public void reopenReturnPortalWhenDragonstoneExpires(ItemExpireEvent event) {
+        EntityItem item = event.getEntityItem();
+        World world = item.world;
+        if (world.isRemote
+                || world.provider.getDimension() != ModDimensions.ALFHEIM_DIMENSION_ID
+                || !isDragonstone(item.getItem())) {
+            return;
+        }
+
+        BlockPos portalPos = findRepairablePortalPosition(item);
+        if (portalPos != null) {
+            world.setBlockState(portalPos, ModBlocks.returnPortal.getDefaultState(), 3);
+        }
+    }
+
+    private static boolean isDragonstone(ItemStack stack) {
+        return stack != null
+                && !stack.isEmpty()
+                && stack.getItem() == vazkii.botania.common.item.ModItems.manaResource
+                && stack.getMetadata() == DRAGONSTONE_META;
+    }
+
+    private static BlockPos findRepairablePortalPosition(EntityItem item) {
+        World world = item.world;
+        BlockPos itemPos = new BlockPos((int) Math.floor(item.posX),
+                (int) Math.floor(item.posY), (int) Math.floor(item.posZ));
+        AxisAlignedBB itemBox = item.getEntityBoundingBox();
+
+        // Search the item block and its immediate neighbors so a dragonstone
+        // resting on the frame edge is still recognized as being inside it.
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    BlockPos candidate = itemPos.add(x, y, z);
+                    if (!world.isAirBlock(candidate)
+                            || !BlockReturnPortal.hasValidFrame(world, candidate)
+                            || !new AxisAlignedBB(candidate).intersects(itemBox)) {
+                        continue;
+                    }
+                    return candidate;
+                }
+            }
+        }
+        return null;
     }
 
     private static boolean advancePortalTime(EntityPlayerMP player) {

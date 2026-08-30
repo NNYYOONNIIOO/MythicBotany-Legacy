@@ -350,7 +350,11 @@ public class RenderYggdrasilBranch extends TileEntitySpecialRenderer<TileYggdras
             GlStateManager.setActiveTexture(activeTexture);
             lightmapX = OpenGlHelper.lastBrightnessX;
             lightmapY = OpenGlHelper.lastBrightnessY;
-            FloatBuffer color = BufferUtils.createFloatBuffer(4);
+            // LWJGL's glGetFloatv binding requires a 16-element buffer even
+            // when the queried value (such as GL_CURRENT_COLOR) uses fewer
+            // components.  A four-element buffer can crash item rendering
+            // in the creative inventory.
+            FloatBuffer color = BufferUtils.createFloatBuffer(16);
             GL11.glGetFloat(GL11.GL_CURRENT_COLOR, color);
             colorR = color.get(0);
             colorG = color.get(1);
