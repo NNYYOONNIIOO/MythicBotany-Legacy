@@ -70,15 +70,7 @@ public class ModWorldGenerator implements IWorldGenerator {
     @Override
     public void generate(Random random, int chunkX, int chunkZ, World world,
                          IChunkGenerator chunkGenerator, IChunkProvider chunkProvider) {
-        int dimension = world.provider.getDimension();
-        if (dimension == 0) {
-            generateOre(world, random, chunkX, chunkZ, ELEMENTIUM, 6, 8, 4, 40,
-                    Blocks.STONE);
-            generateOre(world, random, chunkX, chunkZ, DRAGONSTONE, 4, 5, 2, 24,
-                    Blocks.STONE);
-            return;
-        }
-        if (dimension != ModDimensions.ALFHEIM_DIMENSION_ID) {
+        if (world.provider.getDimension() != ModDimensions.ALFHEIM_DIMENSION_ID) {
             return;
         }
 
