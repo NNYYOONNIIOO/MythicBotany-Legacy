@@ -3,7 +3,7 @@
   "modid": "mythicbotany",
   "name": "MythicBotany: Legacy",
   "description": "Botania's mythic Nordic expansion, backported to Minecraft 1.12.2.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",

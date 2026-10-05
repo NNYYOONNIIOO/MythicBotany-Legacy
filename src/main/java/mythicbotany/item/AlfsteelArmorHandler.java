@@ -8,26 +8,11 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-/** Common 1.12 movement behavior for the alfsteel boots. */
+/** Common 1.12 behavior for the alfsteel armor set. */
 public final class AlfsteelArmorHandler {
-    @SubscribeEvent
-    public void onLivingUpdate(LivingUpdateEvent event) {
-        EntityLivingBase entity = event.getEntityLiving();
-        if (!(entity instanceof EntityPlayer) || !entity.isInWater()) {
-            return;
-        }
-        ItemStack leggings = entity.getItemStackFromSlot(EntityEquipmentSlot.LEGS);
-        if (leggings.isEmpty() || leggings.getItem() != ModItems.alfsteelLeggings) {
-            return;
-        }
-        entity.motionX *= 1.4D;
-        entity.motionZ *= 1.4D;
-    }
-
     @SubscribeEvent
     public void onEntityAttacked(LivingHurtEvent event) {
         if (event.getEntityLiving().world.isRemote) {
