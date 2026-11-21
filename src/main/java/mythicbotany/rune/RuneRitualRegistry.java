@@ -8,6 +8,7 @@ import mythicbotany.MythicBotany;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.nbt.JsonToNBT;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -122,10 +123,17 @@ public final class RuneRitualRegistry {
                         rune.get("z").getAsInt(), stack, consume));
             }
 
+            List<String> specialInputs = readSpecialInputs(recipe);
+            // Resolve only the bundled recipe so gameplay and JEI share the
+            // same sacrifice requirement without changing CraftTweaker recipes.
+            if ("kvasir_blood".equals(name) && Loader.isModLoaded("farmers_future_delight")) {
+                specialInputs = Collections.singletonList("farmers_future_delight:wandering_trader");
+            }
+
             registerDefault(new RuneRitualRecipe(center, outputs,
                     recipe.has("mana") ? recipe.get("mana").getAsInt() : 0,
                     recipe.has("ticks") ? recipe.get("ticks").getAsInt() : 200,
-                    inputs, readSpecialInputs(recipe), specialOutput,
+                    inputs, specialInputs, specialOutput,
                     runes.toArray(new RuneRitualRecipe.RunePosition[0])));
         } catch (Exception exception) {
             warn("Unable to load Rune Ritual recipe " + name + ": " + exception.getMessage());
