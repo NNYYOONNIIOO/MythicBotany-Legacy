@@ -14,7 +14,7 @@ import net.minecraft.world.World;
 
 /** The filled horn is a drinkable source of Mimir's knowledge. */
 public class ItemGjallarHornFull extends Item {
-    private static final String KNOWLEDGE_TAG = "MythicBotanyMimirKnowledge";
+    public static final String KNOWLEDGE_TAG = "MythicBotanyMimirKnowledge";
 
     public ItemGjallarHornFull() {
         setMaxStackSize(1);

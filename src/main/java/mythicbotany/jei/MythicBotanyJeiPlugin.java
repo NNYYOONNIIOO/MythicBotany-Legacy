@@ -482,6 +482,13 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         }
     }
 
+    private static void drawManaCost(Minecraft minecraft, int x, int barY, int mana) {
+        if (MythicBotanyConfig.showJeiManaCost) {
+            minecraft.fontRenderer.drawString(Integer.toString(mana), x,
+                    barY - minecraft.fontRenderer.FONT_HEIGHT - 2, 0x000000);
+        }
+    }
+
     private static final class InfuserWrapper implements IRecipeWrapper {
         private final InfuserRecipe recipe;
 
@@ -503,6 +510,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
         public void drawInfo(Minecraft minecraft, int width, int height, int mouseX, int mouseY) {
             HUDHandler.renderManaBar(6, height - 15, 0x0000FF, 0.75F,
                     recipe.getMana(), TilePool.MAX_MANA / 10);
+            drawManaCost(minecraft, 6, height - 15, recipe.getMana());
         }
     }
 
@@ -536,6 +544,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                 HUDHandler.renderManaBar(17, height - 7, 0x0000FF, 0.75F,
                         recipe.getMana(), 1000000);
             }
+            drawManaCost(minecraft, 17, height - 7, recipe.getMana());
         }
     }
 
@@ -557,6 +566,7 @@ public final class MythicBotanyJeiPlugin implements IModPlugin {
                              int mouseX, int mouseY) {
             HUDHandler.renderManaBar(20, 50, 0x0000FF, 0.75F,
                     recipe.getMana(), TilePool.MAX_MANA / 10);
+            drawManaCost(minecraft, 20, 50, recipe.getMana());
         }
     }
 }

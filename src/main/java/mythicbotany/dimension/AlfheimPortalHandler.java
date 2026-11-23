@@ -1,6 +1,7 @@
 package mythicbotany.dimension;
 
 import mythicbotany.block.BlockReturnPortal;
+import mythicbotany.item.ItemKvasirMead;
 import mythicbotany.network.NetworkHandler;
 import mythicbotany.registry.ModItems;
 import mythicbotany.registry.ModBlocks;
@@ -17,6 +18,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.BlockEvent.HarvestDropsEvent;
@@ -55,12 +57,22 @@ public final class AlfheimPortalHandler {
 
         List<EntityPlayerMP> players = source.getEntitiesWithinAABB(EntityPlayerMP.class, event.aabb);
         for (EntityPlayerMP player : players) {
-            if (player.isRiding()) {
+            if (player.isRiding()
+                    || !player.getEntityData().getBoolean(ItemKvasirMead.KNOWLEDGE_TAG)) {
                 continue;
             }
             if (advancePortalTime(player)) {
                 teleportToAlfheim(player, event.portalTile.getPos());
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerClone(PlayerEvent.Clone event) {
+        // Drinking the mead unlocks elven-portal travel permanently, including
+        // after death or a player clone when returning from the End.
+        if (event.getOriginal().getEntityData().getBoolean(ItemKvasirMead.KNOWLEDGE_TAG)) {
+            event.getEntityPlayer().getEntityData().setBoolean(ItemKvasirMead.KNOWLEDGE_TAG, true);
         }
     }
 

@@ -21,6 +21,7 @@ import mythicbotany.network.NetworkHandler;
 import mythicbotany.item.AlfsteelArmorHandler;
 import mythicbotany.item.AlfsteelFireProtectionHandler;
 import mythicbotany.item.AlfsteelTemplateDropHandler;
+import mythicbotany.item.FimbultyrTabletDropHandler;
 import mythicbotany.item.MjoellnirHandler;
 import mythicbotany.rune.TileCentralRuneHolder;
 import mythicbotany.rune.TileRuneHolder;
@@ -40,7 +41,7 @@ import org.apache.logging.log4j.Logger;
 public final class MythicBotany {
     public static final String MODID = "mythicbotany";
     public static final String NAME = "MythicBotany: Legacy";
-    public static final String VERSION = "1.0.5";
+    public static final String VERSION = "1.0.6";
 
     public static final CreativeTabs TAB = new CreativeTabs(MODID) {
         @Override
@@ -65,6 +66,7 @@ public final class MythicBotany {
         MinecraftForge.EVENT_BUS.register(new AlfsteelArmorHandler());
         MinecraftForge.EVENT_BUS.register(new AlfsteelFireProtectionHandler());
         MinecraftForge.EVENT_BUS.register(new AlfsteelTemplateDropHandler());
+        MinecraftForge.EVENT_BUS.register(new FimbultyrTabletDropHandler());
         MinecraftForge.EVENT_BUS.register(new MjoellnirHandler());
         MinecraftForge.EVENT_BUS.register(new AlfheimPortalHandler());
         // DecorateBiomeEvent is posted on Forge's terrain-generation bus,

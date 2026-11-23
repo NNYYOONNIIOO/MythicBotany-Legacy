@@ -7,6 +7,7 @@ import java.io.File;
 /** Runtime configuration for MythicBotany client and gameplay settings. */
 public final class MythicBotanyConfig {
     public static final float DEFAULT_RITUAL_JEI_RUNE_SCALE = 0.75F;
+    public static final boolean DEFAULT_SHOW_JEI_MANA_COST = false;
     public static final boolean DEFAULT_ALFSTEEL_SWORD_PULSE_INHERITS_WEAPON_ATTRIBUTES = false;
     public static final boolean DEFAULT_HELLEBORE_HEALS_ZOMBIE_VILLAGERS = true;
     public static final boolean DEFAULT_UNSEENS_NETHER_BACKPORT_INTEGRATION = true;
@@ -25,6 +26,7 @@ public final class MythicBotanyConfig {
     public static final boolean DEFAULT_MJOELLNIR_DROPS_BECOME_BLOCKS = true;
 
     public static float ritualJeiRuneScale = DEFAULT_RITUAL_JEI_RUNE_SCALE;
+    public static boolean showJeiManaCost = DEFAULT_SHOW_JEI_MANA_COST;
     public static boolean alfsteelSwordPulseInheritsWeaponAttributes =
             DEFAULT_ALFSTEEL_SWORD_PULSE_INHERITS_WEAPON_ATTRIBUTES;
     public static boolean helleboreHealsZombieVillagers =
@@ -56,6 +58,11 @@ public final class MythicBotanyConfig {
                     0.1F,
                     2.0F,
                     "Scale of the item icons and spacing in the rune area of the rune ritual JEI recipe.");
+            showJeiManaCost = configuration.getBoolean(
+                    "showJeiManaCost",
+                    Configuration.CATEGORY_CLIENT,
+                    DEFAULT_SHOW_JEI_MANA_COST,
+                    "Show the exact mana cost above the left side of mana bars in MythicBotany JEI recipes.");
 
             alfsteelSwordPulseInheritsWeaponAttributes = configuration.getBoolean(
                     "alfsteelSwordPulseInheritsWeaponAttributes",
